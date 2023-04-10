@@ -3,7 +3,7 @@ project(Wave-Engine)
 
 set(CMAKE_CXX_STANDARD 20)
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "")
+if (CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE "RELEASE" FORCE)
 endif ()
 
@@ -162,7 +162,7 @@ add_executable(Tests
                Test/src/test_objects.cpp
                Test/src/test_camera.cpp)
 
-target_compile_options(Tests PUBLIC -Wall)
+target_compile_options(Tests PUBLIC)
 
 if (WIN32)
   target_compile_definitions(Tests PUBLIC
@@ -174,11 +174,6 @@ if (WIN32)
   target_precompile_headers(Tests PUBLIC Wave/Include/wave_pch.h)
   target_link_libraries(Tests PUBLIC
                         Wave
-                        ${GLFW3_LIB}
-                        ${GLEW_LIB}
-                        freetype
-                        OpenGL::GL
-                        ${CMAKE_DL_LIBS}
                         ${GTEST}
                         ${GTEST_MAIN})
   target_include_directories(Tests PUBLIC
@@ -190,7 +185,7 @@ if (WIN32)
                              Wave/Include/Dependencies/googleTest/googlemock/include
                              Example_app/Include)
 elseif (UNIX)
-  target_compile_options(Tests PUBLIC -Wall)
+  target_compile_options(Tests PUBLIC)
   target_compile_definitions(Tests PUBLIC
                              GLEW_STATIC
                              GLFW3_STATIC
@@ -199,11 +194,6 @@ elseif (UNIX)
   target_precompile_headers(Tests PUBLIC Wave/Include/wave_pch.h)
   target_link_libraries(Tests PUBLIC
                         Wave
-                        glfw
-                        GLEW
-                        freetype
-                        OpenGL::GL
-                        ${CMAKE_DL_LIBS}
                         GTest::gtest_main)
   target_include_directories(Tests PUBLIC
                              Wave/Include
