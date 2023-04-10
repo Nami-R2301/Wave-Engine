@@ -1,0 +1,13 @@
+# IDE config and project files.
+.idea/*
+cmake-build*/*
+build/*
+log.txt
+*.exe
+int/*
+bin/*
+.vs/*
+CMakeSettings.json
+Wave/libs/x64/Wave.lib
+Wave/Include/Dependencies/glm
+*.log

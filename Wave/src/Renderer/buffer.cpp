@@ -1,0 +1,78 @@
+//
+// Created by nami on 29/03/23.
+//
+
+#include <Renderer/buffer.h>
+#include <Renderer/renderer.h>
+
+namespace Wave
+{
+  std::shared_ptr<Vertex_buffer> Vertex_buffer::Create(uint64_t size)
+  {
+    switch (Gl_renderer::get_api())
+    {
+      case Renderer_api::None:
+        alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::Opengl:return create_shared_pointer<Gl_vertex_buffer>(size);
+      case Renderer_api::Vulkan:
+        alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::Directx:
+        alert(WAVE_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+    }
+    
+    alert(WAVE_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
+    return nullptr;
+  }
+  
+  std::shared_ptr<Vertex_buffer> Vertex_buffer::Create(const float *vertices, uint64_t size)
+  {
+    switch (Gl_renderer::get_api())
+    {
+      case Renderer_api::None:
+        alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::Opengl:return create_shared_pointer<Gl_vertex_buffer>(vertices, size);
+      case Renderer_api::Vulkan:
+        alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::Directx:
+        alert(WAVE_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+    }
+    
+    alert(WAVE_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
+    return nullptr;
+  }
+  
+  std::shared_ptr<Index_buffer> Index_buffer::Create(uint32_t *indices, uint32_t size)
+  {
+    switch (Gl_renderer::get_api())
+    {
+      case Renderer_api::None:
+        alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::Opengl:return create_shared_pointer<Gl_index_buffer>(indices, size);
+      case Renderer_api::Vulkan:
+        alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::Directx:
+        alert(WAVE_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+    }
+    
+    alert(WAVE_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
+    return nullptr;
+  }
+}
