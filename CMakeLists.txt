@@ -3,7 +3,7 @@ project(Wave-Engine)
 
 set(CMAKE_CXX_STANDARD 20)
 
-if (CMAKE_BUILD_TYPE STREQUAL "")
+if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RELEASE" FORCE)
 endif ()
 
@@ -122,9 +122,7 @@ elseif (WIN32)
                         shell32
                         freetype
                         ${GLEW_LIB}
-                        ${GLFW3_LIB}
-                        OpenGL::GL
-                        ${CMAKE_DL_LIBS})
+                        ${GLFW3_LIB})
   target_include_directories(Wave PUBLIC
                              Wave/Include
                              Wave/Include/Dependencies
@@ -141,7 +139,11 @@ elseif (WIN32)
 endif ()
 
 # ------------------------------ COMMON STEPS FOR BOTH WIN32 AND UNIX -------------------------------
-target_link_libraries(App PUBLIC Wave)
+target_link_libraries(App PUBLIC
+                    Wave
+                    freetype
+                    glfw
+                    GLEW)
 target_include_directories(App PUBLIC Wave/Include Wave/Include/Dependencies
                            Wave/Include/Dependencies/GL/glfw/include Example_app/Include)
 
@@ -194,6 +196,9 @@ elseif (UNIX)
   target_precompile_headers(Tests PUBLIC Wave/Include/wave_pch.h)
   target_link_libraries(Tests PUBLIC
                         Wave
+                        freetype
+                        glfw
+                        GLEW
                         GTest::gtest_main)
   target_include_directories(Tests PUBLIC
                              Wave/Include
