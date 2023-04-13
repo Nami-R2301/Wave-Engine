@@ -7,6 +7,23 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RELEASE" FORCE)
 endif ()
 
+add_library(imgui STATIC
+            # Main Imgui files
+            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui.cpp
+            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui.h
+            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_draw.cpp
+            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_tables.cpp
+            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_widgets.cpp
+            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_demo.cpp)
+add_library(imgui::imgui ALIAS imgui)
+target_link_libraries(imgui
+                      PUBLIC
+                      OpenGL::GL
+                      $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+                      )
+target_include_directories(imgui PUBLIC ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui/
+                           ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/backends/)
+
 add_library(Wave STATIC
             Wave/src/Core/engine.cpp
             Wave/src/Renderer/vertex.cpp
@@ -38,7 +55,8 @@ add_library(Wave STATIC
             Wave/src/Renderer/gl_buffer.cpp
             Wave/src/Renderer/vertex_array_buffer.cpp
             Wave/src/Events/renderer_event.cpp
-            Wave/Include/Core/interfaces.h)
+            Wave/src/ImGUI/imGUI_layer.cpp
+            Wave/src/ImGUI/imGUI_build.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -47,9 +65,7 @@ message("Freetype LIB DETECTED\n")
 if (UNIX)
   message("Unix-like system detected. Setting up configuration for GNU...\n")
   find_package(GLEW REQUIRED)
-  message("GLEW LIB DETECTED -->  ${GLEW_LIB}")
   find_package(glfw3 REQUIRED)
-  message("GLFW LIB DETECTED -->  ${GLFW3_LIB} \n")
   find_package(OpenGL REQUIRED)
   find_package(X11 REQUIRED)
   
@@ -64,6 +80,11 @@ if (UNIX)
                         ${GLEW_LIB}
                         ${GLFW3_LIB}
                         OpenGL::GL
+                        imgui
+                        sfml-system
+                        sfml-network
+                        sfml-graphics
+                        sfml-window
                         ${CMAKE_DL_LIBS})
   target_include_directories(Wave PUBLIC Wave/Include Wave/Include/Dependencies
                              Wave/Include/Dependencies/GL/glfw/include
@@ -131,9 +152,15 @@ elseif (WIN32)
   
   # WinMain (SUBSYSTEM:WINDOWS or SUBSYSTEM:CONSOLE).
   if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
-    add_executable(App WIN32 Example_app/src/example_app.cpp Example_app/src/example_layer.cpp)
+    add_executable(App WIN32
+                   Example_app/src/example_app.cpp
+                   Example_app/src/example_layer.cpp)
   else ()
-    add_executable(App Example_app/src/example_app.cpp Example_app/src/example_layer.cpp)
+    add_executable(App
+                   Example_app/src/example_app.cpp
+                   Example_app/src/example_layer.cpp
+                   Wave/src/ImGUI/imGUI_layer.cpp
+                   Wave/src/ImGUI/imGUI_build.cpp)
   endif ()
   target_compile_definitions(App PUBLIC WIN32_LEAN_AND_MEAN ${CMAKE_BUILD_TYPE})
 endif ()
@@ -162,7 +189,9 @@ add_executable(Tests
                Example_app/src/example_layer.cpp
                Test/src/test_main.cpp
                Test/src/test_objects.cpp
-               Test/src/test_camera.cpp)
+               Test/src/test_camera.cpp
+               Wave/src/ImGUI/imGUI_layer.cpp
+               Wave/src/ImGUI/imGUI_build.cpp)
 
 target_compile_options(Tests PUBLIC)
 

@@ -7,21 +7,6 @@
 namespace Wave
 {
   
-  std::string On_any_mouse_event::to_string() const
-  {
-    std::string output("[On mouse button input] :\n");
-    
-    char buffer[FILENAME_MAX] {0};
-    if (snprintf(buffer, sizeof(buffer), "%50sEvent type --> %d\n",
-                 DEFAULT, static_cast<int32_t>(this->event_type)) < 0)
-    {
-      output += "Snprintf error when trying to display [On_mouse_button_input] event!";
-    }
-    else { output += buffer; }
-    
-    return output;
-  }
-  
   /*************************** MOUSE PRESS ***************************/
   
   On_mouse_button_press::On_mouse_button_press(int32_t mouse_button_)

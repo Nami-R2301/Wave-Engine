@@ -3,21 +3,14 @@
 //
 
 #include <example_app.h>
+#include <example_layer.h>
 // NEED TO BE INCLUDED IN MAIN APP ONLY
 #include <entrypoint.h>
 
-#include <example_layer.h>
-
 Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
 {
-  // Setup renderer
-  Wave::Gl_renderer::init();
-  
   // Add Cameras
-  this->demo_perspective_camera = std::make_unique<Wave::Perspective_camera>(
-      90.0f, static_cast<float>(Wave::Engine::get_main_window()->get_width()),
-      static_cast<float>(Wave::Engine::get_main_window()->get_height()),
-      0.1f, 1000.0f);
+  this->demo_perspective_camera = Wave::create_shared_pointer<Wave::Perspective_camera>(90.0f, 0.1f, 1000.0f);
   
   // Add shaders
   this->demo_shaders.emplace_back(Wave::Shader::create("Default",
@@ -31,17 +24,12 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
   this->demo_objects.emplace_back(Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("awp.obj").load_3D_mesh()));
   this->demo_objects.emplace_back(Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("cube.obj").load_3D_mesh()));
   
-  this->game_layer = new Example_scene_3D(this->demo_perspective_camera,
-                                          this->demo_shaders,
-                                          this->demo_objects[0]);
-  push_layer(this->game_layer);
+  push_layer(new Example_scene_3D(this->demo_perspective_camera,
+                                  this->demo_shaders,
+                                  this->demo_objects[0]));
 }
 
-Example_app::~Example_app()
-{
-  pop_layer(this->game_layer);
-  delete this->game_layer;
-}
+Example_app::~Example_app() = default;
 
 void Example_app::init()
 {
@@ -55,33 +43,16 @@ void Example_app::on_update(float time_step)
 
 void Example_app::on_event(Wave::Event &event)
 {
+  Engine::on_event(event);
+  if (event.handled) return;
+  
   Wave::Event_dispatcher event_dispatcher(event);
-  switch (event.get_event_type())
+  
+  switch(event.get_event_type())
   {
-    case Wave::Event_type::None:return;
     case Wave::Event_type::On_key_event:
     {
-      event_dispatcher.dispatch<Wave::On_any_key_callback>(BIND_EVENT_FUNCTION(any_key_input_callback));
-      break;
-    }
-    case Wave::Event_type::On_key_press:
-    {
-      event_dispatcher.dispatch<Wave::On_key_press>(BIND_EVENT_FUNCTION(key_press_callback));
-      break;
-    }
-    case Wave::Event_type::On_key_hold:
-    {
-      event_dispatcher.dispatch<Wave::On_key_hold>(BIND_EVENT_FUNCTION(key_hold_callback));
-      break;
-    }
-    case Wave::Event_type::On_key_release:
-    {
-      event_dispatcher.dispatch<Wave::On_key_release>(BIND_EVENT_FUNCTION(key_release_callback));
-      break;
-    }
-    case Wave::Event_type::On_mouse_event:
-    {
-      event_dispatcher.dispatch<Wave::On_any_mouse_event>(BIND_EVENT_FUNCTION(any_mouse_input_callback));
+      event_dispatcher.dispatch<Wave::On_any_key_event>(BIND_EVENT_FUNCTION(any_key_callback));
       break;
     }
     case Wave::Event_type::On_mouse_movement:
@@ -111,7 +82,6 @@ void Example_app::on_event(Wave::Event &event)
     }
     default:break;
   }
-  Engine::on_event(event);
 }
 
 bool Example_app::window_closed_callback([[maybe_unused]] Wave::On_window_close &window_closed_event)
@@ -134,9 +104,9 @@ bool Example_app::mouse_movement_callback(Wave::On_mouse_movement &mouse_cursor_
     float delta_x = current_mouse_position.get_x() - center_x;
     float delta_y = current_mouse_position.get_y() - center_y;
     
-    float rotation_x = delta_x / (float) Example_app::main_window->get_width();
-    float rotation_y = delta_y > center_y ? (-delta_y / (float) Example_app::main_window->get_height()) / 2 :
-                       (delta_y / (float) Example_app::main_window->get_height()) / 2;
+    float rotation_x = delta_x / (float) this->demo_perspective_camera->get_width();
+    float rotation_y = delta_y > center_y ? (-delta_y / (float) this->demo_perspective_camera->get_height()) / 2 :
+                       (delta_y / (float) this->demo_perspective_camera->get_height()) / 2;
     
     this->demo_objects[0]->rotate(rotation_x * sensitivity, rotation_y * sensitivity, 0);
   }
@@ -151,6 +121,13 @@ bool Example_app::mouse_wheel_callback(Wave::On_mouse_wheel_scroll &mouse_wheel_
     this->demo_perspective_camera->move(this->demo_perspective_camera->get_forward(),
                                         mouse_wheel_input.get_mouse_wheel_offset().get_y() * sensitivity);
   }
+  return true;
+}
+
+bool Example_app::window_resize_callback(Wave::On_window_resize &window_resized_event)
+{
+  Engine::window_resize_callback(window_resized_event);
+  this->demo_perspective_camera->on_window_resize(window_resized_event);
   return true;
 }
 

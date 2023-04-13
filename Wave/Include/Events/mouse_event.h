@@ -4,34 +4,20 @@
 
 #pragma once
 
-#include <Window/window.h>
-#include <Math/vector.h>
+#include <Events/event.h>
 #include <Input/mouse_codes.h>
-#include <Events/event_dispatcher.h>
 
 namespace Wave
 {
   
-  class On_any_mouse_event : public Event
-  {
-  public:
-    On_any_mouse_event() = default;
-    ~On_any_mouse_event() override = default;
-    
-    EVENT_CLASS_TYPE(Event_type::On_mouse_event);
-    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_INPUT | EVENT_CATEGORY_MOUSE_BUTTON);
-    
-    /* Printable */
-    [[nodiscard]] std::string to_string() const override;
-  };
-  
-  class On_mouse_button_press : public On_any_mouse_event
+  class On_mouse_button_press : public Event
   {
   public:
     explicit On_mouse_button_press(int mouse_button_);
     ~On_mouse_button_press() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_mouse_button_press);
+    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_MOUSE_BUTTON | EVENT_CATEGORY_INPUT)
     
     INTERFACE_PRINT
     
@@ -40,13 +26,14 @@ namespace Wave
     int mouse_button_pressed = WAVE_MOUSE_BUTTON_UNKNOWN;
   };
   
-  class On_mouse_button_hold : public On_any_mouse_event
+  class On_mouse_button_hold : public Event
   {
   public:
     explicit On_mouse_button_hold(int mouse_button_);
     ~On_mouse_button_hold() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_mouse_button_hold);
+    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_MOUSE_BUTTON | EVENT_CATEGORY_INPUT)
     
     INTERFACE_PRINT
     
@@ -55,13 +42,14 @@ namespace Wave
     int mouse_button_held = WAVE_MOUSE_BUTTON_UNKNOWN;
   };
   
-  class On_mouse_button_release : public On_any_mouse_event
+  class On_mouse_button_release : public Event
   {
   public:
     explicit On_mouse_button_release(int mouse_button_);
     ~On_mouse_button_release() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_mouse_button_release);
+    EVENT_CLASS_CATEGORY(None)
     
     INTERFACE_PRINT
     
@@ -70,13 +58,14 @@ namespace Wave
     int mouse_button_released = WAVE_MOUSE_BUTTON_UNKNOWN;
   };
   
-  class On_mouse_movement : public On_any_mouse_event
+  class On_mouse_movement : public Event
   {
   public:
     explicit On_mouse_movement(const Vector_2f &position);
     ~On_mouse_movement() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_mouse_movement);
+    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_INPUT)
     
     INTERFACE_PRINT
     

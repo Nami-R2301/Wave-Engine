@@ -11,12 +11,9 @@ namespace Wave
   
   /**************************************** PERSPECTIVE CAMERA *************************************/
   
-  Perspective_camera::Perspective_camera(float fov_, float width_, float height_, float z_near_,
-                                         float z_far_)
+  Perspective_camera::Perspective_camera(float fov_, float z_near_, float z_far_)
   {
     this->fov = fov_;
-    this->width = width_;
-    this->height = height_;
     this->z_near = z_near_;
     this->z_far = z_far_;
     this->position = Vector_3f(0, 0, 0);
@@ -38,6 +35,13 @@ namespace Wave
     output += "Projection matrix --> " + this->projection_matrix.to_string();
     
     return output;
+  }
+  
+  void Perspective_camera::on_window_resize(On_window_resize &resize_event)
+  {
+    auto width_ = static_cast<float>(resize_event.get_width());
+    auto height = static_cast<float>(resize_event.get_height());
+    set_viewport(width_, height);
   }
   
   void Perspective_camera::move(const Vector_3f &direction_, const float amount)
@@ -93,22 +97,18 @@ namespace Wave
   
   void Perspective_camera::update_projection_matrix()
   {
-    this->projection_matrix.init_perspective_projection(this->fov, this->width,
-                                                        this->height, this->z_near, this->z_far);
+    this->projection_matrix.init_perspective_projection(this->fov,
+                                                        this->z_near,
+                                                        this->z_far);
   }
   
   /******************************************** ORTHOGRAPHIC CAMERA ******************************************/
   
-  Orthographic_camera::Orthographic_camera(float width_, float height_, float left_, float right_,
-                                           float top_, float bottom_, float z_near_,
-                                           float z_far_)
+  Orthographic_camera::Orthographic_camera(float width_, float height_, float size_, float z_near_, float z_far_)
   {
     this->width = width_;
     this->height = height_;
-    this->left = left_;
-    this->right = right_;
-    this->top = top_;
-    this->bottom = bottom_;
+    this->size = size_;
     this->z_near = z_near_;
     this->z_far = z_far_;
     Orthographic_camera::update_projection_matrix();
@@ -128,10 +128,15 @@ namespace Wave
     return output;
   }
   
+  void Orthographic_camera::on_window_resize(On_window_resize &resize_event)
+  {
+  
+  }
+  
   void Orthographic_camera::move(const Vector_3f &direction_, const float amount)
   {
     //TODO
-    this->position += (direction_.normalize() * amount);
+    this->position += (direction_.normalize(this->width, this->height) * this->aspect_ratio * amount);
     update_view_matrix();
   }
   
@@ -139,7 +144,7 @@ namespace Wave
   {
     //TODO
     Vector_3f direction(x, y, z);
-    this->position += (direction.normalize() * amount);
+    this->position += (direction.normalize(this->width, this->height) * this->aspect_ratio * amount);
     update_view_matrix();
   }
   
@@ -173,9 +178,11 @@ namespace Wave
   
   void Orthographic_camera::update_projection_matrix()
   {
-    this->projection_matrix.init_orthographic_projection(this->width, this->height, this->left, this->right, this->top,
-                                                         this->bottom,
-                                                         this->z_near, this->z_far);
+    this->projection_matrix.init_orthographic_projection(-this->size * this->aspect_ratio * 0.5f,
+                                                         this->size * this->aspect_ratio * 0.5f,
+                                                         this->size * this->aspect_ratio * 0.5f,
+                                                         -this->size * this->aspect_ratio * 0.5f,
+                                                         this->z_near,
+                                                         this->z_far);
   }
-  
 }

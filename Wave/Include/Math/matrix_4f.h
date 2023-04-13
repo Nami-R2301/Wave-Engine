@@ -26,9 +26,8 @@ namespace Wave
     void init_rotation(float x, float y, float z);
     void init_scale(Vector_3f vector_3f);
     void init_scale(float x, float y, float z);
-    void init_perspective_projection(float fov_, float width_, float height_, float z_near_, float z_far_);
-    void init_orthographic_projection(float width_, float height_, float left, float right_, float top_,
-                                      float bottom_, float z_near_, float z_far_);
+    void init_perspective_projection(float fov_, float z_near_, float z_far_);
+    void init_orthographic_projection(float left, float right_, float top_, float bottom_, float z_near_, float z_far_);
     void init_camera(Vector_3f direction, Vector_3f up);
     
     [[nodiscard]] int length() const;

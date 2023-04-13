@@ -21,7 +21,7 @@ namespace Wave
     {
       if (T::get_static_type() == this->event.get_event_type())
       {
-        this->event.event_state = (function((T &) this->event) ? HANDLED : NOT_HANDLED);
+        this->event.handled |= function((T &) this->event);
         return true;
       }
       return false;
