@@ -1,7 +1,5 @@
-#include "ImGUI/imGUI_layer.h"
 #include <Core/engine.h>
 #include <mutex>
-#include <ranges>
 
 namespace Wave
 {
@@ -273,10 +271,10 @@ namespace Wave
       default:break;
     }
     
-    for (auto & it : std::ranges::reverse_view(this->layer_stack))
+    for (auto it = this->layer_stack.rbegin(); it != this->layer_stack.rend(); ++it)
     {
       if (event.handled) break;
-      it->on_event(event);
+      (*it)->on_event(event);
     }
   }
   

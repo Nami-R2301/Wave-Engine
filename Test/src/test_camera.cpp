@@ -23,8 +23,6 @@ namespace Wave
       // Code here will be called immediately after the constructor (right
       // before each test).
       this->dummy_camera = Wave::create_shared_pointer<Wave::Perspective_camera>(90.0f,
-                                                                                 static_cast<float>(Engine::get_main_window()->get_width()),
-                                                                                 static_cast<float>(Engine::get_main_window()->get_height()),
                                                                                  0.1f,
                                                                                  1000.0f).get();
     }

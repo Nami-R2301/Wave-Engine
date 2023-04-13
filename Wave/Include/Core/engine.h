@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ImGUI/imGUI_layer.h"
+#include <ImGUI/imGUI_layer.h>
 #include <Core/core_macros.h>
 #include <Core/settings.h>
 #include <Core/layer_stack.h>
