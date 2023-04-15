@@ -38,7 +38,8 @@ add_library(Wave STATIC
             Wave/src/Renderer/gl_buffer.cpp
             Wave/src/Renderer/vertex_array_buffer.cpp
             Wave/src/Events/renderer_event.cpp
-            Wave/Include/Core/interfaces.h)
+            Wave/src/ImGUI/imGUI_layer.cpp
+            Wave/src/ImGUI/imGUI_build.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -67,7 +68,9 @@ if (UNIX)
                         ${CMAKE_DL_LIBS})
   target_include_directories(Wave PUBLIC Wave/Include Wave/Include/Dependencies
                              Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/freetype/include)
+                             Wave/Include/Dependencies/freetype/include
+                             Wave/Include/Dependencies/imGUI
+                             Wave/Include/Dependencies/imGUI/backends)
   
   add_executable(App
                  Example_app/src/example_app.cpp

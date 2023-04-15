@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <Events/app_event.h>
 #include <Math/vector.h>
 #include <Math/matrix_4f.h>
 
@@ -37,10 +38,20 @@ namespace Wave
     [[nodiscard]] const Matrix_4f &get_projection_matrix() const
     { return this->projection_matrix; };
     
+    virtual void on_window_resize(On_window_resize &resize_event) = 0;
     void set_width(float width_)
     { this->width = width_; };
     void set_height(float height_)
     { this->height = height_; };
+    void set_aspect_ratio(float ar)
+    { this->aspect_ratio = ar; };
+    void set_viewport(float width_, float height_)
+    {
+      set_width(width_);
+      set_height(height_);
+      set_aspect_ratio(width / height_);
+      set_center_position((width_ / 2.0f), (height_ / 2.0f));
+    }
     void set_center_position(float x, float y)
     { this->center_position = Vector_2f(x, y); };
     void set_center_position(const Vector_2f &coords)
@@ -66,6 +77,7 @@ namespace Wave
   protected:
     float width = 640;
     float height = 480;
+    float aspect_ratio = 0.33f;
     Vector_2f center_position = Vector_2f(0);
     Vector_3f position = Vector_3f(0, 0, -1);
     Vector_3f forward = Vector_3f(0);
@@ -77,9 +89,10 @@ namespace Wave
   class Perspective_camera : public Camera
   {
   public:
-    Perspective_camera(float fov_, float width_, float height_, float z_near_, float z_far_);
+    Perspective_camera(float fov_, float z_near_, float z_far_);
     ~Perspective_camera() override = default;
     
+    void on_window_resize(On_window_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;
     void look_at(const Vector_3f &direction);
@@ -93,18 +106,17 @@ namespace Wave
     void rotate_y(float angle) override;
   private:
     float fov = 45.0f;
-    float z_near = -1.0f;
-    float z_far = 1.0f;
+    float z_near = 0.1f;
+    float z_far = 1000.0f;
   };
   
   class Orthographic_camera : public Camera
   {
   public:
-    Orthographic_camera(float width_, float height_, float left_, float right_, float top_,
-                        float bottom_,
-                        float z_near_, float z_far_);
+    Orthographic_camera(float width_, float height_, float size, float z_near_, float z_far_);
     ~Orthographic_camera() override = default;
     
+    void on_window_resize(On_window_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;
     
@@ -115,12 +127,9 @@ namespace Wave
     void rotate_x(float angle) override;
     void rotate_y(float angle) override;
   private:
-    float left;
-    float right;
-    float top;
-    float bottom;
-    float z_near;
-    float z_far;
+    float size = 1.0f;
+    float z_near = -1.0f;
+    float z_far = 1.0f;
     
     Vector_2f center_position = Vector_2f(0);
     Vector_3f position = Vector_3f(0, 0, -1);

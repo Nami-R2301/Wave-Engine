@@ -8,27 +8,29 @@
 namespace Wave
 {
   
-  Layer_stack::Layer_stack()
-  {
-    this->layer_insert = this->layers.begin();
-  }
-  
   Layer_stack::~Layer_stack()
   {
-    for (Layer *layer: this->layers) delete layer;
+    for (Layer *layer: this->layers)
+    {
+      layer->on_detach();
+      delete layer;
+    }
   }
   
   void Layer_stack::push_layer(Layer *layer)
   {
-    this->layer_insert = this->layers.emplace(this->layer_insert, layer);
+    this->layers.emplace(this->layers.begin() + this->layer_insert_index, layer);
+    this->layer_insert_index++;
   }
   
   void Layer_stack::pop_layer(Layer *layer)
   {
-    auto it = std::find(this->layers.begin(), this->layers.end(), layer);
-    if (it != this->layers.end())
+    auto it = std::find(this->layers.begin(), this->layers.begin() + this->layer_insert_index, layer);
+    if (it != this->layers.begin() + this->layer_insert_index)
     {
-      this->layer_insert = this->layers.erase(it);;
+      layer->on_detach();
+      this->layers.erase(it);
+      this->layer_insert_index--;
     }
   }
   
@@ -39,9 +41,10 @@ namespace Wave
   
   void Layer_stack::pop_overlay(Layer *overlay)
   {
-    auto it = std::find(this->layers.begin(), this->layers.end(), overlay);
+    auto it = std::find(this->layers.begin() + this->layer_insert_index, this->layers.end(), overlay);
     if (it != this->layers.end())
     {
+      overlay->on_detach();
       this->layers.erase(it);
     }
   }

@@ -51,7 +51,7 @@ namespace Wave
   Gl_shader::~Gl_shader()
   {
     this->detach();
-    log_instruction("SHADER", DEFAULT, "Deleting shader program", gl_call(glDeleteProgram(this->program_id)))
+    log_instruction("SHADER", DEFAULT, "Deleting shader program", glDeleteProgram(this->program_id))
     this->uniform_cache.clear();
   }
   
@@ -129,7 +129,7 @@ namespace Wave
   
   void Gl_shader::unbind() const
   {
-    gl_call(glUseProgram(0));
+    glUseProgram(0);
     alert(WAVE_WARN, "[OpenGL Shader] --> Unbound current shader program --> %d", this->program_id);
   }
   
@@ -196,8 +196,8 @@ namespace Wave
   void Gl_shader::detach() const
   {
     log_instruction("SHADER", DEFAULT, "Detaching vertex shader id --> ",
-                    gl_call(glDetachShader(this->program_id, this->vertex_shader_id)))
+                    glDetachShader(this->program_id, this->vertex_shader_id))
     log_instruction("SHADER", DEFAULT, "Detaching fragment shader id --> ",
-                    gl_call(glDetachShader(this->program_id, this->fragment_shader_id)))
+                    glDetachShader(this->program_id, this->fragment_shader_id))
   }
 }

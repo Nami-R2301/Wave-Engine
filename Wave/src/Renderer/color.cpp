@@ -2,6 +2,7 @@
 // Created by nami on 2023-02-01.
 //
 #include <Renderer/color.h>
+#include <memory>
 
 namespace Wave
 {
@@ -67,6 +68,32 @@ namespace Wave
   void Color::clear()
   {
     *this = Color(); // Default color (Dark gray).
+  }
+  
+  std::string Color::to_string() const
+  {
+    char buffer[76 + sizeof(float) * 4] {0};
+    
+    if (snprintf(buffer, 75 + sizeof(float) * 4,
+                 "Red value : %.2f, Green value : %.2f, Blue value : %.2f, Alpha value : %.2f\n",
+                 this->red, this->green, this->blue, this->alpha) < 0)
+    {
+      return {"[MINOR] [COLOR ERROR] --> Error converting color to string, snprintf failed!\n"};
+    }
+    
+    return {buffer};
+  }
+  
+  void Color::print() const
+  {
+    std::string printed(this->to_string());
+    auto error = printed.find("ERROR");
+    if (error)
+    {
+      alert(WAVE_WARN, "%s", printed.c_str());
+      return;
+    }
+    alert(WAVE_INFO, "%s", this->to_string().c_str());
   }
   
   float Color::get_red() const
@@ -135,31 +162,5 @@ namespace Wave
            this->green == other_color.get_green() &&
            this->blue == other_color.get_blue() &&
            this->alpha == other_color.get_alpha();
-  }
-  
-  std::string Color::to_string() const
-  {
-    char buffer[76 + sizeof(float) * 4] {0};
-    
-    if (snprintf(buffer, 75 + sizeof(float) * 4,
-                 "Red value : %.2f, Green value : %.2f, Blue value : %.2f, Alpha value : %.2f\n",
-                 this->red, this->green, this->blue, this->alpha) < 0)
-    {
-      return {"[MINOR] [COLOR ERROR] --> Error converting color to string, snprintf failed!\n"};
-    }
-    
-    return {buffer};
-  }
-  
-  void Color::print() const
-  {
-    std::string printed(this->to_string());
-    auto error = printed.find("ERROR");
-    if (error)
-    {
-      alert(WAVE_WARN, "%s", printed.c_str());
-      return;
-    }
-    alert(WAVE_INFO, "%s", this->to_string().c_str());
   }
 }

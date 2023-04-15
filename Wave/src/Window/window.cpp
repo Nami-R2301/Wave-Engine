@@ -149,9 +149,9 @@ namespace Wave
     return this->y_scale;
   }
   
-  Color Window::get_bg_color()
+  float *Window::get_bg_color()
   {
-    return this->bg_color;
+    return &this->c_color[0];
   }
   
   uint32_t Window::get_max_refresh_rate() const
@@ -340,6 +340,7 @@ namespace Wave
       this->get_event_callback_function()(window_closed);
       return;
     }
+    Gl_renderer::set_clear_color(Color(c_color[0], c_color[1], c_color[2], 1.0f, true));
     // Refresh framebuffer.
     glfw_call(glfwSwapBuffers(static_cast<GLFWwindow *>(this->get_native_window())));
     glfw_call(glfwSwapInterval(this->vsync));  // Disable/enable Vertical synchronisation (Vsync).
@@ -356,24 +357,13 @@ namespace Wave
                                                this_window_instance.get_event_callback_function()(window_resized);
                                              }));
     
-    glfw_call(glfwSetCharCallback(static_cast<GLFWwindow *>(this->get_native_window()),
-                                  [](GLFWwindow *window, [[maybe_unused]] uint32_t keycode)
-                                  {
-                                    Window &this_window_instance = *(Window *) glfwGetWindowUserPointer(window);
-                                    
-                                    On_any_key_callback key_typed;
-                                    this_window_instance.get_event_callback_function()(key_typed);
-                                  }
-                                 ));
-    
     glfw_call(glfwSetKeyCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                                  [](GLFWwindow *window, int32_t key, [[maybe_unused]] int32_t scancode,
                                     int32_t action, [[maybe_unused]] int32_t mods)
                                  {
                                    Window &this_window_instance = *(Window *) glfwGetWindowUserPointer(window);
-                                   On_any_key_callback new_key_event;
-                                   this_window_instance.get_event_callback_function()(new_key_event);
-                                   
+                                   On_any_key_event any_key;
+                                   this_window_instance.get_event_callback_function()(any_key);
                                    switch (action)
                                    {
                                      case GLFW_PRESS:
@@ -397,7 +387,11 @@ namespace Wave
                                        break;
                                      }
                                      
-                                     default:break;
+                                     default:
+                                     {
+                                       this_window_instance.get_event_callback_function()(any_key);
+                                       break;
+                                     }
                                    }
                                  }));
     glfw_call(glfwSetMouseButtonCallback(static_cast<GLFWwindow *>(this->get_native_window()),
@@ -410,8 +404,6 @@ namespace Wave
                                            {
                                              case GLFW_PRESS:
                                              {
-                                               On_any_key_callback new_key_event;
-                                               this_window_instance.get_event_callback_function()(new_key_event);
                                                On_mouse_button_press mouse_btn_pressed(button);
                                                this_window_instance.get_event_callback_function()(mouse_btn_pressed);
                                                break;
@@ -419,8 +411,6 @@ namespace Wave
                                              
                                              case GLFW_REPEAT:
                                              {
-                                               On_any_key_callback new_key_event;
-                                               this_window_instance.get_event_callback_function()(new_key_event);
                                                On_mouse_button_hold mouse_btn_held(button);
                                                this_window_instance.get_event_callback_function()(mouse_btn_held);
                                                break;
@@ -428,8 +418,6 @@ namespace Wave
                                              
                                              case GLFW_RELEASE:
                                              {
-                                               On_any_key_callback new_key_event;
-                                               this_window_instance.get_event_callback_function()(new_key_event);
                                                On_mouse_button_release mouse_btn_released(button);
                                                this_window_instance.get_event_callback_function()(mouse_btn_released);
                                                break;

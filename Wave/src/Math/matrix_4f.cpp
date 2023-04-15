@@ -176,14 +176,13 @@ namespace Wave
     this->matrix.get()[0][0] = x_, this->matrix.get()[1][1] = y_, this->matrix.get()[2][2] = z_;
   }
   
-  void Matrix_4f::init_perspective_projection(float fov_, float width_, float height_, float z_near_, float z_far_)
+  void Matrix_4f::init_perspective_projection(float fov_, float z_near_, float z_far_)
   {
-    float aspect_ratio = width_ / height_;
     auto fov_to_rad = (float) (fov_ * (M_PI / 180) / 2);
     float tan_half_fov = tanf(fov_to_rad);
     float z_range = z_near_ - z_far_;
     
-    set_value(0, 0, 1.0f / (tan_half_fov * aspect_ratio));
+    set_value(0, 0, 1.0f / (tan_half_fov * 2));
     set_value(1, 1, 1.0f / tan_half_fov);
     set_value(2, 2, (-z_near_ - z_far_) / z_range);  // Scaling the z index to the range.
     set_value(2, 3, 2 * z_far_ * z_near_ / z_range);  // Scaling the z index to the range.
@@ -191,22 +190,17 @@ namespace Wave
     set_value(3, 3, 0.0f);  // Get rid of w.
   }
   
-  void Matrix_4f::init_orthographic_projection(float width_, float height_, float left_, float right_,
-                                               float top_, float bottom_, float z_near_,
+  void Matrix_4f::init_orthographic_projection(float left_, float right_, float top_, float bottom_, float z_near_,
                                                float z_far_)
   {
-    float aspect_ratio = width_ / height_;
     if (right_ - left_ == 0 || top_ - bottom_ == 0) return;
-    float mid_x = (right_ + left_) / (right_ - left_);
-    float mid_y = (top_ + bottom_) / (top_ - bottom_);
-    float mid_z = (z_far_ + z_near_) / (z_near_ - z_far_);
     
-    float scale_x = aspect_ratio / (top_ - bottom_) / (right_ - left_);
-    float scale_y = aspect_ratio / (top_ - bottom_);
-    float scale_z = -aspect_ratio / (z_far_ - z_near_);
+    float scale_x = (right_ - left_) / 2;
+    float scale_y = (top_ - bottom_) / 2;
+    float scale_z = -(z_far_ - z_near_);
     
     init_scale(scale_x, scale_y, scale_z);
-    init_translation(-mid_x, -mid_y, -mid_z);
+    init_translation(0, 0, -z_near_ * 2);
   }
   
   void Matrix_4f::init_camera(Vector_3f direction, Vector_3f up)
@@ -218,9 +212,9 @@ namespace Wave
     this->matrix.get()[2][0] = direction.get_x(), this->matrix.get()[2][1] = direction.get_y(), this->matrix.get()[2][2] = direction.get_z();
   }
   
-  Quaternion Matrix_4f::operator *(const Quaternion &vector_4f) const
+  Vector_4f Matrix_4f::operator *(const Vector_4f &vector_4f) const
   {
-    Quaternion result(vector_4f);
+    Vector_4f result(vector_4f);
     
     result.set_x(result.get_x() * get_value(0, 0) +
                  result.get_y() * get_value(0, 1) +

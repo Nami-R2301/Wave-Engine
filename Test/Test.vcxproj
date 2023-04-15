@@ -66,7 +66,7 @@
       <PreprocessorDefinitions>DEBUG; TESTING; _DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Example_app\Include;$(SolutionDir)Wave\Include\Dependencies\freetype\include;$(SolutionDir)Wave\Include;$(SolutionDir)Wave\Include\Dependencies\googletest\googletest\include;$(VC_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Example_app\Include;$(SolutionDir)Wave\Include\Dependencies\freetype\include;$(SolutionDir)Wave\Include;$(SolutionDir)Wave\Include\Dependencies\googletest\googletest\include; $(SolutionDir)Wave\Include\Dependencies; $(VC_IncludePath)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -77,8 +77,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Example_app\src\example_app.cpp" />
-    <ClCompile Include="..\Example_app\src\example_layer.cpp" />
+    <ClCompile Include="example_app.cpp" />
+    <ClCompile Include="example_layer.cpp" />
     <ClCompile Include="src\test_camera.cpp" />
     <ClCompile Include="src\test_main.cpp" />
     <ClCompile Include="src\test_objects.cpp" />
@@ -88,8 +88,8 @@
     <Library Include="libs\x86\gtest_main.lib" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Wave\Wave.vcxproj">
-      <Project>{7a9bdcab-de75-45ac-bda5-a4543b936d97}</Project>
+    <ProjectReference Include="..\Example_app\Example_app.vcxproj">
+      <Project>{f53f0268-9934-43e4-b8f8-ae7f0b62ec5b}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

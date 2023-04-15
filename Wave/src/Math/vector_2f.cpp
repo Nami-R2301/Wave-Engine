@@ -41,7 +41,7 @@ namespace Wave
   
   float Vector_2f::length() const
   {
-    return std::sqrt(this->x * this->x + this->y * this->y);
+    return std::sqrt((this->x * this->x) + (this->y * this->y));
   }
   
   float Vector_2f::dot(const Vector_2f &vector_) const
@@ -74,13 +74,19 @@ namespace Wave
   std::string Vector_2f::to_string() const
   {
     char buffer[29 + sizeof(float) * 2] {0};  // Three 8-digit-long float.
-    
+  
     if (snprintf(buffer, 29 + sizeof(float) * 2, "x : %.2f, y : %.2f\n", this->x, this->y) < 0)
     {
       return {"[MINOR] [VECTOR 2D ERROR] --> Error converting vector 2D to string, snprintf failed!\n"};
     }
-    
+  
     return {buffer};
+  }
+  
+  float &Vector_2f::operator [](unsigned int index)
+  {
+    if (index > 1) return this->x;
+    return index == 0 ? this->x : this->y;
   }
   
   // Add two vectors.

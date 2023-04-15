@@ -3,7 +3,6 @@
 //
 
 #include <Math/vector.h>
-#include <Math/quaternion.h>
 
 namespace Wave
 {
@@ -61,7 +60,7 @@ namespace Wave
   
   float Vector_3f::length() const
   {
-    return std::sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
+    return std::sqrt((this->x * this->x) + (this->y * this->y) + (this->z * this->z));
   }
   
   float Vector_3f::dot(const Vector_3f &other_vector) const
@@ -102,14 +101,14 @@ namespace Wave
     auto angle_to_rad = (float) (angle * (M_PI / 180));
     float sin_half_angle = sinf(angle_to_rad / 2);
     float cos_half_angle = cosf(angle_to_rad / 2);
-    
+  
     float rotation_x = axis.get_x() * sin_half_angle, rotation_y = axis.get_y() * sin_half_angle,
         rotation_z = axis.get_z() * sin_half_angle, rotation_w = cos_half_angle;
-    
-    Quaternion rotation(rotation_x, rotation_y, rotation_z, rotation_w);
-    Quaternion conjugate = rotation.conjugate();
-    Quaternion w = (rotation.multiply(*this)) * conjugate;
-    
+  
+    Vector_4f rotation(rotation_x, rotation_y, rotation_z, rotation_w);
+    Vector_4f conjugate = rotation.conjugate();
+    Vector_4f w = (rotation * *this) * conjugate;
+  
     return {w.get_x(),
             w.get_y(),
             w.get_z()};
@@ -131,6 +130,12 @@ namespace Wave
       return "ERROR : Snprintf error when trying to display [Vector_3f]!";
     }
     return buffer;
+  }
+  
+  float &Vector_3f::operator [](unsigned int index)
+  {
+    if (index > 2) return this->x;
+    return index == 0 ? this->x : index == 1 ? this->y : this->z;
   }
   
   // Add two vectors.

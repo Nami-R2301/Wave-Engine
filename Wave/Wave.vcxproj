@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS; WAVE_PLATFORM_WINDOWS; DEBUG; GLEW_STATIC; GLFW3_STATIC; %(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GoogleTest\googletest\include; $(SolutionDir)Wave\Include\Dependencies\Stb; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies\FreeType\include;  $(SolutionDir)Wave\Include\Dependencies\GL;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GoogleTest\googletest\include; $(SolutionDir)Wave\Include\Dependencies\Stb; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies\FreeType\include;  $(SolutionDir)Wave\Include\Dependencies\GL; $(SolutionDir)Wave\Include\Dependencies\imGUI\backends; $(SolutionDir)Wave\Include\Dependencies\GoogleTest\googletest\include; $(SolutionDir)Wave\Include\Dependencies\Stb; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies\FreeType\include;  $(SolutionDir)Wave\Include\Dependencies\GL; $(SolutionDir)Wave\Include\Dependencies;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <Optimization>MaxSpeed</Optimization>
@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS; WAVE_PLATFORM_WINDOWS;  RELEASE; GLEW_STATIC; GLFW3_STATIC; %(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GoogleTest\googletest\include; $(SolutionDir)Wave\Include\Dependencies\Stb; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies\FreeType\include;  $(SolutionDir)Wave\Include\Dependencies\GL;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GoogleTest\googletest\include; $(SolutionDir)Wave\Include\Dependencies\Stb; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies\FreeType\include;  $(SolutionDir)Wave\Include\Dependencies\GL; $(SolutionDir)Wave\Include\Dependencies\imGUI\backends; $(SolutionDir)Wave\Include\Dependencies\GoogleTest\googletest\include; $(SolutionDir)Wave\Include\Dependencies\Stb; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies\FreeType\include;  $(SolutionDir)Wave\Include\Dependencies\GL; $(SolutionDir)Wave\Include\Dependencies;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -184,10 +184,12 @@
     <ClInclude Include="Include\Core\layer_stack.h" />
     <ClInclude Include="Include\Core\platform_detection.h" />
     <ClInclude Include="Include\Core\settings.h" />
-    <ClInclude Include="Include\Dependencies\FreeType\include\freetype\freetype.h" />
-    <ClInclude Include="Include\Dependencies\FreeType\include\ft2build.h" />
-    <ClInclude Include="Include\Dependencies\GL\glew.h" />
-    <ClInclude Include="Include\Dependencies\GL\glfw\include\GLFW\glfw3.h" />
+    <ClInclude Include="Include\Dependencies\imGUI\imconfig.h" />
+    <ClInclude Include="Include\Dependencies\imGUI\imgui.h" />
+    <ClInclude Include="Include\Dependencies\imGUI\imgui_internal.h" />
+    <ClInclude Include="Include\Dependencies\imGUI\imstb_rectpack.h" />
+    <ClInclude Include="Include\Dependencies\imGUI\imstb_textedit.h" />
+    <ClInclude Include="Include\Dependencies\imGUI\imstb_truetype.h" />
     <ClInclude Include="Include\entrypoint.h" />
     <ClInclude Include="Include\Events\app_event.h" />
     <ClInclude Include="Include\Events\event.h" />
@@ -195,12 +197,12 @@
     <ClInclude Include="Include\Events\key_event.h" />
     <ClInclude Include="Include\Events\mouse_event.h" />
     <ClInclude Include="Include\Events\renderer_event.h" />
+    <ClInclude Include="Include\ImGUI\imGUI_layer.h" />
     <ClInclude Include="Include\Input\input.h" />
     <ClInclude Include="Include\Input\key_codes.h" />
     <ClInclude Include="Include\Input\mouse_codes.h" />
     <ClInclude Include="Include\Math\camera.h" />
     <ClInclude Include="Include\Math\matrix_4f.h" />
-    <ClInclude Include="Include\Math\quaternion.h" />
     <ClInclude Include="Include\Math\transform.h" />
     <ClInclude Include="Include\Math\vector.h" />
     <ClInclude Include="Include\Objects\object.h" />
@@ -214,15 +216,18 @@
     <ClInclude Include="Include\Renderer\texture.h" />
     <ClInclude Include="Include\Renderer\vertex.h" />
     <ClInclude Include="Include\Renderer\vertex_array_buffer.h" />
-    <ClInclude Include="Include\Renderer\vertex_buffer.h" />
     <ClInclude Include="Include\Utilities\logger.h" />
     <ClInclude Include="Include\Utilities\res_loader.h" />
-    <ClInclude Include="Include\Vendor\Stb\stb_image.h" />
     <ClInclude Include="Include\wave.h" />
     <ClInclude Include="Include\wave_pch.h" />
     <ClInclude Include="Include\Window\window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Include\Dependencies\imGUI\imgui.cpp" />
+    <ClCompile Include="Include\Dependencies\imGUI\imgui_demo.cpp" />
+    <ClCompile Include="Include\Dependencies\imGUI\imgui_draw.cpp" />
+    <ClCompile Include="Include\Dependencies\imGUI\imgui_tables.cpp" />
+    <ClCompile Include="Include\Dependencies\imGUI\imgui_widgets.cpp" />
     <ClCompile Include="src\Core\engine.cpp" />
     <ClCompile Include="src\Core\engine_time.cpp" />
     <ClCompile Include="src\Core\layer.cpp" />
@@ -232,13 +237,15 @@
     <ClCompile Include="src\Events\key_event.cpp" />
     <ClCompile Include="src\Events\mouse_event.cpp" />
     <ClCompile Include="src\Events\renderer_event.cpp" />
+    <ClCompile Include="src\ImGUI\imGUI_build.cpp" />
+    <ClCompile Include="src\ImGUI\imGUI_layer.cpp" />
     <ClCompile Include="src\Input\input.cpp" />
     <ClCompile Include="src\Math\camera.cpp" />
     <ClCompile Include="src\Math\matrix_4f.cpp" />
-    <ClCompile Include="src\Math\quaternion.cpp" />
     <ClCompile Include="src\Math\transform.cpp" />
     <ClCompile Include="src\Math\vector_2f.cpp" />
     <ClCompile Include="src\Math\vector_3f.cpp" />
+    <ClCompile Include="src\Math\vector_4f.cpp" />
     <ClCompile Include="src\Objects\object.cpp" />
     <ClCompile Include="src\Renderer\buffer.cpp" />
     <ClCompile Include="src\Renderer\color.cpp" />
@@ -251,10 +258,7 @@
     <ClCompile Include="src\Renderer\vertex_array_buffer.cpp" />
     <ClCompile Include="src\Utilities\logger.cpp" />
     <ClCompile Include="src\Utilities\res_loader.cpp" />
-    <ClCompile Include="src\wave_pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="src\wave_pch.cpp" />
     <ClCompile Include="src\Window\display_settings.cpp" />
     <ClCompile Include="src\Window\window.cpp" />
   </ItemGroup>

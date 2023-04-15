@@ -33,4 +33,9 @@ namespace Wave
   {
   
   }
+  
+  void Layer::on_imgui_render(float time_step)
+  {
+  
+  }
 }

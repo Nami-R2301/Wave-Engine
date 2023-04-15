@@ -7,6 +7,7 @@ namespace Wave
   
   Engine *Engine::instance = nullptr;
   std::unique_ptr<Window> Engine::main_window = nullptr;
+  float Engine::engine_framerate = 60.0f;
   static std::mutex meshes_mutex;  // For async purposes.
   
   Engine::Engine()
@@ -31,6 +32,7 @@ namespace Wave
                Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
                Engine::main_window->bind_api_callbacks();
                Gl_renderer::init();  // Default to OpenGL implementation.
+               push_overlay(new Wave::ImGui_layer());
              },
              "Engine launched")
   }
@@ -77,13 +79,13 @@ namespace Wave
                    Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
                    Engine::main_window->bind_api_callbacks();
                    break;
-                 default:
-                   Engine::main_window = std::unique_ptr<Window>(new Gl_window());  // Default to OpenGL implementation.
+                 default:Engine::main_window = std::unique_ptr<Window>(new Gl_window());  // Default to OpenGL implementation.
                    // Set default callbacks.
                    Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
                    Engine::main_window->bind_api_callbacks();
                }
                Gl_renderer::init();  // Default to OpenGL implementation.
+               push_overlay(new Wave::ImGui_layer());
              },
              "Engine launched")
   }
@@ -104,14 +106,19 @@ namespace Wave
 #endif
   }
   
+  Engine *Engine::get_app()
+  {
+    return Engine::instance;
+  }
+  
   Window *Engine::get_main_window()
   {
     return Engine::main_window.get();
   }
   
-  float Engine::get_engine_framerate() const
+  float Engine::get_engine_framerate()
   {
-    return this->engine_framerate;
+    return Engine::engine_framerate;
   }
   
   long Engine::get_frame_drawn_counter() const
@@ -129,16 +136,9 @@ namespace Wave
     return this->exit_code;
   }
   
-  void Engine::set_engine_framerate(float window_framerate)
+  void Engine::set_engine_framerate(float time_step)
   {
-    // Set minimum wait time between each frame to control game speed.
-    if (!Engine::main_window->is_vsync() &&
-        (uint32_t) window_framerate == Engine::main_window->get_max_refresh_rate())
-    {
-      this->engine_framerate = 0.0f; // Set to NOT wait and to render as many frames as possible (V-Sync off).
-      return;
-    }
-    this->engine_framerate = (1.0f / window_framerate);  // Get frame time in secs.
+    Engine::engine_framerate = 1.0f / time_step;  // Get frame time in secs.
   }
   
   void Engine::set_frame_drawn_counter(long counter)
@@ -210,9 +210,9 @@ namespace Wave
     {
       this->current_time.update_engine_run_time();
       float current_run_time = this->current_time.get_up_time();
-      this->set_engine_framerate((float) Engine::main_window->get_refresh_rate());
       time_step = current_run_time - last_frame_time;
       last_frame_time = current_run_time;
+      this->set_engine_framerate(time_step);
       
       on_update(time_step);
       draw_time.stop();
@@ -272,9 +272,9 @@ namespace Wave
       default:break;
     }
     
-    for (auto it = this->layer_stack.end() - 1; it != this->layer_stack.begin(); --it)
+    for (auto it = this->layer_stack.rbegin(); it != this->layer_stack.rend(); ++it)
     {
-      if (event.event_state == HANDLED) break;
+      if (event.handled) break;
       (*it)->on_event(event);
     }
   }
@@ -285,19 +285,29 @@ namespace Wave
     frame_time.start();
     
     glfw_call(glfwPollEvents());
-    Gl_renderer::clear_bg();
     if (!this->is_minimized)
     {
-      for (Layer *layer: this->layer_stack) layer->on_update(time_step);
+      ImGui_layer::begin();
+      for (Layer *layer: this->layer_stack)
+      {
+        layer->on_update(time_step);
+        layer->on_imgui_render(time_step);
+      }
+      ImGui_layer::end();
     }
     // Refresh window
     Engine::main_window->on_update(); // Refresh the window screen.
+    Gl_renderer::clear_bg();
     
     this->last_mouse_position = Input::get_mouse_cursor_position();
-    set_frame_drawn_counter(this->frame_drawn_counter + 1);
+    set_frame_drawn_counter(Engine::frame_drawn_counter + 1);
     
     frame_time.stop();
-    Engine::wait(frame_time.get_time_in_seconds(), get_engine_framerate());  // Sync with framerate.
+    // Set minimum wait time between each frame to control game speed.
+    Engine::wait(frame_time.get_time_in_seconds(),
+                 Engine::main_window->is_vsync() ?
+                 1.0f / static_cast<float>(Engine::main_window->get_refresh_rate()) :
+                 0.0f);  // Set to NOT wait and to render as many frames as possible (V-Sync off).
   }
   
   void Engine::wait(float start_time, float end_time)
@@ -323,6 +333,54 @@ namespace Wave
   
   /******************* CALLBACKS ******************/
   
+  bool Engine::any_key_callback(On_any_key_event &any_key)
+  {
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
+    {
+      Wave::Display_settings::toggle_fullscreen(Wave::Engine::get_main_window());
+      return true;
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_V))
+    {
+      Wave::Display_settings::set_vsync(Wave::Engine::get_main_window(),
+                                        !Wave::Engine::get_main_window()->is_vsync());
+      return true;
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_6))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 60);
+      return true;
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_3))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 30);
+      return true;
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_1))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 1);
+      return true;
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_9))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 144);
+      return true;
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_F4))
+    {
+      Wave::alert(WAVE_WARN, "[SETTING] --> Force shutdown");
+      Wave::Engine::get_main_window()->close();
+      return true;
+    }
+    return false;
+  }
+  
   bool Engine::key_press_callback([[maybe_unused]] On_key_press &key_press)
   {
     return true;
@@ -335,46 +393,6 @@ namespace Wave
   
   bool Engine::key_release_callback([[maybe_unused]] On_key_release &key_release)
   {
-    return true;
-  }
-  
-  bool Engine::any_key_input_callback([[maybe_unused]] On_any_key_callback &key_event)
-  {
-    if (Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
-    {
-      Display_settings::toggle_fullscreen(Engine::main_window.get());
-    }
-    
-    if (Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_V))
-    {
-      Display_settings::set_vsync(Engine::main_window.get(), !Engine::main_window->is_vsync());
-    }
-    
-    if (Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_6))
-    {
-      Display_settings::set_refresh_rate(Engine::main_window.get(), 60);
-    }
-    
-    if (Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_3))
-    {
-      Display_settings::set_refresh_rate(Engine::main_window.get(), 30);
-    }
-    
-    if (Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_1))
-    {
-      Display_settings::set_refresh_rate(Engine::main_window.get(), 1);
-    }
-    
-    if (Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_9))
-    {
-      Display_settings::set_refresh_rate(Engine::main_window.get(), 144);
-    }
-    
-    if (Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_F4))
-    {
-      alert(WAVE_WARN, "[SETTING] --> Force shutdown");
-      Engine::main_window->close();
-    }
     return true;
   }
   
@@ -406,15 +424,6 @@ namespace Wave
   
   [[maybe_unused]] bool Engine::mouse_movement_callback([[maybe_unused]] On_mouse_movement &mouse_cursor_event)
   {
-    return true;
-  }
-  
-  [[maybe_unused]] bool Engine::any_mouse_input_callback([[maybe_unused]] On_any_mouse_event &mouse_button_event)
-  {
-    if (Input::is_mouse_button_released(WAVE_MOUSE_BUTTON_LEFT))
-    {
-      Input::set_mouse_locked(false);
-    }
     return true;
   }
   

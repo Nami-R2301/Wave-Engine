@@ -19,6 +19,7 @@
 
 /************************* Utilities ********************************/
 #include <Utilities/logger.h>
+#include <imGUI/imgui.h>
 #include <Utilities/res_loader.h>
 
 /************************* Input ********************************/
@@ -29,9 +30,7 @@
 /************************* Math ********************************/
 #include <Math/camera.h>
 #include <Math/matrix_4f.h>
-#include <Math/quaternion.h>
 #include <Math/transform.h>
-#include <Math/vector.h>
 
 /************************* Renderer ********************************/
 #include <Renderer/renderer.h>

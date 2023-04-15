@@ -92,7 +92,7 @@ namespace Wave
     
     [[nodiscard]] float get_x_scale() const;
     [[nodiscard]] float get_y_scale() const;
-    Color get_bg_color();
+    [[nodiscard]] float *get_bg_color();
     
     virtual bool operator ==(const Window &window);
     virtual bool operator !=(const Window &window);
@@ -111,6 +111,10 @@ namespace Wave
     float x_scale = 1.0f;
     float y_scale = 1.0f;
     Color bg_color = Color(0.03f, 1.0f, true);  // Default background color (gray).
+    Vector_4f c_color = {bg_color.get_red(),
+                         bg_color.get_green(),
+                         bg_color.get_blue(),
+                         1.0f};
     bool fullscreen = false;
     bool request_closing = false;
     Api_info api_info {};

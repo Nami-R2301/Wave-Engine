@@ -7,3 +7,7 @@
 [submodule "Wave/Include/Dependencies/GL/glfw"]
 	path = Wave/Include/Dependencies/GL/glfw
 	url = https://www.github.com/glfw/glfw.git
+[submodule "Wave/Include/Dependencies/imGUI"]
+	path = Wave/Include/Dependencies/imGUI
+	url = https://github.com/ocornut/imgui.git
+	branch = docking

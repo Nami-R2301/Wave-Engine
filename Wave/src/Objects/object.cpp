@@ -271,7 +271,7 @@ namespace Wave
         output += "ERROR : Snprintf error when trying to display [Object_2D]!";
         continue;
       }
-      output += big_buffer;
+      if (big_buffer) output += big_buffer;
     }
     output += "\n";
     
@@ -283,7 +283,7 @@ namespace Wave
         output += "ERROR : Snprintf error when trying to display [Object_2D]!";
         continue;
       }
-      output += big_buffer;
+      if (big_buffer) output += big_buffer;
     }
     return output;
   }
@@ -623,27 +623,27 @@ namespace Wave
     output = "[Object 3D] : \n";
     for (const Vertex_3D &vertex: this->vertices)
     {
-      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%lld] = %s", DEFAULT, index,
+      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%I64d] = %s", DEFAULT, index,
                    vertex.to_string().c_str()) < 0)
       {
         output += "ERROR : Snprintf error when trying to display [Object_3D]!";
         index++;
         continue;
       }
-      output += big_buffer;
+      if (big_buffer) output += big_buffer;
       index++;
     }
     
     for (const Texture &texture: this->textures)
     {
-      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%lld] = %s", DEFAULT, index,
+      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%I64d] = %s", DEFAULT, index,
                    texture.to_string().c_str()) < 0)
       {
         output += "ERROR : Snprintf error when trying to display [Object_3D]!";
         index++;
         continue;
       }
-      output += big_buffer;
+      if (big_buffer) output += big_buffer;
       index++;
     }
     free(big_buffer);

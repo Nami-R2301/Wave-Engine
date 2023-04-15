@@ -11,29 +11,22 @@ namespace Wave
   class Camera_tests : public ::testing::Test
   {
   public:
-    
     Camera_tests()
     {
       this->app = new Example_app();
       this->app->init();
     }
-    
+
+    ~Camera_tests()
+    {
+      this->app->shutdown();
+      delete app;
+    }
     void SetUp() override
     {
       // Code here will be called immediately after the constructor (right
       // before each test).
-      this->dummy_camera = Wave::create_shared_pointer<Wave::Perspective_camera>(90.0f,
-                                                                                 static_cast<float>(Engine::get_main_window()->get_width()),
-                                                                                 static_cast<float>(Engine::get_main_window()->get_height()),
-                                                                                 0.1f,
-                                                                                 1000.0f).get();
-    }
-    
-    void TearDown() override
-    {
-      // Code here will be called immediately after each test (right
-      // before the destructor).
-      this->app->shutdown();
+      this->dummy_camera = Wave::create_shared_pointer<Wave::Perspective_camera>(90.0f, 0.1f, 1000.0f).get();
     }
     
     // shared user data
