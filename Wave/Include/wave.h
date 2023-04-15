@@ -29,9 +29,7 @@
 /************************* Math ********************************/
 #include <Math/camera.h>
 #include <Math/matrix_4f.h>
-#include <Math/quaternion.h>
 #include <Math/transform.h>
-#include <Math/vector.h>
 
 /************************* Renderer ********************************/
 #include <Renderer/renderer.h>

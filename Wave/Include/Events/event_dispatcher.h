@@ -19,7 +19,7 @@ namespace Wave
     template<class T, typename F>
     inline bool dispatch(const F &function)
     {
-      if (T::get_static_type() == this->event.get_event_type())
+      if (!this->event.handled && T::get_static_type() == this->event.get_event_type())
       {
         this->event.handled |= function((T &) this->event);
         return true;

@@ -44,7 +44,6 @@ void Example_app::on_update(float time_step)
 void Example_app::on_event(Wave::Event &event)
 {
   Engine::on_event(event);
-  if (event.handled) return;
   
   Wave::Event_dispatcher event_dispatcher(event);
   

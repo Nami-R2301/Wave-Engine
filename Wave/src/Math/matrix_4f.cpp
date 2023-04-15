@@ -212,15 +212,15 @@ namespace Wave
     this->matrix.get()[2][0] = direction.get_x(), this->matrix.get()[2][1] = direction.get_y(), this->matrix.get()[2][2] = direction.get_z();
   }
   
-  Quaternion Matrix_4f::operator *(const Quaternion &vector_4f) const
+  Vector_4f Matrix_4f::operator *(const Vector_4f &vector_4f) const
   {
-    Quaternion result(vector_4f);
-    
+    Vector_4f result(vector_4f);
+  
     result.set_x(result.get_x() * get_value(0, 0) +
                  result.get_y() * get_value(0, 1) +
                  result.get_z() * get_value(0, 2) +
                  result.get_w() * get_value(0, 3));
-    
+  
     result.set_y(result.get_x() * get_value(1, 0) +
                  result.get_y() * get_value(1, 1) +
                  result.get_z() * get_value(1, 2) +

@@ -6,7 +6,7 @@
 #define _USE_MATH_DEFINES  // For Visual Studio.
 
 #include <cmath>  // Cos, sin and sqrt functions.
-#include <Math/quaternion.h>
+#include <Math/vector.h>
 #include <Core/core_macros.h>
 
 namespace Wave
@@ -38,9 +38,9 @@ namespace Wave
     void set_value(int row, int col, float value);
     
     INTERFACE_PRINT
-    
+  
     Matrix_4f operator *(const Matrix_4f &other_matrix) const;
-    Quaternion operator *(const Quaternion &vector_4f) const;
+    Vector_4f operator *(const Vector_4f &vector_4f) const;
     Matrix_4f &operator =(const Matrix_4f &other_matrix);
     bool operator ==(const Matrix_4f &mtx) const;
   private:

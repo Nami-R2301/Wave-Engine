@@ -13,8 +13,7 @@ add_library(imgui STATIC
             ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui.h
             ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_draw.cpp
             ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_tables.cpp
-            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_widgets.cpp
-            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_demo.cpp)
+            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_widgets.cpp)
 add_library(imgui::imgui ALIAS imgui)
 target_link_libraries(imgui
                       PUBLIC
@@ -33,7 +32,7 @@ add_library(Wave STATIC
             Wave/src/Math/vector_2f.cpp
             Wave/src/Math/vector_3f.cpp
             Wave/src/Math/matrix_4f.cpp
-            Wave/src/Math/quaternion.cpp
+            Wave/src/Math/vector_4f.cpp
             Wave/src/Utilities/logger.cpp
             Wave/src/Math/transform.cpp
             Wave/src/Utilities/res_loader.cpp
@@ -92,7 +91,7 @@ if (UNIX)
   
   add_executable(App
                  Example_app/src/example_app.cpp
-                 Example_app/src/example_layer.cpp)
+                 Example_app/src/example_layer.cpp Wave/src/Math/vector_4f.cpp)
   
   target_compile_options(App PUBLIC -Wall -Wextra $<$<CONFIG:Release>:-O2>)
   target_compile_definitions(App PUBLIC GLEW_STATIC GLFW3_STATIC ${CMAKE_BUILD_TYPE})
@@ -149,7 +148,7 @@ elseif (WIN32)
                              Wave/Include/Dependencies
                              Wave/Include/Dependencies/GL/glfw/include
                              Wave/Include/Dependencies/freetype/include)
-  
+
   # WinMain (SUBSYSTEM:WINDOWS or SUBSYSTEM:CONSOLE).
   if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
     add_executable(App WIN32
@@ -158,11 +157,11 @@ elseif (WIN32)
   else ()
     add_executable(App
                    Example_app/src/example_app.cpp
-                   Example_app/src/example_layer.cpp
-                   Wave/src/ImGUI/imGUI_layer.cpp
-                   Wave/src/ImGUI/imGUI_build.cpp)
+                   Example_app/src/example_layer.cpp)
   endif ()
-  target_compile_definitions(App PUBLIC WIN32_LEAN_AND_MEAN ${CMAKE_BUILD_TYPE})
+  target_compile_definitions(App PUBLIC
+                             WIN32_LEAN_AND_MEAN
+                             ${CMAKE_BUILD_TYPE})
 endif ()
 
 # ------------------------------ COMMON STEPS FOR BOTH WIN32 AND UNIX -------------------------------
@@ -189,9 +188,7 @@ add_executable(Tests
                Example_app/src/example_layer.cpp
                Test/src/test_main.cpp
                Test/src/test_objects.cpp
-               Test/src/test_camera.cpp
-               Wave/src/ImGUI/imGUI_layer.cpp
-               Wave/src/ImGUI/imGUI_build.cpp)
+               Test/src/test_camera.cpp)
 
 target_compile_options(Tests PUBLIC)
 

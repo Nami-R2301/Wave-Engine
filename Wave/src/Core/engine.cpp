@@ -1,4 +1,5 @@
 #include <Core/engine.h>
+#include <memory>
 #include <mutex>
 
 namespace Wave
@@ -209,9 +210,9 @@ namespace Wave
     {
       this->current_time.update_engine_run_time();
       float current_run_time = this->current_time.get_up_time();
-      this->set_engine_framerate(time_step);
       time_step = current_run_time - last_frame_time;
       last_frame_time = current_run_time;
+      this->set_engine_framerate(time_step);
       
       on_update(time_step);
       draw_time.stop();
@@ -286,7 +287,13 @@ namespace Wave
     glfw_call(glfwPollEvents());
     if (!this->is_minimized)
     {
-      for (Layer *layer: this->layer_stack) layer->on_update(time_step);
+      ImGui_layer::begin();
+      for (Layer *layer: this->layer_stack)
+      {
+        layer->on_update(time_step);
+        layer->on_imgui_render(time_step);
+      }
+      ImGui_layer::end();
     }
     // Refresh window
     Engine::main_window->on_update(); // Refresh the window screen.
@@ -331,38 +338,45 @@ namespace Wave
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
     {
       Wave::Display_settings::toggle_fullscreen(Wave::Engine::get_main_window());
+      return true;
     }
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_V))
     {
       Wave::Display_settings::set_vsync(Wave::Engine::get_main_window(),
                                         !Wave::Engine::get_main_window()->is_vsync());
+      return true;
     }
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_6))
     {
       Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 60);
+      return true;
     }
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_3))
     {
       Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 30);
+      return true;
     }
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_1))
     {
       Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 1);
+      return true;
     }
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_9))
     {
       Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 144);
+      return true;
     }
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_F4))
     {
       Wave::alert(WAVE_WARN, "[SETTING] --> Force shutdown");
       Wave::Engine::get_main_window()->close();
+      return true;
     }
     return false;
   }

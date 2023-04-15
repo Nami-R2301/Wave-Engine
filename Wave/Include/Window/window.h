@@ -111,7 +111,10 @@ namespace Wave
     float x_scale = 1.0f;
     float y_scale = 1.0f;
     Color bg_color = Color(0.03f, 1.0f, true);  // Default background color (gray).
-    float c_color[4] = {bg_color.get_red(), bg_color.get_green(), bg_color.get_blue(), 1.0f};
+    Vector_4f c_color = {bg_color.get_red(),
+                         bg_color.get_green(),
+                         bg_color.get_blue(),
+                         1.0f};
     bool fullscreen = false;
     bool request_closing = false;
     Api_info api_info {};

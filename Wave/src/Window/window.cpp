@@ -151,7 +151,7 @@ namespace Wave
   
   float *Window::get_bg_color()
   {
-    return this->c_color;
+    return &this->c_color[0];
   }
   
   uint32_t Window::get_max_refresh_rate() const
