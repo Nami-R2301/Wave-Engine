@@ -4,10 +4,10 @@
 
 
 // IMGUI
-#include <ImGUI/imgui.h>
-#include <ImGUI/imgui_internal.h>
-#include <ImGUI/imgui_impl_glfw.h>
-#include <ImGUI/imgui_impl_opengl3.h>
+#include <imGUI/imgui.h>
+#include <imGUI/imgui_internal.h>
+#include <imGUI/backends/imgui_impl_glfw.h>
+#include <imGUI/backends/imgui_impl_opengl3.h>
 
 // Wave
 #include <ImGUI/imGUI_layer.h>
@@ -31,12 +31,10 @@ namespace Wave
     (void) io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    #if defined(WAVE_PLATFORM_WINDOWS)
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-    #endif
     float fontSize = 16.0f;// *2.0f;
     io.Fonts->AddFontFromFileTTF("../Wave/Resources/Fonts/Comfortaa.ttf", fontSize);
     io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/Resources/Fonts/Comfortaa.ttf", fontSize);
@@ -69,6 +67,11 @@ namespace Wave
   
   void ImGui_layer::on_update(float time_step)
   {
+    ImGuiIO &io = ImGui::GetIO();
+    io.DeltaTime = time_step;
+    io.DisplaySize = ImVec2(static_cast<float>(Engine::get_main_window()->get_width()),
+                            static_cast<float>(Engine::get_main_window()->get_height()));
+    
     ImGui::Begin("Wave Engine ~ Debug Menu");
   
     ImGui::ColorEdit3("Clear color", Engine::get_main_window()->get_bg_color());
@@ -104,10 +107,10 @@ namespace Wave
   void ImGui_layer::end()
   {
     // To be called on each frame after everything has been passed into the pipeline.
+    ImGuiIO io = ImGui::GetIO();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     
-    #if defined(WAVE_PLATFORM_WINDOWS)
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
       GLFWwindow* backup_current_context = glfwGetCurrentContext();
@@ -115,7 +118,6 @@ namespace Wave
       ImGui::RenderPlatformWindowsDefault();
       glfwMakeContextCurrent(backup_current_context);
     }
-    #endif
   }
   
   void ImGui_layer::set_colors()

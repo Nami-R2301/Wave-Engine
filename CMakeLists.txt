@@ -7,21 +7,10 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RELEASE" FORCE)
 endif ()
 
-add_library(imgui STATIC
-            # Main Imgui files
-            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui.cpp
-            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui.h
-            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_draw.cpp
-            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_tables.cpp
-            ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui_widgets.cpp)
-add_library(imgui::imgui ALIAS imgui)
-target_link_libraries(imgui
-                      PUBLIC
-                      OpenGL::GL
-                      $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-                      )
-target_include_directories(imgui PUBLIC ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/imgui/
-                           ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/backends/)
+add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
+target_compile_definitions(ImGUI PUBLIC IMGUI_IMPL_LOADER_GL3W)
+target_link_libraries(ImGUI PUBLIC OpenGL::GL)
+target_include_directories(ImGUI PUBLIC ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/)
 
 add_library(Wave STATIC
             Wave/src/Core/engine.cpp
@@ -54,8 +43,7 @@ add_library(Wave STATIC
             Wave/src/Renderer/gl_buffer.cpp
             Wave/src/Renderer/vertex_array_buffer.cpp
             Wave/src/Events/renderer_event.cpp
-            Wave/src/ImGUI/imGUI_layer.cpp
-            Wave/src/ImGUI/imGUI_build.cpp)
+            Wave/src/ImGUI/imGUI_layer.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -74,27 +62,27 @@ if (UNIX)
                              GLEW_STATIC
                              ${CMAKE_BUILD_TYPE})
   target_precompile_headers(Wave PUBLIC Wave/Include/wave_pch.h)
+  target_include_directories(Wave PUBLIC
+                             Wave/Include
+                             Wave/Include/Dependencies
+                             Wave/Include/Dependencies/GL/glfw/include
+                             Wave/Include/Dependencies/freetype/include)
   target_link_libraries(Wave PUBLIC
                         freetype
                         ${GLEW_LIB}
                         ${GLFW3_LIB}
-                        OpenGL::GL
-                        imgui
+                        ImGUI
                         sfml-system
                         sfml-network
                         sfml-graphics
                         sfml-window
                         ${CMAKE_DL_LIBS})
-  target_include_directories(Wave PUBLIC Wave/Include Wave/Include/Dependencies
-                             Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/freetype/include)
   
   add_executable(App
                  Example_app/src/example_app.cpp
-                 Example_app/src/example_layer.cpp Wave/src/Math/vector_4f.cpp)
+                 Example_app/src/example_layer.cpp)
   
   target_compile_options(App PUBLIC -Wall -Wextra $<$<CONFIG:Release>:-O2>)
-  target_compile_definitions(App PUBLIC GLEW_STATIC GLFW3_STATIC ${CMAKE_BUILD_TYPE})
   target_precompile_headers(App PUBLIC Wave/Include/wave_pch.h)
 
 elseif (WIN32)
@@ -133,6 +121,7 @@ elseif (WIN32)
                              WAVE_STATIC
                              GLFW3_STATIC
                              GLEW_STATIC
+                             IMGUI_IMPL_LOADER_GL3W
                              _CRT_SECURE_NO_WARNINGS
                              ${CMAKE_BUILD_TYPE})
   target_precompile_headers(Wave PUBLIC Wave/Include/wave_pch.h)
@@ -147,7 +136,9 @@ elseif (WIN32)
                              Wave/Include
                              Wave/Include/Dependencies
                              Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/freetype/include)
+                             Wave/Include/Dependencies/freetype/include
+                             Wave/Include/Dependencies/imGUI
+                             Wave/Include/Dependencies/imGUI/backends)
 
   # WinMain (SUBSYSTEM:WINDOWS or SUBSYSTEM:CONSOLE).
   if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")

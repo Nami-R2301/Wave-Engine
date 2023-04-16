@@ -10,5 +10,5 @@
 	url = https://www.github.com/glfw/glfw.git
 [submodule "Wave/Include/Dependencies/imGUI"]
 	path = Wave/Include/Dependencies/imGUI
-	url = https://github.com/ocornut/imgui.git
+	url = https://github.com/orconut/imgui.git
 	branch = docking
