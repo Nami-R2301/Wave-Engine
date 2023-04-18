@@ -4,15 +4,14 @@
 
 #pragma once
 
-#include <wave_pch.h>
+#include <Core/interfaces.h>
+#include <Math/vector.h>
 
 namespace Wave
 {
   
-  #define COLOR_SIZE ((sizeof(float) * 4))
-  
   // Set custom colors for the background or for fragments.
-  class Color
+  class Color : public Printable
   {
   public:
     explicit Color(float uniform, float alpha, bool normalized = false);
@@ -20,12 +19,11 @@ namespace Wave
     explicit Color(unsigned long hex_color = 0xFFFFFFFF);
     explicit Color(const char *hex_color_code);
     Color(const Color &color);
-    ~Color() = default;
+    ~Color() override = default;
     
     void normalize();
     void clear();
-    [[nodiscard]] std::string to_string() const;
-    void print() const;
+    INTERFACE_PRINT
     
     [[nodiscard]] float get_red() const;
     [[nodiscard]] float get_blue() const;
@@ -36,6 +34,8 @@ namespace Wave
     void set_green(float green);
     void set_blue(float blue);
     void set_alpha(float alpha);
+    
+    float &operator [](unsigned int index);
     
     Color &operator =(const Color &other_color);
     bool operator !=(const Color &other_color) const;

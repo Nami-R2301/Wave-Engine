@@ -135,12 +135,12 @@ namespace Wave
   
   void Gl_renderer::on_window_resize(Window *window, float width, float height)
   {
+    if (!window) return;
     float aspect_ratio = width / height;
     
     if (aspect_ratio == (16.0f / 9.0f)) { set_aspect_ratio(window, 16.0f, 9.0f); }
     else if (aspect_ratio == (4.0f / 3.0f)) set_aspect_ratio(window, 4.0f, 3.0f);
-    gl_call(glViewport(0, 0, static_cast<GLsizei>(width),
-                       static_cast<GLsizei>(height)));
+    gl_call(glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height)));
   }
   
   const char *Gl_renderer::get_gl_version()
@@ -182,10 +182,10 @@ namespace Wave
   void Gl_renderer::load_object(const Object_3D *object)
   {
     std::vector<Buffer_element> b_elements;
-    b_elements.emplace_back(Buffer_data_type::Float3, "Position", true);
-    b_elements.emplace_back(Buffer_data_type::Float3, "Normal", true);
-    b_elements.emplace_back(Buffer_data_type::Float4, "Color", true);
-    b_elements.emplace_back(Buffer_data_type::Float2, "Texture coords", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_3f, "Position", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_3f, "Normal", true);
+    b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
     
     std::shared_ptr<Gl_vertex_buffer> vbo(new Gl_vertex_buffer(object->get_vertices(),
                                                                Object_3D::get_vertex_size() *

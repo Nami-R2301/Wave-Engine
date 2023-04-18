@@ -14,20 +14,12 @@
 
 #endif
 
-#include <wave_pch.h>
-
 #include <Core/layer.h>
-
-#include <Utilities/res_loader.h>
-
 #include <Renderer/gl_buffer.h>
 #include <Renderer/gl_vertex_array_buffer.h>
-
 #include <Objects/object.h>
 #include <Objects/text.h>
-
 #include <Events/renderer_event.h>
-
 #include <Window/window.h>
 
 namespace Wave
@@ -37,8 +29,6 @@ namespace Wave
   {
     static void init();
     static void shutdown();
-    
-    static void on_window_resize(uint32_t width, uint32_t height);
     
     static void begin_scene(Camera &camera);
     static void end_scene();

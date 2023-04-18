@@ -285,7 +285,7 @@ namespace Wave
     frame_time.start();
     
     glfw_call(glfwPollEvents());
-    if (!this->is_minimized)
+    if (!Engine::main_window->is_minimized())
     {
       ImGui_layer::begin();
       for (Layer *layer: this->layer_stack)
@@ -296,8 +296,7 @@ namespace Wave
       ImGui_layer::end();
     }
     // Refresh window
-    Engine::main_window->on_update(); // Refresh the window screen.
-    Gl_renderer::clear_bg();
+    Engine::main_window->on_update(time_step); // Refresh the window screen.
     
     this->last_mouse_position = Input::get_mouse_cursor_position();
     set_frame_drawn_counter(Engine::frame_drawn_counter + 1);
@@ -305,9 +304,9 @@ namespace Wave
     frame_time.stop();
     // Set minimum wait time between each frame to control game speed.
     Engine::wait(frame_time.get_time_in_seconds(),
-                 Engine::main_window->is_vsync() ?
-                 1.0f / static_cast<float>(Engine::main_window->get_refresh_rate()) :
-                 0.0f);  // Set to NOT wait and to render as many frames as possible (V-Sync off).
+                 Engine::main_window->is_vsync() ? 1.0f / static_cast<float>(Engine::main_window->get_refresh_rate()) :
+                 Engine::main_window->is_minimized() ? 1.0f / 30.0f
+                                                     : 0.0f);  // Set to NOT wait and to render as many frames as possible (V-Sync off).
   }
   
   void Engine::wait(float start_time, float end_time)
@@ -320,9 +319,7 @@ namespace Wave
   void Engine::shutdown()
   {
     set_running_state(false);
-    log_task("RENDERER", CYAN, 3, "Shutting down renderer ...", Gl_renderer::shutdown(),
-             "Renderer shut down")
-    log_task("WINDOW", GREEN, 4, "Closing app window ...", Engine::main_window->shutdown(), "App window closed")
+    log_task("RENDERER", CYAN, 3, "Shutting down renderer ...", Gl_renderer::shutdown(), "Renderer shut down")
     if (this->get_exit_status() != 0) this->set_exit_status(ENGINE_CRASH);
   }
   
@@ -437,17 +434,12 @@ namespace Wave
   [[maybe_unused]] bool Engine::window_resize_callback(On_window_resize &resize_event)
   {
     resize_event.print(Print_type::Warn);
-    if (resize_event.get_width() == 0 || resize_event.get_height() == 0)
-    {
-      this->is_minimized = true;
-      return false;
-    }
-    this->is_minimized = false;
+    if (resize_event.get_width() == 0 || resize_event.get_height() == 0) return false;
     Engine::main_window->set_width(resize_event.get_width());
     Engine::main_window->set_height(resize_event.get_height());
     Gl_renderer::on_window_resize(Engine::main_window.get(),
-                                  static_cast<float>(resize_event.get_width()),
-                                  static_cast<float>(resize_event.get_height()));
+                                  resize_event.get_width(),
+                                  resize_event.get_height());
     return true;
   }
 }

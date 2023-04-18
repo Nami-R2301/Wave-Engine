@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Events/event.h"
 #include <Window/window.h>
 #include <Events/event_dispatcher.h>
 
@@ -50,7 +51,7 @@ namespace Wave
     ~On_window_close() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_window_close)
-    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION)
+    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_CONTEXT)
     
     INTERFACE_PRINT;
   };
@@ -58,21 +59,50 @@ namespace Wave
   class On_window_resize : public Event
   {
   public:
-    On_window_resize(uint32_t width, uint32_t height) : width(width), height(height)
+    On_window_resize(float width, float height) : width(width), height(height)
     {};
     ~On_window_resize() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_window_resize);
-    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION);
+    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_CONTEXT);
     
     INTERFACE_PRINT
     
-    [[nodiscard]] uint32_t get_width() const;
-    [[nodiscard]] uint32_t get_height() const;
+    [[nodiscard]] float get_width() const;
+    [[nodiscard]] float get_height() const;
   
   private:
-    uint32_t width = 0;
-    uint32_t height = 0;
+    float width = 0.0f;
+    float height = 0.0f;
+  };
+  
+  typedef struct Context_state
+  {
+    const char *type;
+    const char *severity;
+    const char *description;
+    int32_t error_code;
+  } Context_state;
+  
+  class On_context_error : public Event
+  {
+  public:
+    On_context_error(Context_state state, Context_api api);
+    ~On_context_error() override = default;
+    
+    EVENT_CLASS_TYPE(Event_type::On_window_error);
+    EVENT_CLASS_CATEGORY(EVENT_CATEGORY_CONTEXT);
+    
+    INTERFACE_PRINT
+    
+    [[nodiscard]] Context_state get_context_state() const;
+    [[nodiscard]] Context_api get_context_api() const;
+  private:
+    Context_state state {nullptr,
+                         nullptr,
+                         nullptr,
+                         0};
+    Context_api api;
   };
 
 //

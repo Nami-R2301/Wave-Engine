@@ -2,6 +2,7 @@
 // Created by nami on 07/01/23.
 //
 
+#include "Renderer/vertex.h"
 #include <Objects/object.h>
 
 namespace Wave
@@ -89,7 +90,7 @@ namespace Wave
   
   uint64_t Object_2D::get_vertex_size()
   {
-    return VERTEX_2D_SIZE;
+    return sizeof(Vertex_2D);
   }
   
   const std::vector<uint32_t> &Object_2D::get_faces() const
@@ -395,7 +396,7 @@ namespace Wave
   
   uint64_t Object_3D::get_vertex_size()
   {
-    return VERTEX_3D_SIZE;
+    return sizeof(Vertex_3D);
   }
   
   const std::vector<uint32_t> &Object_3D::get_faces() const

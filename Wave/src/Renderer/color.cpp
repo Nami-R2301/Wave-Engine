@@ -2,7 +2,6 @@
 // Created by nami on 2023-02-01.
 //
 #include <Renderer/color.h>
-#include <memory>
 
 namespace Wave
 {
@@ -75,8 +74,8 @@ namespace Wave
     char buffer[76 + sizeof(float) * 4] {0};
     
     if (snprintf(buffer, 75 + sizeof(float) * 4,
-                 "Red value : %.2f, Green value : %.2f, Blue value : %.2f, Alpha value : %.2f\n",
-                 this->red, this->green, this->blue, this->alpha) < 0)
+                 "Red value : %.2f, Green value : %.2f, Blue value : %.2f, Alpha value : %.2f",
+                 this->get_red(), this->get_green(), this->get_blue(), this->get_alpha()) < 0)
     {
       return {"[MINOR] [COLOR ERROR] --> Error converting color to string, snprintf failed!\n"};
     }
@@ -84,31 +83,19 @@ namespace Wave
     return {buffer};
   }
   
-  void Color::print() const
-  {
-    std::string printed(this->to_string());
-    auto error = printed.find("ERROR");
-    if (error)
-    {
-      alert(WAVE_WARN, "%s", printed.c_str());
-      return;
-    }
-    alert(WAVE_INFO, "%s", this->to_string().c_str());
-  }
-  
   float Color::get_red() const
   {
     return this->red;
   }
   
-  float Color::get_blue() const
-  {
-    return this->blue;
-  }
-  
   float Color::get_green() const
   {
     return this->green;
+  }
+  
+  float Color::get_blue() const
+  {
+    return this->blue;
   }
   
   float Color::get_alpha() const
@@ -136,12 +123,24 @@ namespace Wave
     this->alpha = alpha_;
   }
   
+  float &Color::operator [](unsigned int index)
+  {
+    switch (index)
+    {
+      case 0:return this->red;
+      case 1:return this->green;
+      case 2:return this->blue;
+      case 3:return this->alpha;
+      default:return this->red;
+    }
+  }
+  
   Color &Color::operator =(const Color &other_color)
   {
     if (this == &other_color) return *this;
     this->red = other_color.red;
-    this->blue = other_color.blue;
     this->green = other_color.green;
+    this->blue = other_color.blue;
     this->alpha = other_color.alpha;
     return *this;
   }
@@ -158,9 +157,9 @@ namespace Wave
   bool Color::operator !=(const Color &other_color) const
   {
     if (this == &other_color) return true;
-    return this->red == other_color.get_red() &&
-           this->green == other_color.get_green() &&
-           this->blue == other_color.get_blue() &&
-           this->alpha == other_color.get_alpha();
+    return this->red == other_color.red &&
+           this->green == other_color.green &&
+           this->blue == other_color.blue &&
+           this->alpha == other_color.alpha;
   }
 }

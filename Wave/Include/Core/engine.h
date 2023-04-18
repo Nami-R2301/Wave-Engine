@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ImGUI/imGUI_layer.h>
-#include <imGUI/imgui.h>
 #include <Core/core_macros.h>
 #include <Core/settings.h>
 #include <Core/layer_stack.h>
@@ -68,7 +67,6 @@ namespace Wave
   private:
     static Engine *instance;
     bool running_state = false;
-    bool is_minimized = false;
     long frame_drawn_counter = 0;
     static float engine_framerate;
     Engine_time current_time;
@@ -77,7 +75,6 @@ namespace Wave
     Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
     static std::unique_ptr<Window> main_window;  // Default to OpenGL implementation.
     Layer_stack layer_stack;  // List containing all of our app layers.
-    ImGui_layer *imgui_layer = nullptr;
   private:
     std::future<void> demo_futures;  // For async job handling.
   };

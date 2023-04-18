@@ -14,11 +14,12 @@ namespace Wave
   {
     None = 0,
     EVENT_CATEGORY_APPLICATION = BIT(0),
-    EVENT_CATEGORY_RENDERER = BIT(1),
-    EVENT_CATEGORY_INPUT = BIT(2),
-    EVENT_CATEGORY_KEYBOARD = BIT(3),
-    EVENT_CATEGORY_MOUSE = BIT(4),
-    EVENT_CATEGORY_MOUSE_BUTTON = BIT(5)
+    EVENT_CATEGORY_CONTEXT = BIT(1),
+    EVENT_CATEGORY_RENDERER = BIT(2),
+    EVENT_CATEGORY_INPUT = BIT(3),
+    EVENT_CATEGORY_KEYBOARD = BIT(4),
+    EVENT_CATEGORY_MOUSE = BIT(5),
+    EVENT_CATEGORY_MOUSE_BUTTON = BIT(6)
   };
   
   enum class Event_type
@@ -32,6 +33,7 @@ namespace Wave
     On_app_tick,
     On_app_update,
     On_app_render,
+    On_window_error,
     On_renderer_error,
     On_key_event,
     On_key_press,
