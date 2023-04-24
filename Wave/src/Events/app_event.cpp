@@ -13,8 +13,7 @@ namespace Wave
     
     char buffer[FILENAME_MAX] {0};
     if (snprintf(buffer, sizeof(buffer),
-                 "[On window resize] :\n%50sWindow resized to --> (%.2f, %.2f)", DEFAULT, this->get_width(),
-                 this->get_height()) < 0)
+                 "[On window resize] : Window resized to --> (%.2f, %.2f)", this->get_width(), this->get_height()) < 0)
     {
       return "ERROR : Snprintf error when trying to display [On_window_resize] event!";
     }
@@ -34,8 +33,7 @@ namespace Wave
   std::string On_window_close::to_string() const
   {
     char buffer[FILENAME_MAX] {0};
-    if (snprintf(buffer, sizeof(buffer),
-                 "[On window close] :\n%50sUser request to close app window", DEFAULT) < 0)
+    if (snprintf(buffer, sizeof(buffer), "[On window close] : User request to close app window") < 0)
     {
       return "Snprintf error when trying to display [On_window_resize] event!";
     }

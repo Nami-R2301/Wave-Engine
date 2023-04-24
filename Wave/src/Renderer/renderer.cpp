@@ -125,7 +125,7 @@ namespace Wave
                gl_call(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
                
                // Let OpenGL do the exponential gamma correction for us so textures and colors don't appear as dark.
-               gl_call(glEnable(GL_FRAMEBUFFER_SRGB));
+//               gl_call(glEnable(GL_FRAMEBUFFER_SRGB));
              }, "Renderer 3D loaded")
     
     log_task("RENDERER 3D", YELLOW, 1, "Fetching renderer info on client system ...",
@@ -311,6 +311,27 @@ namespace Wave
           Gl_renderer::state.code = Renderer_error_type::INVALID_UNIFORM;
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID UNIFORM");
           break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:Gl_renderer::state.type = "INVALID FRAMEBUFFER OPERATION";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::INVALID_FRAMEBUFFER;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID FRAMEBUFFER OPERATION");
+          break;
+        case GL_FRAMEBUFFER_UNDEFINED:Gl_renderer::state.type = "INVALID FRAMEBUFFER UNDEFINED";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::UNDEFINED_FRAMEBUFFER;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID FRAMEBUFFER UNDEFINED");
+          break;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:Gl_renderer::state.type = "INCOMPLETE FRAMEBUFFER ATTACHMENT";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::INCOMPLETE_FRAMEBUFFER_ATTACHMENT;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INCOMPLETE FRAMEBUFFER ATTACHMENT");
+          break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+          Gl_renderer::state.type = "MISSING FRAMEBUFFER ATTACHMENT";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::MISSING_FRAMEBUFFER_ATTACHMENT;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "MISSING FRAMEBUFFER ATTACHMENT");
+          break;
         case GL_OUT_OF_MEMORY:
         {
           Gl_renderer::state.type = "OUT OF MEMORY";
@@ -336,7 +357,7 @@ namespace Wave
       }
       else if (snprintf(output, sizeof(output),
                         "[OpenGL error]%s\n%48s%sIn function --> %s,\n%48s%sIn file --> %s,\n"
-                        "%48s%sAt line --> %zu\n%48sDescription --> %s%s",
+                        "%48s%sAt line --> %zu,\n%52sDetails --> %s%s",
                         DEFAULT, " ", DEFAULT, function_name, " ", DEFAULT, file_name, " ", DEFAULT, line_number,
                         DEFAULT, error_message, DEFAULT) < 0)
       {
@@ -347,7 +368,7 @@ namespace Wave
       {
         Gl_renderer::state.description = output;
         On_renderer_error gl_error(Gl_renderer::state, Renderer_api::Opengl);
-        Gl_renderer::event_callback_function(gl_error);
+        Gl_renderer::renderer_error_callback(gl_error);
       }
     }
   }

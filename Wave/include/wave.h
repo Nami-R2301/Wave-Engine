@@ -27,7 +27,6 @@
 #include <Input/mouse_codes.h>
 
 /************************* Math ********************************/
-#include <Math/camera.h>
 #include <Math/matrix_4f.h>
 #include <Math/transform.h>
 
@@ -38,6 +37,8 @@
 #include <Renderer/shader.h>
 #include <Renderer/vertex.h>
 #include <Renderer/vertex_array_buffer.h>
+#include <Renderer/editor_camera.h>
+#include <Renderer/gl_framebuffer.h>
 
 /************************* Objects ********************************/
 #include <Objects/object.h>

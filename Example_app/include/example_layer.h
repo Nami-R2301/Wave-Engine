@@ -5,7 +5,6 @@
 #pragma once
 
 #include <wave.h>
-#include <imGUI/imgui.h>
 
 class Example_scene_3D : public Wave::Layer
 {
@@ -21,7 +20,7 @@ public:
   void on_update(float time_step) override;
   void on_event(Wave::Event &e) override;
 private:
-  std::shared_ptr<Wave::Camera> demo_camera;
+  std::shared_ptr<Wave::Camera> camera;
   std::vector<std::shared_ptr<Wave::Shader>> shaders;
   std::shared_ptr<Wave::Object_3D> object;
 };

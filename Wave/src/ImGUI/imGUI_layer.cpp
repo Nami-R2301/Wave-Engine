@@ -65,29 +65,7 @@ namespace Wave
   
   void ImGui_layer::on_update(float time_step)
   {
-    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-    ImGuiIO &io = ImGui::GetIO();
-    auto bold = io.Fonts->Fonts[1];
-    io.DeltaTime = time_step;
-    
-    if (ImGui::Begin("Scene"))
-    {
-      if (ImGui::TreeNodeEx("Clear color", ImGuiTreeNodeFlags_SpanFullWidth))
-      {
-        ImGui::PushFont(bold);
-        ImGui::ColorEdit3("", &Engine::get_main_window()->get_bg_color()[0]);
-        ImGui::PopFont();
-        ImGui::TreePop();
-      }
-    }
-    ImGui::End();
-    
-    if (ImGui::Begin("Stats"))
-    {
-      ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)", 1000.0f * time_step,
-                  static_cast<int>(Engine::get_engine_framerate()));
-    }
-    ImGui::End();
+  
   }
   
   void ImGui_layer::on_detach()
@@ -133,39 +111,39 @@ namespace Wave
   {
     auto &colors = ImGui::GetStyle().Colors;
     
-    auto dark_grey = ImVec4(0.05f,
-                            0.05f,
-                            0.05f,
+    auto dark_grey = ImVec4(0.2f,
+                            0.2f,
+                            0.2f,
                             1.0f);
-    auto light_grey = ImVec4(0.15f,
-                             0.15f,
-                             0.15f,
+    auto light_grey = ImVec4(0.4f,
+                             0.4f,
+                             0.4f,
                              1.0f);
     
     // Window Background.
-    colors[ImGuiCol_WindowBg] = ImVec4 {0.01f,
-                                        0.01f,
-                                        0.01f,
+    colors[ImGuiCol_WindowBg] = ImVec4 {0.15f,
+                                        0.15f,
+                                        0.15f,
                                         1.0f};
     
     // Title Background.
     colors[ImGuiCol_TitleBg] = dark_grey;
-    colors[ImGuiCol_TitleBgActive] = light_grey;
-    colors[ImGuiCol_TitleBgCollapsed] = dark_grey;
+    colors[ImGuiCol_TitleBgActive] = dark_grey;
+    colors[ImGuiCol_TitleBgCollapsed] = light_grey;
     
     // Headers
-    colors[ImGuiCol_Header] = light_grey;
-    colors[ImGuiCol_HeaderHovered] = dark_grey;
+    colors[ImGuiCol_Header] = dark_grey;
+    colors[ImGuiCol_HeaderHovered] = light_grey;
     colors[ImGuiCol_HeaderActive] = dark_grey;
     
     // Frame BG
-    colors[ImGuiCol_FrameBg] = light_grey;
-    colors[ImGuiCol_FrameBgHovered] = dark_grey;
+    colors[ImGuiCol_FrameBg] = dark_grey;
+    colors[ImGuiCol_FrameBgHovered] = light_grey;
     colors[ImGuiCol_FrameBgActive] = dark_grey;
     
     // Tabs
-    colors[ImGuiCol_Tab] = light_grey;
-    colors[ImGuiCol_TabHovered] = dark_grey;
+    colors[ImGuiCol_Tab] = dark_grey;
+    colors[ImGuiCol_TabHovered] = light_grey;
     colors[ImGuiCol_TabActive] = dark_grey;
     colors[ImGuiCol_TabUnfocused] = light_grey;
     colors[ImGuiCol_TabUnfocusedActive] = dark_grey;

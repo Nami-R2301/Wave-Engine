@@ -124,7 +124,6 @@ namespace Wave
     // Refresh framebuffer.
     glfw_call(glfwSwapBuffers(static_cast<GLFWwindow *>(this->get_native_window())));
     glfw_call(glfwSwapInterval(this->vsync));  // Disable/enable Vertical synchronisation (Vsync).
-    Gl_renderer::clear_bg();
   }
   
   void Gl_window::bind_api_callbacks()
@@ -225,15 +224,15 @@ namespace Wave
                                              default:break;
                                            }
                                          }));
-    glfw_call(glfwSetCursorPosCallback(static_cast<GLFWwindow *>(this->get_native_window()),
-                                       
-                                       [](GLFWwindow *window_, double x, double y)
-                                       {
-                                         Window &this_window_instance = *(Window *) glfwGetWindowUserPointer(window_);
-                                         On_mouse_movement mouse_movement_event(
-                                             Vector_2f(static_cast<float>(x), static_cast<float>(y)));
-                                         this_window_instance.get_event_callback_function()(mouse_movement_event);
-                                       }));
+//    glfw_call(glfwSetCursorPosCallback(static_cast<GLFWwindow *>(this->get_native_window()),
+//
+//                                       [](GLFWwindow *window_, double x, double y)
+//                                       {
+//                                         Window &this_window_instance = *(Window *) glfwGetWindowUserPointer(window_);
+//                                         On_mouse_movement mouse_movement_event(
+//                                             Vector_2f(static_cast<float>(x), static_cast<float>(y)));
+//                                         this_window_instance.get_event_callback_function()(mouse_movement_event);
+//                                       }));
     glfw_call(glfwSetWindowSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                                         [](GLFWwindow *window_, int32_t width_, int32_t height_)
                                         {

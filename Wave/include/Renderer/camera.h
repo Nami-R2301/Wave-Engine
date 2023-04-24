@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <Events/app_event.h>
-#include <Math/vector.h>
-#include <Math/matrix_4f.h>
+#include "Events/app_event.h"
+#include "Math/vector.h"
+#include "Math/matrix_4f.h"
 
 namespace Wave
 {
@@ -66,9 +66,8 @@ namespace Wave
     { this->forward = forward_.normalize(); };
     void set_up(const Vector_3f &up_)
     { this->up = up_.normalize(); };
-    virtual void update_view_matrix() = 0;
-    virtual void update_projection_matrix() = 0;
     
+    virtual void on_event(Event &event) = 0;
     virtual void move(const Vector_3f &direction, float amount) = 0;
     virtual void move(float x, float y, float z, float amount) = 0;
     virtual void rotate_x(float angle) = 0;
@@ -84,11 +83,15 @@ namespace Wave
     Vector_3f up = Vector_3f(0);
     Matrix_4f view_matrix {};
     Matrix_4f projection_matrix {};
+    
+    virtual void update_view_matrix() = 0;
+    virtual void update_projection_matrix() = 0;
   };
   
   class Perspective_camera : public Camera
   {
   public:
+    Perspective_camera() = default;
     Perspective_camera(float fov_, float z_near_, float z_far_);
     ~Perspective_camera() override = default;
     
@@ -100,11 +103,12 @@ namespace Wave
     
     INTERFACE_PRINT
     
+    void on_event(Event &event) override;
     void move(const Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;
     void rotate_y(float angle) override;
-  private:
+  protected:
     float fov = 45.0f;
     float z_near = 0.1f;
     float z_far = 1000.0f;
@@ -113,6 +117,7 @@ namespace Wave
   class Orthographic_camera : public Camera
   {
   public:
+    Orthographic_camera() = default;
     Orthographic_camera(float width_, float height_, float size, float z_near_, float z_far_);
     ~Orthographic_camera() override = default;
     
@@ -126,7 +131,7 @@ namespace Wave
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;
     void rotate_y(float angle) override;
-  private:
+  protected:
     float size = 1.0f;
     float z_near = -1.0f;
     float z_far = 1.0f;

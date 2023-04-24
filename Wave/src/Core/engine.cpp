@@ -32,7 +32,6 @@ namespace Wave
                Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
                Engine::main_window->bind_api_callbacks();
                Gl_renderer::init();  // Default to OpenGL implementation.
-               push_overlay(new Wave::ImGui_layer());
              },
              "Engine launched")
   }
@@ -85,7 +84,6 @@ namespace Wave
                    Engine::main_window->bind_api_callbacks();
                }
                Gl_renderer::init();  // Default to OpenGL implementation.
-               push_overlay(new Wave::ImGui_layer());
              },
              "Engine launched")
   }
@@ -287,13 +285,11 @@ namespace Wave
     glfw_call(glfwPollEvents());
     if (!Engine::main_window->is_minimized())
     {
-      ImGui_layer::begin();
       for (Layer *layer: this->layer_stack)
       {
         layer->on_update(time_step);
         layer->on_imgui_render(time_step);
       }
-      ImGui_layer::end();
     }
     // Refresh window
     Engine::main_window->on_update(time_step); // Refresh the window screen.
@@ -319,6 +315,7 @@ namespace Wave
   void Engine::shutdown()
   {
     set_running_state(false);
+    Engine::main_window->close();
     log_task("RENDERER", CYAN, 3, "Shutting down renderer ...", Gl_renderer::shutdown(), "Renderer shut down")
     if (this->get_exit_status() != 0) this->set_exit_status(ENGINE_CRASH);
   }

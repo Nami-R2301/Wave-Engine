@@ -170,7 +170,7 @@ namespace Wave
     
     float x_scale = 1.0f;
     float y_scale = 1.0f;
-    Color bg_color = Color(0.03f, 1.0f, true);  // Default background color (gray).
+    Color bg_color = Color(0.2f, 1.0f, true);  // Default background color (gray).
     bool fullscreen = false;
     bool request_closing = false;
     Api_info api_info {};

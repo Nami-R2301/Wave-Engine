@@ -10,7 +10,7 @@
 Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
 {
   // Add Cameras
-  this->demo_perspective_camera = Wave::create_shared_pointer<Wave::Perspective_camera>(90.0f, 0.1f, 1000.0f);
+  this->demo_perspective_camera = Wave::create_shared_pointer<Wave::Editor_camera>(90.0f, 0.1f, 1000.0f);
   
   // Add shaders
   this->demo_shaders.emplace_back(Wave::Shader::create("Default",
@@ -28,8 +28,6 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
                                   this->demo_shaders,
                                   this->demo_objects[0]));
 }
-
-Example_app::~Example_app() = default;
 
 void Example_app::init()
 {
@@ -114,13 +112,8 @@ bool Example_app::mouse_movement_callback(Wave::On_mouse_movement &mouse_cursor_
 
 bool Example_app::mouse_wheel_callback(Wave::On_mouse_wheel_scroll &mouse_wheel_input)
 {
-  float sensitivity = 1.0f;
-  if (mouse_wheel_input.get_mouse_wheel_offset() != Wave::Vector_2f(0, 0))
-  {
-    this->demo_perspective_camera->move(this->demo_perspective_camera->get_forward(),
-                                        mouse_wheel_input.get_mouse_wheel_offset().get_y() * sensitivity);
-  }
-  return true;
+  this->demo_perspective_camera->on_event(mouse_wheel_input);
+  return false;
 }
 
 bool Example_app::window_resize_callback(Wave::On_window_resize &window_resized_event)

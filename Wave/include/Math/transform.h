@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Math/camera.h>
+#include <Renderer/camera.h>
 #include <Core/core_macros.h>
 
 namespace Wave

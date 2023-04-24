@@ -10,7 +10,7 @@ endif ()
 add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
 target_compile_definitions(ImGUI PUBLIC IMGUI_IMPL_LOADER_GL3W)
 target_link_libraries(ImGUI PUBLIC OpenGL::GL)
-target_include_directories(ImGUI PUBLIC ${CMAKE_SOURCE_DIR}/Wave/Include/Dependencies/imGUI/)
+target_include_directories(ImGUI PUBLIC ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/)
 
 add_library(Wave STATIC
             Wave/src/Core/engine.cpp
@@ -25,7 +25,7 @@ add_library(Wave STATIC
             Wave/src/Utilities/logger.cpp
             Wave/src/Math/transform.cpp
             Wave/src/Utilities/res_loader.cpp
-            Wave/src/Math/camera.cpp
+            Wave/src/Renderer/camera.cpp
             Wave/src/Renderer/texture.cpp
             Wave/src/Renderer/gl_vertex_array_buffer.cpp
             Wave/src/Window/display_settings.cpp
@@ -35,7 +35,6 @@ add_library(Wave STATIC
             Wave/src/Events/mouse_event.cpp
             Wave/src/Events/app_event.cpp
             Wave/src/Input/input.cpp
-            Wave/src/Core/text.cpp
             Wave/src/Objects/object.cpp
             Wave/src/Core/layer.cpp
             Wave/src/Core/layer_stack.cpp
@@ -43,7 +42,10 @@ add_library(Wave STATIC
             Wave/src/Renderer/gl_buffer.cpp
             Wave/src/Renderer/vertex_array_buffer.cpp
             Wave/src/Events/renderer_event.cpp
-            Wave/src/ImGUI/imGUI_layer.cpp)
+            Wave/src/ImGUI/imGUI_layer.cpp
+            Wave/src/Renderer/editor_camera.cpp
+            Wave/src/Renderer/framebuffer.cpp
+            Wave/src/Renderer/gl_framebuffer.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -61,14 +63,12 @@ if (UNIX)
                              GLFW3_STATIC
                              GLEW_STATIC
                              ${CMAKE_BUILD_TYPE})
-  target_precompile_headers(Wave PUBLIC Wave/Include/wave_pch.h)
+  target_precompile_headers(Wave PUBLIC Wave/include/wave_pch.h)
   target_include_directories(Wave PUBLIC
-                             Wave/Include
-                             Wave/Include/Dependencies
-                             Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/freetype/include)
+                             Wave/include
+                             Wave/include/Dependencies
+                             Wave/include/Dependencies/GL/glfw/include)
   target_link_libraries(Wave PUBLIC
-                        freetype
                         ${GLEW_LIB}
                         ${GLFW3_LIB}
                         ImGUI
@@ -82,8 +82,24 @@ if (UNIX)
                  Example_app/src/example_app.cpp
                  Example_app/src/example_layer.cpp)
   
+  add_executable(Editor
+                 Wave-Editor/src/app_editor.cpp
+                 Wave-Editor/src/editor_layer.cpp)
+  target_compile_definitions(Editor PUBLIC DEBUG)
+  target_include_directories(Editor PUBLIC
+                             Wave-Editor/src
+                             Wave-Editor/include
+                             Wave/include
+                             Wave/include/Dependencies
+                             Wave/include/Dependencies/GL/glfw/include
+                             Wave/include/Dependencies/imGUI/)
+  target_link_libraries(Editor PUBLIC
+                        Wave
+                        glfw
+                        GLEW)
+  
   target_compile_options(App PUBLIC -Wall -Wextra $<$<CONFIG:Release>:-O2>)
-  target_precompile_headers(App PUBLIC Wave/Include/wave_pch.h)
+  target_precompile_headers(App PUBLIC Wave/include/wave_pch.h)
 
 elseif (WIN32)
   message("Windows system detected. Setting up configuration for MSVCRT...\n")
@@ -129,16 +145,15 @@ elseif (WIN32)
                         user32
                         gdi32
                         shell32
-                        freetype
                         ${GLEW_LIB}
                         ${GLFW3_LIB})
   target_include_directories(Wave PUBLIC
-                             Wave/Include
-                             Wave/Include/Dependencies
-                             Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/freetype/include
-                             Wave/Include/Dependencies/imGUI
-                             Wave/Include/Dependencies/imGUI/backends)
+                             Wave/include
+                             Wave/include/Dependencies
+                             Wave/include/Dependencies/GL/glfw/include
+                             Wave/include/Dependencies/freetype/include
+                             Wave/include/Dependencies/imGUI
+                             Wave/include/Dependencies/imGUI/backends)
 
   # WinMain (SUBSYSTEM:WINDOWS or SUBSYSTEM:CONSOLE).
   if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
@@ -158,11 +173,13 @@ endif ()
 # ------------------------------ COMMON STEPS FOR BOTH WIN32 AND UNIX -------------------------------
 target_link_libraries(App PUBLIC
                     Wave
-                    freetype
                     glfw
                     GLEW)
-target_include_directories(App PUBLIC Wave/Include Wave/Include/Dependencies
-                           Wave/Include/Dependencies/GL/glfw/include Example_app/Include)
+target_include_directories(App PUBLIC
+                           Wave/include
+                           Wave/include/Dependencies
+                           Wave/include/Dependencies/GL/glfw/include
+                           Example_app/include)
 
 ##        ------------------- TESTING -------------------
 
@@ -190,19 +207,19 @@ if (WIN32)
                              TESTING
                              _CRT_SECURE_NO_WARNINGS
                              ${CMAKE_BUILD_TYPE})
-  target_precompile_headers(Tests PUBLIC Wave/Include/wave_pch.h)
+  target_precompile_headers(Tests PUBLIC Wave/include/wave_pch.h)
   target_link_libraries(Tests PUBLIC
                         Wave
                         ${GTEST}
                         ${GTEST_MAIN})
   target_include_directories(Tests PUBLIC
-                             Wave/Include
-                             Wave/Include/Dependencies
-                             Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/freetype/include
-                             Wave/Include/Dependencies/googleTest/googletest/include
-                             Wave/Include/Dependencies/googleTest/googlemock/include
-                             Example_app/Include)
+                             Wave/include
+                             Wave/include/Dependencies
+                             Wave/include/Dependencies/GL/glfw/include
+                             Wave/include/Dependencies/freetype/include
+                             Wave/include/Dependencies/googleTest/googletest/include
+                             Wave/include/Dependencies/googleTest/googlemock/include
+                             Example_app/include)
 elseif (UNIX)
   target_compile_options(Tests PUBLIC)
   target_compile_definitions(Tests PUBLIC
@@ -218,12 +235,12 @@ elseif (UNIX)
                         GLEW
                         GTest::gtest_main)
   target_include_directories(Tests PUBLIC
-                             Wave/Include
-                             Wave/Include/Dependencies
-                             Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/googleTest/googletest/include
-                             Wave/Include/Dependencies/googleTest/googlemock/include
-                             Example_app/Include)
+                             Wave/include
+                             Wave/include/Dependencies
+                             Wave/include/Dependencies/GL/glfw/include
+                             Wave/include/Dependencies/googleTest/googletest/include
+                             Wave/include/Dependencies/googleTest/googlemock/include
+                             Example_app/include)
 endif ()
 include(GoogleTest)
 gtest_discover_tests(Tests)

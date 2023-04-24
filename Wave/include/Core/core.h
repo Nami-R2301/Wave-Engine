@@ -29,7 +29,8 @@
 //#define RENDERER_ERROR_MAX_CHARS 100  // Documentation purposes --> Max chars to be printed out int the terminal on one line when logging.
 
 // Macro to log openGL errors in an efficient and clean way (renderer.h).
-#define gl_call(x) Wave::Gl_renderer::gl_clear_errors(); x; if (Wave::Gl_renderer::is_running()) Wave::Gl_renderer::gl_error_callback(glGetError(), #x, "No info", __FILE__, __LINE__)
+#define gl_call(x) Wave::Gl_renderer::gl_clear_errors(); x; \
+  if (Wave::Gl_renderer::is_running()) Wave::Gl_renderer::gl_error_callback(glGetError(), "No info", __FUNCTION__, __FILE__, __LINE__)
 #define glfw_call(x) x; Wave::Gl_window::glfw_error_callback(#x, __FILE__, __LINE__)
 
 /* ---------------------logger.h-------------------- */

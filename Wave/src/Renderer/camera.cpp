@@ -2,7 +2,7 @@
 // Created by nami on 5/25/22.
 //
 
-#include <Math/camera.h>
+#include <Renderer/camera.h>
 
 namespace Wave
 {
@@ -35,6 +35,18 @@ namespace Wave
     output += "Projection matrix --> " + this->projection_matrix.to_string();
     
     return output;
+  }
+  
+  void Perspective_camera::on_event(Event &event)
+  {
+    switch(event.get_event_type())
+    {
+      case Event_type::On_window_resize:
+      {
+        on_window_resize(dynamic_cast<On_window_resize &>(event));
+      }
+      default:break;
+    }
   }
   
   void Perspective_camera::on_window_resize(On_window_resize &resize_event)
