@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <Core/core.h>
-#include "color.h"
 #include <Math/matrix_4f.h>
+#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 
 namespace Wave
 {
@@ -37,6 +37,7 @@ namespace Wave
     virtual void set_uniform(const char *uniform_name, bool value) const = 0;
     virtual void set_uniform(const char *uniform_name, int value) const = 0;
     virtual void set_uniform(const char *uniform_name, float value) const = 0;
+    virtual void set_uniform(const char *uniform_name, glm::mat4x4 value) const = 0;
     [[maybe_unused]] virtual void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const = 0;
   };
   
@@ -69,6 +70,7 @@ namespace Wave
     void set_uniform(const char *uniform_name, bool value) const override;
     void set_uniform(const char *uniform_name, int value) const override;
     void set_uniform(const char *uniform_name, float value) const override;
+    void set_uniform(const char *uniform_name, glm::mat4x4 value) const override;
     [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
   private:
     std::string name = "No name";

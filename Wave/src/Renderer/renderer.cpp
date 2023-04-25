@@ -6,7 +6,6 @@
 
 namespace Wave
 {
-  
   bool Gl_renderer::running = false;
   Renderer_api Gl_renderer::api = Renderer_api::None;
   Renderer_state Gl_renderer::state = {nullptr,
@@ -187,22 +186,37 @@ namespace Wave
     b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
     
-    std::shared_ptr<Gl_vertex_buffer> vbo(new Gl_vertex_buffer(object->get_vertices(),
-                                                               Object_3D::get_vertex_size() *
-                                                               object->get_vertex_count(),
-                                                               STATIC_DRAW));
-    Gl_renderer::vertex_array_buffers = create_shared_pointer<Gl_vertex_array_buffer>();
+    std::shared_ptr<Gl_vertex_buffer> vbo_ = create_shared_pointer<Gl_vertex_buffer>(object->get_vertices(),
+                                                                                     Object_3D::get_vertex_size() *
+                                                                                     object->get_vertex_count(),
+                                                                                     STATIC_DRAW);
+    if (!Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers = create_shared_pointer<Gl_vertex_array_buffer>();
     Gl_renderer::vertex_array_buffers->set_index_buffer(
         create_shared_pointer<Gl_index_buffer>(object->get_faces().data(),
                                                static_cast<uint32_t>(object->get_faces().size())));
     Buffer_layout vbo_layout(b_elements);
-    vbo->set_layout(vbo_layout);
-    Gl_renderer::vertex_array_buffers->add_vertex_buffer(vbo);
+    vbo_->set_layout(vbo_layout);
+    Gl_renderer::vertex_array_buffers->add_vertex_buffer(vbo_);
     
     if (!object->get_textures().empty() && object->get_textures()[0].get_id() != 255)
     {
       Gl_renderer::textures.emplace_back(object->get_textures()[0]);
     }
+  }
+  
+  std::shared_ptr<Gl_vertex_array_buffer> Gl_renderer::load_text()
+  {
+    std::vector<Buffer_element> b_elements;
+    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
+    
+    Buffer_layout vbo_layout(b_elements);
+    std::shared_ptr<Gl_vertex_buffer> vbo_ = create_shared_pointer<Gl_vertex_buffer>(sizeof(float) * 6 * 4);
+    vbo_->set_layout(vbo_layout);
+    
+    std::shared_ptr<Gl_vertex_array_buffer> vao = create_shared_pointer<Gl_vertex_array_buffer>();
+    vao->add_vertex_buffer(vbo_);
+    return vao;
   }
   
   void Gl_renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index)
@@ -241,12 +255,59 @@ namespace Wave
     if (!Gl_renderer::textures.empty()) Gl_renderer::textures[0].unbind();
   }
   
+  void Gl_renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao)
+  {
+    gl_call(glActiveTexture(GL_TEXTURE0));
+    gl_call(glBindVertexArray(vao->get_id()));
+    
+    float x = text->get_offset_x(), y = text->get_offset_y(), scale = text->get_scale();
+    
+    // Iterate through all characters
+    std::string::const_iterator c;
+    for (c = text->get_string().begin(); c != text->get_string().end(); c++)
+    {
+      Glyph ch = (*text)[*c];
+      
+      float x_pos = x + ch.bearing.get_x() * scale;
+      float y_pos = y - (ch.size.get_y() - ch.bearing.get_y()) * scale;
+      float w = ch.size.get_x() * scale;
+      float h = ch.size.get_y() * scale;
+      // Update VBO for each character
+      float vertices[6][4] = {
+          {x_pos,     y_pos + h, 0.0f, 0.0f},
+          {x_pos,     y_pos,     0.0f, 1.0f},
+          {x_pos + w, y_pos,     1.0f, 1.0f},
+          
+          {x_pos,     y_pos + h, 0.0f, 0.0f},
+          {x_pos + w, y_pos,     1.0f, 1.0f},
+          {x_pos + w, y_pos + h, 1.0f, 0.0f}
+      };
+      // Render glyph texture over quad
+      gl_call(glBindTexture(GL_TEXTURE_2D, ch.texture_id));
+      
+      // Update content of VBO memory
+      gl_call(glBindBuffer(GL_ARRAY_BUFFER, vao->get_vertex_buffers().back()->get_id()));
+      
+      // Use glBufferSubData and not glBufferData
+      gl_call(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
+      gl_call(glBindBuffer(GL_ARRAY_BUFFER, 0));
+      
+      // Draw
+      gl_call(glDrawArrays(GL_TRIANGLES, 0, 6));
+      // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
+      x += (ch.advance >> 6) *
+           scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+    }
+    gl_call(glBindVertexArray(0));
+    gl_call(glBindTexture(GL_TEXTURE_2D, 0));
+  }
+  
   void Gl_renderer::delete_gl_buffers()
   {
     if (Gl_renderer::is_running())
     {
       for (const auto &texture: Gl_renderer::textures) texture.remove();
-      Gl_renderer::vertex_array_buffers->remove();
+      if (Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers->remove();
     }
   }
   

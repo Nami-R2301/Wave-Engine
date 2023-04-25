@@ -116,11 +116,11 @@ namespace Wave
   
   /******************************************** ORTHOGRAPHIC CAMERA ******************************************/
   
-  Orthographic_camera::Orthographic_camera(float width_, float height_, float size_, float z_near_, float z_far_)
+  Orthographic_camera::Orthographic_camera(float width_, float height_, float z_near_, float z_far_)
   {
     this->width = width_;
     this->height = height_;
-    this->size = size_;
+    this->aspect_ratio = width_ / height_;
     this->z_near = z_near_;
     this->z_far = z_far_;
     Orthographic_camera::update_projection_matrix();
@@ -138,6 +138,11 @@ namespace Wave
     output += "Projection matrix --> " + this->projection_matrix.to_string();
     
     return output;
+  }
+  
+  void Orthographic_camera::on_event(Event &event)
+  {
+  
   }
   
   void Orthographic_camera::on_window_resize(On_window_resize &resize_event)
@@ -190,10 +195,10 @@ namespace Wave
   
   void Orthographic_camera::update_projection_matrix()
   {
-    this->projection_matrix.init_orthographic_projection(-this->size * this->aspect_ratio * 0.5f,
-                                                         this->size * this->aspect_ratio * 0.5f,
-                                                         this->size * this->aspect_ratio * 0.5f,
-                                                         -this->size * this->aspect_ratio * 0.5f,
+    this->projection_matrix.init_orthographic_projection(0,
+                                                         this->width * this->aspect_ratio,
+                                                         this->height * this->aspect_ratio,
+                                                         0,
                                                          this->z_near,
                                                          this->z_far);
   }

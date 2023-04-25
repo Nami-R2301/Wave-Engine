@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include <Core/interfaces.h>
 #include <Math/vector.h>
 
 namespace Wave
 {
   
   // Set custom colors for the background or for fragments.
-  class Color : public Printable
+  class Color
   {
   public:
     explicit Color(float uniform, float alpha, bool normalized = false);
@@ -19,11 +18,12 @@ namespace Wave
     explicit Color(unsigned long hex_color = 0xFFFFFFFF);
     explicit Color(const char *hex_color_code);
     Color(const Color &color);
-    ~Color() override = default;
+    ~Color() = default;
     
     void normalize();
     void clear();
-    INTERFACE_PRINT
+    [[nodiscard]] std::string to_string() const;
+    void print() const;
     
     [[nodiscard]] float get_red() const;
     [[nodiscard]] float get_blue() const;

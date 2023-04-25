@@ -37,6 +37,7 @@ add_library(Wave STATIC
             Wave/src/Input/input.cpp
             Wave/src/Objects/object.cpp
             Wave/src/Core/layer.cpp
+            Wave/src/Objects/text.cpp
             Wave/src/Core/layer_stack.cpp
             Wave/src/Renderer/buffer.cpp
             Wave/src/Renderer/gl_buffer.cpp
@@ -45,7 +46,7 @@ add_library(Wave STATIC
             Wave/src/ImGUI/imGUI_layer.cpp
             Wave/src/Renderer/editor_camera.cpp
             Wave/src/Renderer/framebuffer.cpp
-            Wave/src/Renderer/gl_framebuffer.cpp)
+            Wave/src/Renderer/gl_framebuffer.cpp Wave/src/Objects/gl_text.cpp Wave/src/Core/text_layer.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -71,6 +72,7 @@ if (UNIX)
   target_link_libraries(Wave PUBLIC
                         ${GLEW_LIB}
                         ${GLFW3_LIB}
+                        freetype
                         ImGUI
                         sfml-system
                         sfml-network
@@ -174,6 +176,7 @@ endif ()
 target_link_libraries(App PUBLIC
                     Wave
                     glfw
+                    freetype
                     GLEW)
 target_include_directories(App PUBLIC
                            Wave/include

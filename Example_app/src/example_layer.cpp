@@ -18,10 +18,14 @@ void Example_scene_3D::on_attach()
 {
   Wave::Gl_renderer::set_clear_color(Wave::Color(0.15f, 1.0f, true));
   
+  
   // Setup objects in scene.
   Wave::Gl_renderer::load_object(this->object.get());
   this->object->translate(10, -10, 20);
   this->object->rotate(90, -90, 0);
+  this->object->add_texture(Wave::Texture("../Wave/res/Textures/tiles.png"));
+  this->shaders[0]->bind();
+  this->shaders[0]->set_uniform("u_has_texture", true);
 }
 
 void Example_scene_3D::on_detach()
@@ -32,7 +36,6 @@ void Example_scene_3D::on_detach()
 void Example_scene_3D::on_update(float time_step)
 {
   //  Update uniforms.
-  Wave::Gl_renderer::clear_bg();
   this->shaders[0]->bind();
   this->shaders[0]->set_uniform("u_transform",
                                 &Wave::Transform::get_transform_matrix(this->object->get_model_matrix(),

@@ -118,9 +118,10 @@ namespace Wave
   {
   public:
     Orthographic_camera() = default;
-    Orthographic_camera(float width_, float height_, float size, float z_near_, float z_far_);
+    Orthographic_camera(float width_, float height_, float z_near_, float z_far_);
     ~Orthographic_camera() override = default;
     
+    void on_event(Event &event) override;
     void on_window_resize(On_window_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;

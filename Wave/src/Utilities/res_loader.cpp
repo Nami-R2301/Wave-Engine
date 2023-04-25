@@ -11,7 +11,7 @@ namespace Wave
   {
     // Add filename to path.
     char relative_file_path[FILENAME_MAX];
-    if (snprintf(relative_file_path, FILENAME_MAX, "../Wave/Resources/Models/%s", file_path) < 0)
+    if (snprintf(relative_file_path, FILENAME_MAX, "../Wave/res/Models/%s", file_path) < 0)
     {
       Wave::alert(WAVE_ERROR, "[SNPRINTF ERROR] : %d\n", ERROR_SNPRINTF);
     }
@@ -28,7 +28,7 @@ namespace Wave
   {
     // Add filename to path.
     char relative_file_path[FILENAME_MAX];
-    if (snprintf(relative_file_path, FILENAME_MAX, "../Wave/Resources/Shaders/%s", file_path) < 0)
+    if (snprintf(relative_file_path, FILENAME_MAX, "../Wave/res/Shaders/%s", file_path) < 0)
     {
       Wave::alert(WAVE_ERROR, "[SNPRINTF ERROR] : %d\n", ERROR_SNPRINTF);
     }
@@ -69,7 +69,7 @@ namespace Wave
   {
     // Add filename to path.
     char relative_file_path[FILENAME_MAX];
-    if (snprintf(relative_file_path, FILENAME_MAX, "../../Wave/Resources/Textures/%s", file_path) < 0)
+    if (snprintf(relative_file_path, FILENAME_MAX, "../../Wave/res/Textures/%s", file_path) < 0)
     {
       Wave::alert(WAVE_ERROR, "[SNPRINTF ERROR] : %d\n", ERROR_SNPRINTF);
     }

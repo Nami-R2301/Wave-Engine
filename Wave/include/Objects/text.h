@@ -4,16 +4,29 @@
 
 #pragma once
 
-#include <Renderer/texture.h>
-#include <Renderer/color.h>
-#include <Math/vector.h>
 #include <wave_pch.h>
+#include <Renderer/color.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 namespace Wave
 {
+  
+  enum class Text_style
+  {
+    REGULAR, MEDIUM, LIGHT, ITALIC, SEMI_BOLD, BOLD, BOLD_ITALIC
+  };
+  
+  typedef struct Text_format
+  {
+    float offset_x = 25.0f;
+    float offset_y = 25.0f;
+    float scale = 1.0f;
+    float size = 24.0f;  // Size of all glyphs for a specified string (px).
+    Text_style style = Text_style::REGULAR;
+    Color color = Color(1.0f, 0.0f, 0.0f, 1.0f, true);  // Red.
+  } Text_format;
   
   typedef struct Glyph
   {
@@ -26,40 +39,27 @@ namespace Wave
   class Text
   {
   public:
-    Text();
-    explicit Text(const std::string &text_);
-    explicit Text(const char *font_file_name);
-    Text(const char *font_file_name, const std::string &text_);
-    Text(const char *font_file_name, const std::string &text_, float offset_y_ = 0.0f, float offset_x_ = 0.0f,
-         float scale_ = 1.0f);
-    virtual ~Text();
+    virtual ~Text() = default;
+    
+    static std::shared_ptr<Text> create(const std::string &text_);
     
     [[nodiscard]] float get_offset_x() const;
     [[nodiscard]] float get_offset_y() const;
     [[nodiscard]] float get_scale() const;
-    [[nodiscard]] const std::string &get_text() const;
+    [[nodiscard]] const Text_format &get_format() const;
+    [[nodiscard]] const std::string &get_string() const;
     [[nodiscard]] const FT_Face &get_face() const;
     [[nodiscard]] const Glyph &get_character(uint8_t character_code);
     [[nodiscard]] const std::map<uint8_t, Glyph> &get_characters() const;
     
     void set_character(uint8_t character_code, const Glyph &character);
-  
+    
+    Glyph &operator[](uint8_t index);
   protected:
     std::string text;
-    float offset_x = 0.0f;
-    float offset_y = 0.0f;
-    float scale = 0.0f;
+    Text_format format;
     FT_Library ft = nullptr;
     FT_Face face = nullptr;
     std::map<uint8_t, Glyph> characters;
-    
-    virtual int init_ft(const char *font_file_name);
-  };
-  
-  class Gl_Text : public Text
-  {
-  public:
-    Gl_Text();
-    ~Gl_Text() override = default;
   };
 }

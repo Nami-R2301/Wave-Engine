@@ -54,15 +54,18 @@ namespace Wave
   
   void Gl_vertex_array_buffer::remove()
   {
-    log_instruction("VAO", DEFAULT, "Deleting vertex array", gl_call(glDeleteVertexArrays(1, &this->vertex_array_id)))
-    log_instruction("VAO", DEFAULT, "Deleting vertex buffers",
-                    for (const auto &vertex_buffer: this->vertex_buffers)
-                    {
-                      log_instruction("VAO", DEFAULT, "Deleting vertex buffer", vertex_buffer->remove())
-                    })
-    
-    log_instruction("VAO", DEFAULT, "Deleting index buffer", this->index_buffer->remove())
-    this->bound = false;
+    if (Gl_vertex_array_buffer::is_bound())
+    {
+      log_instruction("VAO", DEFAULT, "Deleting vertex array", gl_call(glDeleteVertexArrays(1, &this->vertex_array_id)))
+      log_instruction("VAO", DEFAULT, "Deleting vertex buffers",
+                      for (const auto &vertex_buffer: this->vertex_buffers)
+                      {
+                        log_instruction("VAO", DEFAULT, "Deleting vertex buffer", vertex_buffer->remove())
+                      })
+      
+      log_instruction("VAO", DEFAULT, "Deleting index buffer", this->index_buffer->remove())
+      this->bound = false;
+    }
   }
   
   void Gl_vertex_array_buffer::add_vertex_buffer(const std::shared_ptr<Vertex_buffer> &vertex_buffer_)
@@ -146,6 +149,11 @@ namespace Wave
     index_buffer_->bind();
     
     this->index_buffer = index_buffer_;
+  }
+  
+  uint32_t Gl_vertex_array_buffer::get_id() const
+  {
+    return this->vertex_array_id;
   }
   
   const std::vector<std::shared_ptr<Vertex_buffer>> &Gl_vertex_array_buffer::get_vertex_buffers() const

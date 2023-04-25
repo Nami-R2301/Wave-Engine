@@ -4,12 +4,8 @@
 
 #pragma once
 
-#include "Core/interfaces.h"
-#include <wave_pch.h>
 #include <Core/core.h>
 #include <Renderer/color.h>
-
-#include <utility>
 
 namespace Wave
 {
@@ -124,12 +120,6 @@ namespace Wave
       this->stride = 0;
       for (auto &element: this->elements)
       {
-        if (element.type == Buffer_data_type::Color_4f)
-        {
-          element.offset = sizeof(Printable) + offset;
-          this->stride += sizeof(Color);
-          continue;
-        }
         element.offset = offset;
         offset += element.size;
         this->stride += element.size;
@@ -152,6 +142,7 @@ namespace Wave
     
     virtual void set_data(const void *data, uint64_t size, uint64_t offset) = 0;
     
+    [[nodiscard]] virtual uint32_t get_id() const = 0;
     [[nodiscard]] virtual const Buffer_layout &get_layout() const = 0;
     virtual void set_layout(const Buffer_layout &layout) = 0;
     
@@ -166,6 +157,7 @@ namespace Wave
   public:
     virtual ~Index_buffer() = default;
     
+    [[nodiscard]] virtual uint32_t get_id() const = 0;
     [[nodiscard]] virtual bool is_bound() const = 0;
     virtual void bind() = 0;
     virtual void unbind() const = 0;

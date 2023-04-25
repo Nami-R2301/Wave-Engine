@@ -21,6 +21,7 @@ namespace Wave
     virtual void add_vertex_buffer(const std::shared_ptr<Vertex_buffer> &vertexBuffer) = 0;
     virtual void set_index_buffer(const std::shared_ptr<Index_buffer> &indexBuffer) = 0;
     
+    [[nodiscard]] virtual uint32_t get_id() const = 0;
     [[nodiscard]] virtual const std::vector<std::shared_ptr<Vertex_buffer>> &get_vertex_buffers() const = 0;
     [[nodiscard]] virtual const std::shared_ptr<Index_buffer> &get_index_buffer() const = 0;
     

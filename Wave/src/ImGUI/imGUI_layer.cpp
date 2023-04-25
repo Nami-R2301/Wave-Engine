@@ -36,8 +36,8 @@ namespace Wave
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
     float fontSize = 18.0f;// *2.0f;
-    io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/Resources/Fonts/Comfortaa/Comfortaa-Regular.ttf", fontSize);
-    io.Fonts->AddFontFromFileTTF("../Wave/Resources/Fonts/Comfortaa/Comfortaa-Bold.ttf", fontSize * 1.05f);
+    io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf", fontSize);
+    io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf", fontSize * 1.05f);
     io.FontGlobalScale = 0.8f;
     io.DisplaySize = ImVec2(static_cast<float>(Engine::get_main_window()->get_width()) / 3.0f,
                             static_cast<float>(Engine::get_main_window()->get_height()) / 3.0f);

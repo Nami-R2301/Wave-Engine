@@ -65,11 +65,13 @@ namespace Wave
     // Loading objects.
     static void load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index = 0);
     static void load_object(const Object_3D *object);
+    [[nodiscard]] static std::shared_ptr<Gl_vertex_array_buffer> load_text();
     
     // Rendering objects.
     static void draw_object(const Object_3D *object);
     static void draw_objects(const std::vector<Object_3D> *objects);
     static void draw_loaded_objects(uint32_t object_count);
+    static void draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao);
     
     // Error handling.
     static bool renderer_error_callback([[maybe_unused]] On_renderer_error &renderer_error);

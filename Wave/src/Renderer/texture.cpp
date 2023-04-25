@@ -19,7 +19,7 @@ namespace Wave
                                    4);  // 4 channels (RGBA).
     if (!this->local_buffer)
     {
-      Wave::alert(WAVE_WARN, "[TEXTURE ERROR] : Could not load image from %s", file_path);
+      Wave::alert(WAVE_ERROR, "[TEXTURE ERROR] : Could not load image from %s", file_path);
     }
     
     bind_to_context();

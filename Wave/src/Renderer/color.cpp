@@ -83,6 +83,11 @@ namespace Wave
     return {buffer};
   }
   
+  void Color::print() const
+  {
+    Wave::alert(WAVE_WARN, "%s", to_string().c_str());
+  }
+  
   float Color::get_red() const
   {
     return this->red;

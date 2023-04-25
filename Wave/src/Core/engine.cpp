@@ -282,9 +282,10 @@ namespace Wave
     Timer frame_time;
     frame_time.start();
     
-    glfw_call(glfwPollEvents());
     if (!Engine::main_window->is_minimized())
     {
+      glfw_call(glfwPollEvents());
+      Gl_renderer::clear_bg();
       for (Layer *layer: this->layer_stack)
       {
         layer->on_update(time_step);
