@@ -63,6 +63,8 @@ if (UNIX)
                              WAVE_STATIC
                              GLFW3_STATIC
                              GLEW_STATIC
+                             $<$<CONFIG:Debug>:DEBUG>
+                             $<$<CONFIG:Release>:RELEASE>
                              ${CMAKE_BUILD_TYPE})
   target_precompile_headers(Wave PUBLIC Wave/include/wave_pch.h)
   target_include_directories(Wave PUBLIC
@@ -230,7 +232,7 @@ elseif (UNIX)
                              GLFW3_STATIC
                              TESTING
                              ${CMAKE_BUILD_TYPE})
-  target_precompile_headers(Tests PUBLIC Wave/Include/wave_pch.h)
+  target_precompile_headers(Tests PUBLIC Wave/include/wave_pch.h)
   target_link_libraries(Tests PUBLIC
                         Wave
                         freetype
