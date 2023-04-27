@@ -4,14 +4,16 @@
 
 #include <example_app.h>
 #include <example_layer.h>
-#include <Core/text_layer.h>
 // NEED TO BE INCLUDED IN MAIN APP ONLY
 #include <entrypoint.h>
 
 Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
 {
   // Add Cameras
-  this->demo_perspective_camera = Wave::create_shared_pointer<Wave::Editor_camera>(90.0f, 0.1f, 1000.0f);
+  this->demo_perspective_camera = Wave::create_shared_pointer<Wave::Editor_camera>(
+      Engine::get_main_window()->get_width(),
+      Engine::get_main_window()->get_height(),
+      90.0f, 0.1f, 1000.0f);
   
   
   // Add shaders
@@ -35,7 +37,7 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
   
   // Add text strings
   Wave::Text_format format = {25.0f,
-                              1080.0f - 25.0f,
+                              1080.0f - 38.0f,
                               1.0f,
                               26.0f,
                               Wave::Text_style::REGULAR,

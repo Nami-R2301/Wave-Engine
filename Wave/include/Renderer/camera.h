@@ -72,7 +72,6 @@ namespace Wave
     virtual void move(float x, float y, float z, float amount) = 0;
     virtual void rotate_x(float angle) = 0;
     virtual void rotate_y(float angle) = 0;
-  
   protected:
     float width = 640;
     float height = 480;
@@ -92,7 +91,7 @@ namespace Wave
   {
   public:
     Perspective_camera() = default;
-    Perspective_camera(float fov_, float z_near_, float z_far_);
+    Perspective_camera(float width_, float height_, float fov_, float z_near_, float z_far_);
     ~Perspective_camera() override = default;
     
     void on_window_resize(On_window_resize &resize_event) override;

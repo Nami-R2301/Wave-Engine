@@ -11,8 +11,10 @@ namespace Wave
   
   /**************************************** PERSPECTIVE CAMERA *************************************/
   
-  Perspective_camera::Perspective_camera(float fov_, float z_near_, float z_far_)
+  Perspective_camera::Perspective_camera(float width_, float height_, float fov_, float z_near_, float z_far_)
   {
+    this->width = width_;
+    this->height = height_;
     this->fov = fov_;
     this->z_near = z_near_;
     this->z_far = z_far_;

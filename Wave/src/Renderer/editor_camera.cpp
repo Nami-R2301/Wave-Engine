@@ -9,8 +9,8 @@
 namespace Wave
 {
   
-  Editor_camera::Editor_camera(float fov_, float near_clip_, float far_clip_) : Perspective_camera(fov_, near_clip_,
-                                                                                                   far_clip_)
+  Editor_camera::Editor_camera(float width_, float height_, float fov_, float near_clip_, float far_clip_) :
+      Perspective_camera(width_, height_, fov_, near_clip_, far_clip_)
   {
   
   }
@@ -19,7 +19,8 @@ namespace Wave
   {
     if (Input::is_key_pressed(WAVE_KEY_LEFT_ALT))
     {
-      const Vector_2f& mouse{ Input::get_mouse_cursor_position().get_x(), Input::get_mouse_cursor_position().get_y() };
+      const Vector_2f &mouse {Input::get_mouse_cursor_position().get_x(),
+                              Input::get_mouse_cursor_position().get_y()};
       Vector_2f delta = (mouse - this->initial_mouse_position) * 0.003f;
       this->initial_mouse_position = mouse;
 

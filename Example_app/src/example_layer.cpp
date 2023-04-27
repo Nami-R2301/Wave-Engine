@@ -52,6 +52,7 @@ void Example_scene_3D::on_update(float time_step)
     this->camera->move(this->camera->get_right(), velocity * time_step);
   
   Wave::Gl_renderer::draw_loaded_objects(1);
+  this->shaders[0]->unbind();
 }
 
 void Example_scene_3D::on_event(Wave::Event &event)

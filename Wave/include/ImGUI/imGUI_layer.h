@@ -17,13 +17,14 @@ namespace Wave
     
     void on_attach() override;
     void on_detach() override;
-    void on_update(float timestep) override;
-    void on_event(Event& e) override;
+    void on_update(float time_step) override;
+    void on_ui_render(float time_step) override;
+    void on_event(Event &e) override;
     
     static void begin();
     static void end();
     
     static void set_colors();
-    [[maybe_unused]] [[nodiscard]] static uint32_t get_active_widget_id() ;
+    [[maybe_unused]] [[nodiscard]] static uint32_t get_active_widget_id();
   };
 }

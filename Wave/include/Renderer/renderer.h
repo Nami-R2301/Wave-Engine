@@ -59,7 +59,7 @@ namespace Wave
     
     // Frame changes.
     static void clear_bg();
-    static void set_aspect_ratio(Window *window, float numerator, float denominator);
+    static void set_viewport(float width, float height);
     static void set_clear_color(const Color &color);
     
     // Loading objects.

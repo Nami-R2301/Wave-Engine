@@ -10,7 +10,8 @@ endif ()
 add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
 target_compile_definitions(ImGUI PUBLIC IMGUI_IMPL_LOADER_GL3W)
 target_link_libraries(ImGUI PUBLIC OpenGL::GL)
-target_include_directories(ImGUI PUBLIC ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/)
+target_include_directories(ImGUI PUBLIC
+                           ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/)
 
 add_library(Wave STATIC
             Wave/src/Core/engine.cpp
@@ -46,7 +47,9 @@ add_library(Wave STATIC
             Wave/src/ImGUI/imGUI_layer.cpp
             Wave/src/Renderer/editor_camera.cpp
             Wave/src/Renderer/framebuffer.cpp
-            Wave/src/Renderer/gl_framebuffer.cpp Wave/src/Objects/gl_text.cpp Wave/src/Core/text_layer.cpp)
+            Wave/src/Renderer/gl_framebuffer.cpp
+            Wave/src/Objects/gl_text.cpp
+            Wave/src/Core/text_layer.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -224,6 +227,7 @@ if (WIN32)
                              Wave/include/Dependencies/freetype/include
                              Wave/include/Dependencies/googleTest/googletest/include
                              Wave/include/Dependencies/googleTest/googlemock/include
+                             Wave/include/Dependencies/imGUI
                              Example_app/include)
 elseif (UNIX)
   target_compile_options(Tests PUBLIC)

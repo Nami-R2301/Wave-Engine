@@ -130,7 +130,6 @@ namespace Wave
   void Gl_shader::unbind() const
   {
     gl_call(glUseProgram(0));
-    alert(WAVE_WARN, "[OpenGL Shader] --> Unbound current shader program --> %d", this->program_id);
   }
   
   std::string Gl_shader::to_string() const

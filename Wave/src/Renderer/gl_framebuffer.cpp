@@ -10,12 +10,6 @@ namespace Wave
   
   Gl_framebuffer::Gl_framebuffer(const Framebuffer_options &opt)
   {
-    if (this->renderer_id)
-    {
-      gl_call(glDeleteFramebuffers(1, &this->renderer_id));
-      gl_call(glDeleteTextures(1, &this->color_attachment));
-    }
-    
     gl_call(glCreateFramebuffers(1, &this->renderer_id));
     gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
@@ -24,24 +18,25 @@ namespace Wave
     gl_call(glBindTexture(GL_TEXTURE_2D, this->color_attachment));
     gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
-    gl_call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, opt.width, opt.height, 0,
-                         GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
+    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    gl_call(glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, opt.width, opt.height));
     
     // Depth attachment.
     gl_call(glCreateTextures(GL_TEXTURE_2D, 1, &this->depth_attachment));
     gl_call(glBindTexture(GL_TEXTURE_2D, this->depth_attachment));
     gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
     gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    gl_call(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, opt.width, opt.height, 0,
-                         GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr));
+    gl_call(glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, opt.width, opt.height));
     
-    // Bind textures to framebuffer.
-    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->color_attachment, 0));
-    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,this->depth_attachment, 0));
+    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                   this->color_attachment, 0));
+    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
+                                   this->depth_attachment, 0));
     
     uint64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -77,7 +72,8 @@ namespace Wave
     gl_call(glCreateFramebuffers(1, &this->renderer_id));
     gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
-    gl_call(glDrawBuffer(GL_NONE));
+    GLenum buffers[1] = {GL_COLOR_ATTACHMENT0};
+    gl_call(glDrawBuffers(1, buffers));
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
       alert(WAVE_ERROR, "[GL Framebuffer] --> Cannot show framebuffer, framebuffer incomplete!");
@@ -112,15 +108,13 @@ namespace Wave
   
   void Gl_framebuffer::remove()
   {
+    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     if (this->renderer_id)
     {
       gl_call(glDeleteFramebuffers(1, &this->renderer_id));
       gl_call(glDeleteTextures(1, &this->color_attachment));
+      gl_call(glDeleteTextures(1, &this->depth_attachment));
     }
-    
-    gl_call(glCreateFramebuffers(1, &this->renderer_id));
-    gl_call(glCreateTextures(GL_TEXTURE_2D, 1, &this->color_attachment));
-    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
   }
   
   const Framebuffer_options &Gl_framebuffer::get_options() const

@@ -8,7 +8,6 @@
 #include <Events/mouse_event.h>
 #include <Events/app_event.h>
 #include <Events/renderer_event.h>
-#include <cstdio>
 
 namespace Wave
 {
@@ -336,11 +335,11 @@ namespace Wave
       glfw_call(glfwSetWindowMonitor(static_cast<GLFWwindow *>(this->get_native_window()), nullptr,
                                      this->get_window_pos().get_x(),
                                      this->get_window_pos().get_y(),
-                                     int(width_ / 2), (int) (height_ / 2),
+                                     width_, height_,
                                      this->get_refresh_rate()));  // Set maximum update rate possible.
       this->set_fullscreen(false);
-      this->set_width(static_cast<float>(width_) / 2.0f);
-      this->set_height(static_cast<float>(height_) / 2.0f);
+      this->set_width(static_cast<float>(width_));
+      this->set_height(static_cast<float>(height_));
     }
     Gl_renderer::on_window_resize(this, static_cast<float>(this->get_width()),
                                   static_cast<float>(this->get_height()));
@@ -395,6 +394,11 @@ namespace Wave
   float Gl_window::get_height() const
   {
     return this->monitor_properties.height;
+  }
+  
+  const Vector_2f &Gl_window::get_aspect_ratio() const
+  {
+    return this->aspect_ratio;
   }
   
   uint32_t Gl_window::get_refresh_rate() const
@@ -493,6 +497,23 @@ namespace Wave
   void Gl_window::set_height(float height_)
   {
     this->monitor_properties.height = height_;
+  }
+  
+  void Gl_window::set_aspect_ratio(const Vector_2f &aspect_ratio_)
+  {
+    this->aspect_ratio = aspect_ratio_;
+    glfw_call(glfwSetWindowAspectRatio(static_cast<GLFWwindow *>(get_native_window()),
+                                       static_cast<int32_t>(aspect_ratio_.get_x()),
+                                       static_cast<int32_t>(aspect_ratio_.get_y())));
+  }
+  
+  void Gl_window::resize(float width_, float height_)
+  {
+    Gl_window::set_width(width_);
+    Gl_window::set_height(height_);
+    Gl_window::set_aspect_ratio({width_,
+                                 height_});
+    Gl_renderer::on_window_resize(this, width_, height_);
   }
   
   void Gl_window::set_fullscreen(bool fullscreen_state)

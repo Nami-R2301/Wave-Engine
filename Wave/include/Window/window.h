@@ -64,6 +64,7 @@ namespace Wave
     [[nodiscard]] virtual const Vector_2f &get_window_pos() const = 0;
     [[nodiscard]] virtual float get_width() const = 0;
     [[nodiscard]] virtual float get_height() const = 0;
+    [[nodiscard]] virtual const Vector_2f &get_aspect_ratio() const = 0;
     [[nodiscard]] virtual uint32_t get_refresh_rate() const = 0;
     [[nodiscard]] virtual uint32_t get_max_refresh_rate() const = 0;
     [[nodiscard]] virtual bool is_vsync() const = 0;
@@ -79,6 +80,8 @@ namespace Wave
     virtual void set_title(const char *title) = 0;
     virtual void set_width(float width) = 0;
     virtual void set_height(float height) = 0;
+    virtual void set_aspect_ratio(const Vector_2f &aspect_ratio_) = 0;
+    virtual void resize(float width_, float height_) = 0;
     virtual void set_fullscreen(bool fullscreen_state) = 0;
     virtual void set_refresh_rate(uint32_t refresh_rate) = 0;
     virtual void set_max_refresh_rate(uint32_t refresh_rate) = 0;
@@ -127,6 +130,7 @@ namespace Wave
     [[nodiscard]] bool is_fullscreen() const override;
     [[nodiscard]] float get_width() const override;
     [[nodiscard]] float get_height() const override;
+    [[nodiscard]] const Vector_2f &get_aspect_ratio() const override;
     [[nodiscard]] uint32_t get_refresh_rate() const override;
     [[nodiscard]] uint32_t get_max_refresh_rate() const override;
     [[nodiscard]] bool is_vsync() const override;
@@ -146,6 +150,8 @@ namespace Wave
     void set_native_monitor(void *monitor_) override;
     void set_width(float width) override;
     void set_height(float height) override;
+    void set_aspect_ratio(const Vector_2f &aspect_ratio_) override;
+    void resize(float width_, float height_) override;
     void set_fullscreen(bool fullscreen_state) override;
     void set_refresh_rate(uint32_t refresh_rate) override;
     void set_max_refresh_rate(uint32_t refresh_rate) override;
@@ -170,6 +176,8 @@ namespace Wave
     
     float x_scale = 1.0f;
     float y_scale = 1.0f;
+    Vector_2f aspect_ratio = {16.0f,
+                              9.0f};
     Color bg_color = Color(0.25f, 1.0f, true);  // Default background color (gray).
     bool fullscreen = false;
     bool request_closing = false;

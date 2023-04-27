@@ -119,7 +119,7 @@ namespace Wave
                // Let OpenGL keep track of depth for shapes and auto determine if some shapes closer or further away from
                // the camera should take priority (drawn on top of other ones).
                gl_call(glEnable(GL_DEPTH_TEST));
-               gl_call(glEnable(GL_DEPTH_CLAMP));
+               gl_call(glEnable(GL_MULTISAMPLE));
                gl_call(glEnable(GL_BLEND));
                gl_call(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
                
@@ -135,11 +135,7 @@ namespace Wave
   void Gl_renderer::on_window_resize(Window *window, float width, float height)
   {
     if (!window) return;
-    float aspect_ratio = width / height;
-    
-    if (aspect_ratio == (16.0f / 9.0f)) { set_aspect_ratio(window, 16.0f, 9.0f); }
-    else if (aspect_ratio == (4.0f / 3.0f)) set_aspect_ratio(window, 4.0f, 3.0f);
-    gl_call(glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height)));
+    Gl_renderer::set_viewport(width, height);
   }
   
   const char *Gl_renderer::get_gl_version()
@@ -171,11 +167,9 @@ namespace Wave
     Gl_renderer::state = new_state;
   }
   
-  void Gl_renderer::set_aspect_ratio(Window *window, float numerator, float denominator)
+  void Gl_renderer::set_viewport(float width, float height)
   {
-    glfw_call(glfwSetWindowAspectRatio(static_cast<GLFWwindow *>(window->get_native_window()),
-                                       static_cast<int32_t>(numerator),
-                                       static_cast<int32_t>(denominator)));
+    gl_call(glViewport(0, 0, width, height));
   }
   
   void Gl_renderer::load_object(const Object_3D *object)
@@ -257,7 +251,7 @@ namespace Wave
   
   void Gl_renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao)
   {
-    gl_call(glActiveTexture(GL_TEXTURE0));
+    gl_call(glActiveTexture(GL_TEXTURE1));
     gl_call(glBindVertexArray(vao->get_id()));
     
     float x = text->get_offset_x(), y = text->get_offset_y(), scale = text->get_scale();

@@ -288,7 +288,7 @@ namespace Wave
       for (Layer *layer: this->layer_stack)
       {
         layer->on_update(time_step);
-        layer->on_imgui_render(time_step);
+        layer->on_ui_render(time_step);
       }
     }
     // Refresh window
@@ -431,9 +431,9 @@ namespace Wave
   [[maybe_unused]] bool Engine::window_resize_callback(On_window_resize &resize_event)
   {
     resize_event.print(Print_type::Warn);
+    
     if (resize_event.get_width() == 0 || resize_event.get_height() == 0) return false;
-    Engine::main_window->set_width(resize_event.get_width());
-    Engine::main_window->set_height(resize_event.get_height());
+    Engine::main_window->resize(resize_event.get_width(), resize_event.get_height());
     Gl_renderer::on_window_resize(Engine::main_window.get(),
                                   resize_event.get_width(),
                                   resize_event.get_height());

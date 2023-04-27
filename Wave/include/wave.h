@@ -6,6 +6,7 @@
 #include <Core/core.h>
 #include <Core/core_macros.h>
 #include <Core/layer_stack.h>
+#include <Core/text_layer.h>
 #include <Core/settings.h>
 #include <Core/engine_time.h>
 #include <Core/engine.h>
@@ -42,7 +43,7 @@
 
 /************************* Objects ********************************/
 #include <Objects/object.h>
-#include <Objects/text.h>
+#include <Objects/gl_text.h>
 
 /************************* Window ********************************/
 #include <Window/window.h>
