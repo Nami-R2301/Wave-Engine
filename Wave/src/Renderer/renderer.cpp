@@ -13,7 +13,7 @@ namespace Wave
                                        nullptr,
                                        Renderer_error_type::NO_ERROR};
   
-  std::shared_ptr<Gl_vertex_array_buffer> Gl_renderer::vertex_array_buffers;
+  std::shared_ptr<Vertex_array_buffer> Gl_renderer::vertex_array_buffers;
   std::vector<Texture> Gl_renderer::textures;
   std::function<void(Event &event)> Gl_renderer::event_callback_function;
   
@@ -180,13 +180,13 @@ namespace Wave
     b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
     
-    std::shared_ptr<Gl_vertex_buffer> vbo_ = create_shared_pointer<Gl_vertex_buffer>(object->get_vertices(),
-                                                                                     Object_3D::get_vertex_size() *
-                                                                                     object->get_vertex_count(),
-                                                                                     STATIC_DRAW);
-    if (!Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers = create_shared_pointer<Gl_vertex_array_buffer>();
+    auto vbo_ = Vertex_buffer::create(object->get_vertices(),
+                                      Object_3D::get_vertex_size() *
+                                      object->get_vertex_count(),
+                                      STATIC_DRAW);
+    if (!Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers = Vertex_array_buffer::create();
     Gl_renderer::vertex_array_buffers->set_index_buffer(
-        create_shared_pointer<Gl_index_buffer>(object->get_faces().data(),
+        Index_buffer::create(object->get_faces().data(),
                                                static_cast<uint32_t>(object->get_faces().size())));
     Buffer_layout vbo_layout(b_elements);
     vbo_->set_layout(vbo_layout);
@@ -196,19 +196,20 @@ namespace Wave
     {
       Gl_renderer::textures.emplace_back(object->get_textures()[0]);
     }
+    Gl_renderer::vertex_array_buffers->unbind();
   }
   
-  std::shared_ptr<Gl_vertex_array_buffer> Gl_renderer::load_text()
+  std::shared_ptr<Vertex_array_buffer> Gl_renderer::load_text()
   {
     std::vector<Buffer_element> b_elements;
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", true);
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
     
     Buffer_layout vbo_layout(b_elements);
-    std::shared_ptr<Gl_vertex_buffer> vbo_ = create_shared_pointer<Gl_vertex_buffer>(sizeof(float) * 6 * 4);
+    auto vbo_ = Vertex_buffer::create(sizeof(float) * 6 * 4);
     vbo_->set_layout(vbo_layout);
     
-    std::shared_ptr<Gl_vertex_array_buffer> vao = create_shared_pointer<Gl_vertex_array_buffer>();
+    auto vao = Vertex_array_buffer::create();
     vao->add_vertex_buffer(vbo_);
     return vao;
   }

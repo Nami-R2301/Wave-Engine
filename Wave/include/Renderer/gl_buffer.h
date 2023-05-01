@@ -9,13 +9,6 @@
 namespace Wave
 {
   
-  enum Buffer_type
-  {
-    STATIC_DRAW,
-    DYNAMIC_DRAW,
-    STREAM_DRAW [[maybe_unused]]
-  };
-  
   class Gl_vertex_buffer : public Vertex_buffer
   {
   public:

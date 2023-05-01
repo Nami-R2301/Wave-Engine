@@ -101,12 +101,13 @@ namespace Wave
   
   void Perspective_camera::update_view_matrix()
   {
-    Matrix_4f rotation, translation;
+    Matrix_4f rotation, translation, orientation;
+    orientation.init_rotation(this->orientation.get_x(), this->orientation.get_y(), this->orientation.get_z());
     rotation.init_camera(this->forward, this->up);
     translation.init_translation(Vector_3f(-get_position().get_x(),
                                            -get_position().get_y(),
                                            -get_position().get_z()));
-    this->view_matrix = rotation * translation;
+    this->view_matrix = orientation * rotation * translation;
   }
   
   void Perspective_camera::update_projection_matrix()

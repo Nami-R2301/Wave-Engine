@@ -18,9 +18,10 @@ namespace Wave
     void on_event(Event& e) override;
     
     void set_distance(float distance_);
+    void calculate_orientation();
+    
     [[nodiscard]] float get_distance() const;
     [[nodiscard]] Matrix_4f get_view_projection() const;
-    [[nodiscard]] Vector_4f get_orientation() const;
     [[nodiscard]] float get_pitch() const;
     [[nodiscard]] float get_yaw() const;
   private:

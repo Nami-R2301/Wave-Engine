@@ -65,7 +65,7 @@ namespace Wave
     // Loading objects.
     static void load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index = 0);
     static void load_object(const Object_3D *object);
-    [[nodiscard]] static std::shared_ptr<Gl_vertex_array_buffer> load_text();
+    [[nodiscard]] static std::shared_ptr<Vertex_array_buffer> load_text();
     
     // Rendering objects.
     static void draw_object(const Object_3D *object);
@@ -86,7 +86,7 @@ namespace Wave
     static Renderer_state state;
     static bool running;
     static Renderer_api api;
-    static std::shared_ptr<Gl_vertex_array_buffer> vertex_array_buffers;
+    static std::shared_ptr<Vertex_array_buffer> vertex_array_buffers;
     static std::vector<Texture> textures;
     static std::function<void(Event &event)> event_callback_function;
     

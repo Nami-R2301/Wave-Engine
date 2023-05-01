@@ -56,7 +56,7 @@ namespace Wave
     this->characters[character_code] = character;
   }
   
-  std::shared_ptr<Text> Text::create(const std::string &text_)
+  std::shared_ptr<Text> Text::create(const char *font_file_path, const std::string &text_, const Text_format& format_)
   {
     switch (Gl_renderer::get_api())
     {
@@ -64,7 +64,7 @@ namespace Wave
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::Opengl:return create_shared_pointer<Gl_text>(text_);
+      case Renderer_api::Opengl:return create_shared_pointer<Gl_text>(font_file_path, text_, format_);
       case Renderer_api::Vulkan:
         alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);

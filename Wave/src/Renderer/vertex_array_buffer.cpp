@@ -8,7 +8,7 @@
 namespace Wave
 {
   
-  std::shared_ptr<Vertex_array_buffer> Vertex_array_buffer::Create()
+  std::shared_ptr<Vertex_array_buffer> Vertex_array_buffer::create()
   {
     switch (Gl_renderer::get_api())
     {
@@ -17,7 +17,7 @@ namespace Wave
         Gl_renderer::gl_error_callback(static_cast<GLenum>(Renderer_error_type::API_ERROR),
                                        "vertex_array_buffer.cpp",
                                        "Api not supported at the moment! Please select OpenGL instead.",
-                                       "Vertex_array_buffer::Create()", __LINE__ - 2);
+                                       "Vertex_array_buffer::create()", __LINE__ - 2);
         return nullptr;
     }
   }

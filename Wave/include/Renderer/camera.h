@@ -18,33 +18,63 @@ namespace Wave
     ~Camera() override = default;
     
     [[nodiscard]] float get_width() const
-    { return this->width; };
+    {
+      return this->width;
+    };
     [[nodiscard]] float get_height() const
-    { return this->height; };
+    {
+      return this->height;
+    };
     [[nodiscard]] const Vector_2f &get_center_position() const
-    { return this->center_position; };
+    {
+      return this->center_position;
+    };
     [[nodiscard]] Vector_3f get_position() const
-    { return this->position; };
+    {
+      return this->position;
+    };
     [[nodiscard]] Vector_3f get_forward() const
-    { return this->forward; };
+    {
+      return this->forward;
+    };
+    [[nodiscard]] const Vector_4f &get_orientation() const
+    {
+      return this->orientation;
+    };
     [[nodiscard]] Vector_3f get_up() const
-    { return this->up; };
+    {
+      return this->up;
+    };
     [[nodiscard]] Vector_3f get_left() const
-    { return this->forward.cross(this->up).normalize(); };
+    {
+      return this->forward.cross(this->up).normalize();
+    };
     [[nodiscard]] Vector_3f get_right() const
-    { return this->up.cross(this->forward).normalize(); };
+    {
+      return this->up.cross(this->forward).normalize();
+    };
     [[nodiscard]] const Matrix_4f &get_view_matrix() const
-    { return this->view_matrix; };
+    {
+      return this->view_matrix;
+    };
     [[nodiscard]] const Matrix_4f &get_projection_matrix() const
-    { return this->projection_matrix; };
+    {
+      return this->projection_matrix;
+    };
     
     virtual void on_window_resize(On_window_resize &resize_event) = 0;
     void set_width(float width_)
-    { this->width = width_; };
+    {
+      this->width = width_;
+    };
     void set_height(float height_)
-    { this->height = height_; };
+    {
+      this->height = height_;
+    };
     void set_aspect_ratio(float ar)
-    { this->aspect_ratio = ar; };
+    {
+      this->aspect_ratio = ar;
+    };
     void set_viewport(float width_, float height_)
     {
       set_width(width_);
@@ -53,19 +83,41 @@ namespace Wave
       set_center_position((width_ / 2.0f), (height_ / 2.0f));
     }
     void set_center_position(float x, float y)
-    { this->center_position = Vector_2f(x, y); };
+    {
+      this->center_position = Vector_2f(x, y);
+    };
     void set_center_position(const Vector_2f &coords)
-    { this->center_position = coords; };
+    {
+      this->center_position = coords;
+    };
     void set_position(const Vector_3f &position_)
-    { this->position = position_.normalize(); };
+    {
+      this->position = position_.normalize();
+    };
+    void set_orientation(float x, float y, float z, float w)
+    {
+      this->orientation = Vector_4f(x, y, z, w);
+    }
+    void set_orientation(const Vector_4f &orientation_)
+    {
+      this->orientation = orientation_;
+    };
     void set_position(float x, float y, float z)
-    { this->position = Vector_3f(x, y, z).normalize(); };
+    {
+      this->position = Vector_3f(x, y, z).normalize();
+    };
     void set_view_matrix(const Matrix_4f &matrix)
-    { this->view_matrix = matrix; };
+    {
+      this->view_matrix = matrix;
+    };
     void set_forward(const Vector_3f &forward_)
-    { this->forward = forward_.normalize(); };
+    {
+      this->forward = forward_.normalize();
+    };
     void set_up(const Vector_3f &up_)
-    { this->up = up_.normalize(); };
+    {
+      this->up = up_.normalize();
+    };
     
     virtual void on_event(Event &event) = 0;
     virtual void move(const Vector_3f &direction, float amount) = 0;
@@ -80,6 +132,7 @@ namespace Wave
     Vector_3f position = Vector_3f(0, 0, -1);
     Vector_3f forward = Vector_3f(0);
     Vector_3f up = Vector_3f(0);
+    Vector_4f orientation = Vector_4f(0);
     Matrix_4f view_matrix {};
     Matrix_4f projection_matrix {};
     

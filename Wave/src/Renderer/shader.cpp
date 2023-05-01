@@ -152,7 +152,7 @@ namespace Wave
     {
       Gl_renderer::gl_error_callback(static_cast<GLenum>(Renderer_error_type::INVALID_UNIFORM),
                                      "Uniform not found in current active program or program is"
-                                     "not active!",
+                                     " not active!",
                                      "get_uniform_location(const char *uniform_name)",
                                      "shader.cpp", __LINE__ - 7);
     }
@@ -165,24 +165,24 @@ namespace Wave
     gl_call(glUniformMatrix4fv(get_uniform_location(uniform_name), 1, GL_TRUE, matrix));
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, bool value) const
+  void Gl_shader::set_uniform(const char *uniform_name, bool bool_value) const
   {
-    gl_call(glUniform1i(get_uniform_location(uniform_name), value));
+    gl_call(glUniform1i(get_uniform_location(uniform_name), bool_value));
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, int value) const
+  void Gl_shader::set_uniform(const char *uniform_name, int int_value) const
   {
-    gl_call(glUniform1i(get_uniform_location(uniform_name), value));
+    gl_call(glUniform1i(get_uniform_location(uniform_name), int_value));
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, float value) const
+  void Gl_shader::set_uniform(const char *uniform_name, float float_value) const
   {
-    gl_call(glUniform1f(get_uniform_location(uniform_name), value));
+    gl_call(glUniform1f(get_uniform_location(uniform_name), float_value));
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, glm::mat4x4 value) const
+  void Gl_shader::set_uniform(const char *uniform_name, glm::mat4x4 glm_matrix) const
   {
-    gl_call(glUniformMatrix4fv(get_uniform_location(uniform_name), 1, GL_FALSE, glm::value_ptr(value)));
+    gl_call(glUniformMatrix4fv(get_uniform_location(uniform_name), 1, GL_FALSE, glm::value_ptr(glm_matrix)));
   }
   
   void Gl_shader::set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const
@@ -203,5 +203,10 @@ namespace Wave
                     gl_call(glDetachShader(this->program_id, this->vertex_shader_id)))
     log_instruction("SHADER", DEFAULT, "Detaching fragment shader id --> ",
                     gl_call(glDetachShader(this->program_id, this->fragment_shader_id)))
+  }
+  
+  int32_t Gl_shader::get_id() const
+  {
+    return this->program_id;
   }
 }

@@ -5,6 +5,7 @@
 #include <Events/mouse_event.h>
 #include <Renderer/editor_camera.h>
 #include <Input/input.h>
+#include <glm/glm/gtx/quaternion.hpp>
 
 namespace Wave
 {
@@ -67,9 +68,9 @@ namespace Wave
     return this->projection_matrix * this->view_matrix;
   }
   
-  Vector_4f Editor_camera::get_orientation() const
+  void Editor_camera::calculate_orientation()
   {
-    return Vector_4f(Vector_3f(-this->pitch, -this->yaw, 0.0f));
+    this->orientation = Vector_4f(Vector_3f(-this->pitch, -this->yaw, 0.0f));
   }
   
   float Editor_camera::get_pitch() const
@@ -85,7 +86,19 @@ namespace Wave
   bool Editor_camera::on_mouse_scroll(On_mouse_wheel_scroll &event)
   {
     float delta = event.get_mouse_wheel_offset().get_y() * 0.1f;
-    mouse_zoom(delta);
+    this->mouse_zoom(delta);
+    this->position = this->calculate_position();
+    this->calculate_orientation();
+    Vector_4f orientation = this->get_orientation();
+    glm::quat quat = {orientation.get_x(),
+                      orientation.get_y(),
+                      orientation.get_z(),
+                      orientation.get_w()};
+    glm::vec3 pos = {this->position.get_x(),
+                     this->position.get_y(),
+                     this->position.get_z()};
+    auto view = glm::translate(glm::mat4(1.0f), pos) * glm::toMat4(quat);
+    auto test = glm::inverse(view);
     Perspective_camera::update_view_matrix();
     return false;
   }

@@ -9,6 +9,12 @@
 namespace Wave
 {
   
+  typedef struct Framebuffer_draw_data
+  {
+    std::shared_ptr<Shader> framebuffer_viewport_shader;
+    std::shared_ptr<Framebuffer> framebuffer_viewport;
+  } Framebuffer_draw_data;
+  
   class Editor_layer : public Layer
   {
   public:
@@ -24,10 +30,12 @@ namespace Wave
     void on_update(float time_step) override;
     void on_event(Wave::Event &e) override;
     void on_ui_render(float time_step) override;
+    
+    static void draw_viewport_quad(const ImDrawList* parentList, const ImDrawCmd* cmd);
   private:
     std::shared_ptr<Wave::Camera> camera;
     std::vector<std::shared_ptr<Wave::Shader>> shaders;
     std::vector<std::shared_ptr<Wave::Object_3D>> objects;
-    std::shared_ptr<Framebuffer> viewport;
+    Framebuffer_draw_data framebuffer_viewport_data;
   };
 }

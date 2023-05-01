@@ -18,7 +18,7 @@ namespace Wave
   
   Gl_text::Gl_text(const std::string &string)
   {
-    int32_t result = Gl_text::init("Comfortaa.ttf");
+    int32_t result = Gl_text::init("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf");
     if (result != 0) alert(WAVE_ERROR, "[Gl Text] --> Error when initializing freetype, error %d", result);
     this->text = string;
   }
@@ -45,20 +45,13 @@ namespace Wave
     this->format = format_;
   }
   
-  int32_t Gl_text::init(const char *font_name)
+  int32_t Gl_text::init(const char *font_file_path)
   {
     if (FT_Init_FreeType(&this->ft)) return -1;
     
-    char buffer[FILENAME_MAX];
-    if (snprintf(buffer, FILENAME_MAX, "../Wave/res/Fonts/%s", font_name) < 0)
+    if (FT_New_Face(this->ft, font_file_path, 0, &this->face))
     {
-      alert(WAVE_ERROR, "[TEXT] --> Error loading font file %s!", font_name);
-      return -1;
-    }
-    
-    if (FT_New_Face(this->ft, buffer, 0, &this->face))
-    {
-      alert(WAVE_ERROR, "[TEXT] --> FREETYPE: Failed to load font!");
+      alert(WAVE_ERROR, "[TEXT] --> Error loading font file %s!");
       return -1;
     }
     // set size to load glyphs as

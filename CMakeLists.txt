@@ -8,10 +8,13 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
-target_compile_definitions(ImGUI PUBLIC IMGUI_IMPL_LOADER_GL3W)
+target_compile_definitions(ImGUI PUBLIC
+                           IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+                           $<$<CONFIG:Debug>:IMGUI_IMPL_OPENGL_DEBUG>)
 target_link_libraries(ImGUI PUBLIC OpenGL::GL)
 target_include_directories(ImGUI PUBLIC
-                           ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/)
+                           ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/
+                           ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/GL/)
 
 add_library(Wave STATIC
             Wave/src/Core/engine.cpp

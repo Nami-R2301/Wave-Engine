@@ -77,7 +77,7 @@ namespace Wave
   
   void Gl_window::setup_api()
   {
-    glfw_call(glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE));
+//    glfw_call(glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE));
     glfw_call(glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE));
     glfw_call(glfwWindowHint(GLFW_FLOATING, GLFW_TRUE));
     glfw_call(glfwWindowHint(GLFW_SAMPLES, 4));
@@ -88,7 +88,6 @@ namespace Wave
     glfw_call(glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE));
     glfw_call(glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3));
     glfw_call(glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3));
-//    glfw_call(glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE));
   }
   
   void Gl_window::setup_monitor()

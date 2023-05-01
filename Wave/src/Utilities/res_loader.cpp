@@ -9,40 +9,29 @@ namespace Wave
   
   Res_loader_3D::Res_loader_3D(const char *file_path)
   {
-    // Add filename to path.
-    char relative_file_path[FILENAME_MAX];
-    if (snprintf(relative_file_path, FILENAME_MAX, "../Wave/res/Models/%s", file_path) < 0)
-    {
-      Wave::alert(WAVE_ERROR, "[SNPRINTF ERROR] : %d\n", ERROR_SNPRINTF);
-    }
-    this->file_path = relative_file_path;
+    
+    this->file_path = file_path;
     this->file_ptr = fopen(this->file_path, "rb");
     if (!this->file_ptr)
     {
       alert(WAVE_ERROR, "[RES LOADER] : ERROR READING FILE %s! MAKE SURE FILE EXISTS AND IS IN TEXT FORMAT!",
-            relative_file_path);
+            file_path);
     }
   }
   
   std::string Res_loader_3D::load_shader_source(const char *file_path)
   {
-    // Add filename to path.
-    char relative_file_path[FILENAME_MAX];
-    if (snprintf(relative_file_path, FILENAME_MAX, "../Wave/res/Shaders/%s", file_path) < 0)
-    {
-      Wave::alert(WAVE_ERROR, "[SNPRINTF ERROR] : %d\n", ERROR_SNPRINTF);
-    }
-    FILE *file_ptr = fopen(relative_file_path, "rb");
+    FILE *file_ptr = fopen(file_path, "rb");
     if (!file_ptr)
     {
       alert(WAVE_ERROR, "[RES LOADER] : ERROR READING SHADER FILE %s! MAKE SURE FILE EXISTS AND IS IN TEXT FORMAT!",
-            relative_file_path);
+            file_path);
       return {};
     }
     if (fseek(file_ptr, 0, SEEK_END) < 0)  // Get last character position in file.
     {
       alert(WAVE_ERROR, "[RES LOADER] : ERROR READING SHADER FILE %s! MAKE SURE FILE EXISTS AND IS IN TEXT FORMAT!",
-            relative_file_path);
+            file_path);
       return {};
     }
     long file_size = ftell(file_ptr) + 1;
@@ -67,13 +56,7 @@ namespace Wave
   
   Texture Res_loader_3D::load_texture(const char *file_path)
   {
-    // Add filename to path.
-    char relative_file_path[FILENAME_MAX];
-    if (snprintf(relative_file_path, FILENAME_MAX, "../../Wave/res/Textures/%s", file_path) < 0)
-    {
-      Wave::alert(WAVE_ERROR, "[SNPRINTF ERROR] : %d\n", ERROR_SNPRINTF);
-    }
-    return Texture(relative_file_path);
+    return Texture(file_path);
   }
   
   Mesh_3D Res_loader_3D::load_3D_mesh()

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <wave.h>
+#include <imGUI/imgui_internal.h>
 
 namespace Wave
 {
@@ -27,7 +28,8 @@ namespace Wave
     std::vector<std::shared_ptr<Wave::Object_3D>> demo_objects;
     std::vector<std::shared_ptr<Text>> demo_texts;
     std::shared_ptr<Framebuffer> viewport;
-    Vector_2f viewport_coords = {0,
-                                 0};
+    Vector_2f viewport_size = {0,
+                               0};
+    Vector_4f viewport_boundaries;
   };
 }

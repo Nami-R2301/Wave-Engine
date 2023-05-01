@@ -41,7 +41,7 @@ namespace Wave
   public:
     virtual ~Text() = default;
     
-    static std::shared_ptr<Text> create(const std::string &text_);
+    static std::shared_ptr<Text> create(const char *font_file_path, const std::string &string, const Text_format& format_);
     
     [[nodiscard]] float get_offset_x() const;
     [[nodiscard]] float get_offset_y() const;

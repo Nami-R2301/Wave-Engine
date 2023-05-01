@@ -130,6 +130,13 @@ namespace Wave
     uint64_t stride = 0;
   };
   
+  enum Buffer_type
+  {
+    STATIC_DRAW,
+    DYNAMIC_DRAW,
+    STREAM_DRAW [[maybe_unused]]
+  };
+  
   class Vertex_buffer
   {
   public:
@@ -146,8 +153,8 @@ namespace Wave
     [[nodiscard]] virtual const Buffer_layout &get_layout() const = 0;
     virtual void set_layout(const Buffer_layout &layout) = 0;
     
-    static std::shared_ptr<Vertex_buffer> Create(uint64_t size);
-    static std::shared_ptr<Vertex_buffer> Create(const float *vertices, uint64_t size);
+    static std::shared_ptr<Vertex_buffer> create(uint64_t size);
+    static std::shared_ptr<Vertex_buffer> create(const void *vertices, uint64_t size, Buffer_type buffer_type);
   protected:
     bool bound = false;
   };
@@ -165,7 +172,7 @@ namespace Wave
     
     [[nodiscard]] virtual uint32_t get_count() const = 0;
     
-    static std::shared_ptr<Index_buffer> Create(uint32_t *indices, uint32_t count);
+    static std::shared_ptr<Index_buffer> create(const uint32_t *indices, uint32_t size);
   protected:
     bool bound = false;
   };

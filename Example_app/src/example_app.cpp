@@ -19,21 +19,21 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
   // Add shaders
   this->demo_object_shaders.emplace_back(Wave::Shader::create("Default",
                                                               Wave::Res_loader_3D::load_shader_source(
-                                                                  "default.vert").c_str(),
+                                                                  "../Wave/res/Shaders/default.vert").c_str(),
                                                               Wave::Res_loader_3D::load_shader_source(
-                                                                  "default.frag").c_str()));
+                                                                  "../Wave/res/Shaders/default.frag").c_str()));
   this->demo_text_shaders.emplace_back(Wave::Shader::create("Text",
                                                             Wave::Res_loader_3D::load_shader_source(
-                                                                "text-glyph.vert").c_str(),
+                                                                "../Wave/res/Shaders/text-glyph.vert").c_str(),
                                                             Wave::Res_loader_3D::load_shader_source(
-                                                                "text-glyph.frag").c_str()));
+                                                                "../Wave/res/Shaders/text-glyph.frag").c_str()));
   
   
   // Add objects
   this->demo_objects.emplace_back(
-      Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("awp.obj").load_3D_mesh()));
+      Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
   this->demo_objects.emplace_back(
-      Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("cube.obj").load_3D_mesh()));
+      Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
   
   // Add text strings
   Wave::Text_format format = {25.0f,
@@ -42,7 +42,7 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
                               26.0f,
                               Wave::Text_style::REGULAR,
                               Wave::Color(1.0f, 0.0f, 0.0f, 1.0f, true)};
-  this->demo_text.emplace_back(std::make_shared<Wave::Gl_text>("Comfortaa/Comfortaa-Bold.ttf",
+  this->demo_text.emplace_back(std::make_shared<Wave::Gl_text>("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf",
                                                                "Wave Engine ~",
                                                                format));
   

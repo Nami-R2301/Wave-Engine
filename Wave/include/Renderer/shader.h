@@ -28,6 +28,7 @@ namespace Wave
     
     static std::shared_ptr<Shader> create(const std::string &name, const char *vertex_source,
                                           const char *fragment_source);
+    [[nodiscard]] virtual int32_t get_id() const = 0;
     
     // Uniform handling.
     [[nodiscard]] virtual int get_uniform_location(const char *uniform_name) const = 0;
@@ -52,6 +53,7 @@ namespace Wave
     void add_shader(int32_t type, const char *source);
     void bind() const override;
     void unbind() const override;
+    [[nodiscard]] int32_t get_id() const override;
     
     INTERFACE_PRINT
     

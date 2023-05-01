@@ -36,11 +36,11 @@ namespace Wave
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
     float fontSize = 18.0f;// *2.0f;
-    io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf", fontSize);
-    io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf", fontSize * 1.05f);
+    io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf", fontSize * 1.10f);
+    io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf", fontSize * 1.10f);
     io.FontGlobalScale = 0.8f;
-    io.DisplaySize = ImVec2(static_cast<float>(Engine::get_main_window()->get_width()) / 3.0f,
-                            static_cast<float>(Engine::get_main_window()->get_height()) / 3.0f);
+    io.DisplaySize = ImVec2(static_cast<float>(Engine::get_main_window()->get_width()),
+                            static_cast<float>(Engine::get_main_window()->get_height()));
     
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -85,93 +85,7 @@ namespace Wave
   
   void ImGui_layer::on_ui_render(float time_step)
   {
-    ImGuiIO &io = ImGui::GetIO();
-    auto bold = io.Fonts->Fonts[1];
-    io.DeltaTime = time_step;
-    // Note: Switch this to true to enable dockspace
-    static bool dockspaceOpen = true;
-    static bool opt_fullscreen_persistant = true;
-    bool opt_fullscreen = opt_fullscreen_persistant;
-    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-    
-    // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-    // because it would be confusing to have two docking targets within each others.
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    
-    if (opt_fullscreen)
-    {
-      ImGuiViewport *viewport_ = ImGui::GetMainViewport();
-      ImGui::SetNextWindowPos(viewport_->Pos);
-      ImGui::SetNextWindowSize(viewport_->Size);
-      ImGui::SetNextWindowViewport(viewport_->ID);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-      window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-                      ImGuiWindowFlags_NoMove;
-      window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-    }
-    
-    // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
-    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) window_flags |= ImGuiWindowFlags_NoBackground;
-    
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Wave-Engine", &dockspaceOpen, window_flags);
-    ImGui::PopStyleVar();  // Window Padding.
-    ImGui::PopStyleVar();  // Window Border size.
-    ImGui::PopStyleVar();  // Window Rounding.
-    
-    // DockSpace
-    ImGuiStyle &style = ImGui::GetStyle();
-    style.WindowMinSize.x = 250.0f;
-    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-    {
-      ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-      ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    }
-    
-    if (ImGui::BeginMenuBar())
-    {
-      if (ImGui::BeginMenu("File"))
-      {
-        ImGui::MenuItem("Open Project...", "Ctrl+O");
-        ImGui::Separator();
-        ImGui::MenuItem("New Scene", "Ctrl+N");
-        ImGui::MenuItem("Save Scene", "Ctrl+S");
-        ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S");
-        ImGui::Separator();
-        
-        if (ImGui::MenuItem("Exit"))
-        {
-          Engine::get_app()->shutdown();
-        }
-        ImGui::EndMenu();
-      }
-      ImGui::EndMenuBar();
-    }
-    
-    if (ImGui::Begin("Scene"))
-    {
-      if (ImGui::TreeNodeEx("Clear color", ImGuiTreeNodeFlags_SpanFullWidth))
-      {
-        ImGui::PushFont(bold);
-        ImGui::ColorEdit3("", &Engine::get_main_window()->get_bg_color()[0]);
-        ImGui::PopFont();
-        ImGui::TreePop();
-      }
-    }
-    ImGui::End();  // Scene Hierarchy
-    
-    if (ImGui::Begin("Stats"))
-    {
-      ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)", 1000.0f * time_step,
-                  static_cast<int>(Engine::get_engine_framerate()));
-    }
-    ImGui::End();  // Stats
-    
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2 {0,
-                                                             0});
-    ImGui::PopStyleVar();
-    ImGui::End(); // Wave-Engine.
+  
   }
   
   void ImGui_layer::begin()
