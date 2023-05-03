@@ -104,7 +104,8 @@ namespace Wave
     };
     void set_position(float x, float y, float z)
     {
-      this->position = Vector_3f(x, y, z).normalize();
+      this->position = Vector_3f(x, y, z);
+      update_view_matrix();
     };
     void set_view_matrix(const Matrix_4f &matrix)
     {

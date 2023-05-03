@@ -52,9 +52,13 @@ namespace Wave
     [[nodiscard]] const Glyph &get_character(uint8_t character_code);
     [[nodiscard]] const std::map<uint8_t, Glyph> &get_characters() const;
     
+    void set_scale(float scale_);
+    void set_offset_x(float offset);
+    void set_offset_y(float offset);
+    void set_format(const Text_format &format_);
     void set_character(uint8_t character_code, const Glyph &character);
     
-    Glyph &operator[](uint8_t index);
+    Glyph &operator [](uint8_t index);
   protected:
     std::string text;
     Text_format format;

@@ -1,14 +1,18 @@
 #include <Core/engine.h>
-#include <memory>
-#include <mutex>
 
 namespace Wave
 {
   
+  static int test = 0;
   Engine *Engine::instance = nullptr;
   std::unique_ptr<Window> Engine::main_window = nullptr;
   float Engine::engine_framerate = 60.0f;
-  static std::mutex meshes_mutex;  // For async purposes.
+  long Engine::frame_drawn_counter = 0;
+  bool Engine::running_state = false;
+  Engine_time Engine::current_time;
+  int32_t Engine::exit_code = PROCESSING;
+  Vector_2f Engine::last_mouse_position = Vector_2f(0);
+//  static std::mutex meshes_mutex;  // For async purposes.
   
   Engine::Engine()
   {
@@ -119,19 +123,19 @@ namespace Wave
     return Engine::engine_framerate;
   }
   
-  long Engine::get_frame_drawn_counter() const
+  long Engine::get_frame_drawn_counter()
   {
-    return this->frame_drawn_counter;
+    return Engine::frame_drawn_counter;
   }
   
-  bool Engine::get_running_state() const
+  bool Engine::get_running_state()
   {
-    return this->running_state;
+    return Engine::running_state;
   }
   
-  uint32_t Engine::get_exit_status() const
+  int32_t Engine::get_exit_status()
   {
-    return this->exit_code;
+    return Engine::exit_code;
   }
   
   void Engine::set_engine_framerate(float time_step)
@@ -141,17 +145,17 @@ namespace Wave
   
   void Engine::set_frame_drawn_counter(long counter)
   {
-    this->frame_drawn_counter = counter;
+    Engine::frame_drawn_counter = counter;
   }
   
   void Engine::set_running_state(bool new_state_)
   {
-    this->running_state = new_state_;
+    Engine::running_state = new_state_;
   }
   
-  void Engine::set_exit_status(uint32_t code)
+  void Engine::set_exit_status(int32_t code)
   {
-    this->exit_code = code;
+    Engine::exit_code = code;
   }
   
   void Engine::push_overlay(Layer *layer)
@@ -191,8 +195,8 @@ namespace Wave
     
     init_time.stop();
     alert(WAVE_INFO, "Time spent for initialization : %.3f ms", init_time.get_time_in_mili());
-    this->current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
-    set_exit_status(static_cast<uint32_t>(Gl_renderer::get_state().code));
+    Engine::current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
+    set_exit_status(static_cast<int32_t>(Gl_renderer::get_state().code));
   }
   
   void Engine::run()
@@ -206,8 +210,8 @@ namespace Wave
     draw_time.start();
     while (!Engine::main_window->is_closing())
     {
-      this->current_time.update_engine_run_time();
-      float current_run_time = this->current_time.get_up_time();
+      Engine::current_time.update_engine_run_time();
+      float current_run_time = Engine::current_time.get_up_time();
       time_step = current_run_time - last_frame_time;
       last_frame_time = current_run_time;
       this->set_engine_framerate(time_step);
@@ -294,7 +298,7 @@ namespace Wave
     // Refresh window
     Engine::main_window->on_update(time_step); // Refresh the window screen.
     
-    this->last_mouse_position = Input::get_mouse_cursor_position();
+    Engine::last_mouse_position = Input::get_mouse_cursor_position();
     set_frame_drawn_counter(Engine::frame_drawn_counter + 1);
     
     frame_time.stop();
@@ -317,10 +321,10 @@ namespace Wave
     set_running_state(false);
     Engine::main_window->close();
     log_task("RENDERER", CYAN, 3, "Shutting down renderer ...", Gl_renderer::shutdown(), "Renderer shut down")
-    if (this->get_exit_status() != 0) this->set_exit_status(ENGINE_CRASH);
+    if (get_exit_status() != 0) set_exit_status(ENGINE_CRASH);
   }
   
-  bool Engine::has_crashed() const
+  bool Engine::has_crashed()
   {
     return get_exit_status() != 0;  // In case of an unexpected crash.
   }
@@ -430,8 +434,14 @@ namespace Wave
   
   [[maybe_unused]] bool Engine::window_resize_callback(On_window_resize &resize_event)
   {
-    resize_event.print(Print_type::Warn);
+    // If we called on_window_resize with the same viewport dimensions.
+    if (resize_event.get_height() == Engine::main_window->get_height() &&
+        resize_event.get_width() == Engine::main_window->get_width())
+    {
+      return true;
+    }
     
+    resize_event.print(Print_type::Warn);
     if (resize_event.get_width() == 0 || resize_event.get_height() == 0) return false;
     Engine::main_window->resize(resize_event.get_width(), resize_event.get_height());
     Gl_renderer::on_window_resize(Engine::main_window.get(),

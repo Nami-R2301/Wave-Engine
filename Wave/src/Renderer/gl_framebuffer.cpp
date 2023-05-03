@@ -20,26 +20,22 @@ namespace Wave
     gl_call(glCreateFramebuffers(1, &this->renderer_id));
     gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
+    // Determine max samples.
+    GLint max_samples = 0;
+    gl_call(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    
     // Creating the 2D texture of our viewport.
     gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
     gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA8, opt.width, opt.height, GL_TRUE));
+    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, opt.width, opt.height,
+                                    GL_FALSE));
     
     // Depth attachment.
     gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
     gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     gl_call(
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_DEPTH24_STENCIL8, opt.width, opt.height, GL_TRUE));
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8, opt.width, opt.height,
+                                GL_FALSE));
     
     gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
                                    this->color_attachment, 0));
@@ -96,25 +92,22 @@ namespace Wave
     gl_call(glCreateFramebuffers(1, &this->renderer_id));
     gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
+    // Determine max samples.
+    GLint max_samples = 0;
+    gl_call(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    
     // Creating the 2D texture of our viewport.
     gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
     gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA8, this->options.width, this->options.height,
-                                    GL_TRUE));
+    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, this->options.width,
+                                    this->options.height,
+                                    GL_FALSE));
     
     // Depth attachment.
     gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
     gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_DEPTH24_STENCIL8, this->options.width,
-                                    this->options.height, GL_TRUE));
+    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8, this->options.width,
+                                    this->options.height, GL_FALSE));
     
     gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
                                    this->color_attachment, 0));
@@ -131,7 +124,6 @@ namespace Wave
                                      __LINE__ - 5);
     }
     
-    gl_call(glDrawBuffer(GL_COLOR_ATTACHMENT0));
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
       alert(WAVE_ERROR, "[GL Framebuffer] --> Cannot show framebuffer, framebuffer incomplete!");
@@ -148,12 +140,11 @@ namespace Wave
   
   void Gl_framebuffer::resize(float width, float height, void *data_)
   {
-    if (width == 0 || height == 0)
+    assert(width != 0 && height != 0);
+    if (width != this->options.width || height != this->options.height)
     {
-      alert(WAVE_WARN, "[GL Framebuffer] --> Attempted to resize framebuffer to (%.2f, %.2f)", width, height);
-      return;
+      alert(WAVE_WARN, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
     }
-    alert(WAVE_WARN, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
     this->options.width = width;
     this->options.height = height;
     

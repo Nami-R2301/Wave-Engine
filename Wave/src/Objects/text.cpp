@@ -81,4 +81,9 @@ namespace Wave
   {
     return index < this->characters.size() ? this->characters[index] : this->characters[0];
   }
+  
+  void Text::set_offset_y(float offset)
+  {
+    this->format.offset_y = offset;
+  }
 }

@@ -22,18 +22,18 @@ namespace Wave
     Engine();
     explicit Engine(Renderer_api choice);
     virtual ~Engine();
-
+    
     [[nodiscard]] static Engine *get_app();
     [[nodiscard]] static Window *get_main_window();  // For glfw purposes, keep this static.
-    [[nodiscard]] long get_frame_drawn_counter() const;
+    [[nodiscard]] static long get_frame_drawn_counter();
     [[nodiscard]] static float get_engine_framerate();
-    [[nodiscard]] bool get_running_state() const;
-    [[nodiscard]] uint32_t get_exit_status() const;
+    [[nodiscard]] static bool get_running_state();
+    [[nodiscard]] static int32_t get_exit_status();
     
     static void set_engine_framerate(float window_framerate);
-    void set_frame_drawn_counter(long counter);
-    void set_running_state(bool new_state);
-    void set_exit_status(uint32_t code);
+    static void set_frame_drawn_counter(long counter);
+    static void set_running_state(bool new_state);
+    static void set_exit_status(int32_t code);
     
     virtual void init();
     virtual void on_event(Event &event);
@@ -61,18 +61,17 @@ namespace Wave
     virtual bool window_closed_callback(On_window_close &window_closed_event);
     virtual bool window_resize_callback(On_window_resize &resize_event);
     
-    void shutdown();
-    [[nodiscard]] bool has_crashed() const;
+    static void shutdown();
+    [[nodiscard]] static bool has_crashed();
     static void wait(float start_time, float end_time);
   private:
     static Engine *instance;
-    bool running_state = false;
-    long frame_drawn_counter = 0;
+    static bool running_state;
+    static long frame_drawn_counter;
     static float engine_framerate;
-    Engine_time current_time;
-    uint32_t exit_code = PROCESSING;  // Document the program_id exit code for maintenance.
-  protected:
-    Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
+    static Engine_time current_time;
+    static int32_t exit_code;  // Document the program_id exit code for maintenance.
+    static Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
     static std::unique_ptr<Window> main_window;  // Default to OpenGL implementation.
     Layer_stack layer_stack;  // List containing all of our app layers.
   private:

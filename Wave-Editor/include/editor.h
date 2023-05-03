@@ -27,9 +27,9 @@ namespace Wave
     std::shared_ptr<Wave::Editor_camera> demo_perspective_camera;
     std::vector<std::shared_ptr<Wave::Object_3D>> demo_objects;
     std::vector<std::shared_ptr<Text>> demo_texts;
-    std::shared_ptr<Framebuffer> viewport;
-    Vector_2f viewport_size = {0,
-                               0};
-    Vector_4f viewport_boundaries;
+    std::shared_ptr<Framebuffer> viewport_framebuffer;
+    Vector_2f viewport_resolution = {0,
+                                     0};
+    Vector_4f viewport_framebuffer_boundaries;
   };
 }

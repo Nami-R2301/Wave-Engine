@@ -47,7 +47,9 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
                                                                format));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_object_shaders, this->demo_objects[0]));
-  push_layer(new Wave::Text_layer(this->demo_text, this->demo_text_shaders));
+  push_layer(new Wave::Text_layer(this->demo_text, this->demo_text_shaders,
+                                  Wave::Vector_2f(Engine::get_main_window()->get_width(),
+                                                  Engine::get_main_window()->get_height())));
 }
 
 void Example_app::init()
@@ -106,7 +108,7 @@ void Example_app::on_event(Wave::Event &event)
 bool Example_app::window_closed_callback([[maybe_unused]] Wave::On_window_close &window_closed_event)
 {
   window_closed_event.print(Wave::Print_type::Warn);
-  Engine::main_window->close();
+  Engine::get_main_window()->close();
   return true;
 }
 

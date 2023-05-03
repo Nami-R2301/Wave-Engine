@@ -290,7 +290,7 @@ namespace Wave
       // Draw
       gl_call(glDrawArrays(GL_TRIANGLES, 0, 6));
       // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
-      x += (ch.advance >> 6) *
+      x += static_cast<float>((ch.advance >> 6)) *
            scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }
     gl_call(glBindVertexArray(0));
@@ -333,7 +333,7 @@ namespace Wave
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "SHADER CREATION ERROR");
           break;
         case static_cast<GLenum>(Renderer_error_type::SHADER_COMPILATION_ERROR):Gl_renderer::state.type = "SHADER COMPILATION ERROR";
-          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.severity = "Fatal";
           Gl_renderer::state.code = Renderer_error_type::SHADER_COMPILATION_ERROR;
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "SHADER COMPILATION ERROR");
           break;

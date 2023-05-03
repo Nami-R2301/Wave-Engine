@@ -9,6 +9,7 @@
 namespace Wave
 {
   
+  
   Editor::Editor() : Engine(Renderer_api::Opengl)
   {
     // Add Cameras
@@ -28,6 +29,14 @@ namespace Wave
                                                    Res_loader_3D::load_shader_source(
                                                        "../Wave/res/Shaders/default.frag").c_str()));
     
+    // Setup default viewport framebuffer specs.
+    Framebuffer_options fbSpec;
+    fbSpec.width = 1920.0f;  // Fullscreen size.
+    fbSpec.height = 1080.0f;  // Fullscreen size.
+    this->viewport_resolution = {fbSpec.width,
+                                 fbSpec.height};
+    this->viewport_framebuffer = Framebuffer::create(fbSpec);
+    
     
     // Add objects
     this->demo_objects.emplace_back(
@@ -37,7 +46,7 @@ namespace Wave
     
     // Add text strings
     Wave::Text_format format = {25.0f,
-                                1080.0f - 38.0f,
+                                this->viewport_resolution.get_y() - 25.0f,  // Inverted y (Top = max y value).
                                 1.0f,
                                 26.0f,
                                 Wave::Text_style::REGULAR,
@@ -46,19 +55,11 @@ namespace Wave
                                                "Wave Engine ~",
                                                format));
     
-    // Setup default viewport framebuffer specs.
-    Framebuffer_options fbSpec;
-    fbSpec.width = 1920;
-    fbSpec.height = 1080;
-    this->viewport_size = {1920.0f,
-                           1080.0f};
-    this->viewport = Framebuffer::create(fbSpec);
-    
+    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution));
     push_layer(new Editor_layer(this->demo_perspective_camera,
                                 this->demo_shaders,
                                 this->demo_objects,
-                                this->viewport));
-    push_layer(new Text_layer(this->demo_texts, this->demo_shaders));
+                                this->viewport_framebuffer));
     push_overlay(new ImGui_layer());
   }
   
@@ -71,24 +72,30 @@ namespace Wave
   {
     if (!Engine::get_main_window()->is_minimized()) ImGui_layer::begin();
     
-    auto id = ImGui::FindWindowByName("Viewport");
-    if (id)
+    auto viewport_undocked = ImGui::FindWindowByName("Viewport");
+    if (viewport_undocked)  // If viewport is detached from DockSpace.
     {
-      ImVec2 size = id->Size;
+      ImVec2 size = viewport_undocked->Size;
+      float title_tab_height = viewport_undocked->TitleBarHeight();
       // Redraw framebuffer on resize.
-      if (this->viewport_size.get_x() > 0.0f && this->viewport_size.get_y() > 0.0f &&
-          (size.x != this->viewport_size.get_x() || size.y != this->viewport_size.get_y()))
+      if (this->viewport_framebuffer->get_options().width > 0.0f &&
+          this->viewport_framebuffer->get_options().height > 0.0f &&
+          (size.x != this->viewport_framebuffer->get_options().width ||
+           size.y - title_tab_height != this->viewport_framebuffer->get_options().height
+           || viewport_undocked->Pos.x != this->viewport_framebuffer_boundaries.get_x() ||
+           viewport_undocked->Pos.y != this->viewport_framebuffer_boundaries.get_y()))
       {
-        this->viewport_boundaries = Vector_4f(id->Pos.x, id->Pos.y, size.x, size.y);
-        this->viewport->resize(size.x,size.y,&this->viewport_boundaries);
-        this->viewport_size = Vector_2f(size.x, size.y);
+        this->viewport_framebuffer_boundaries = Vector_4f(viewport_undocked->Pos.x, viewport_undocked->Pos.y, size.x,
+                                                          size.y);
+        this->viewport_framebuffer->resize(size.x, size.y - title_tab_height, &this->viewport_framebuffer_boundaries);
+        this->demo_texts[0]->set_offset_y(this->viewport_resolution.get_y() - 25.0f);
       }
     }
     
-    this->viewport->bind();
+    this->viewport_framebuffer->bind();
     Gl_renderer::clear_bg();
     Engine::on_update(time_step);
-    this->viewport->unbind();
+    this->viewport_framebuffer->unbind();
     
     if (!Engine::get_main_window()->is_minimized())
     {
@@ -105,7 +112,7 @@ namespace Wave
   bool Editor::window_closed_callback(On_window_close &window_closed_event)
   {
     window_closed_event.print(Print_type::Warn);
-    Engine::main_window->close();
+    Engine::get_main_window()->close();
     return true;
   }
   

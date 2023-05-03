@@ -6,6 +6,7 @@ out vec4 fout_color;
 uniform sampler2DMS u_color_attachment_sampler;
 uniform int u_viewport_width = 1920;
 uniform int u_viewport_height = 1080;
+uniform int u_max_samples = 1;
 
 void main() {
     //texelFetch requires a vec of ints for indexing (since we're indexing pixel locations)\n"
@@ -14,10 +15,9 @@ void main() {
     ivec2 vpCoords = ivec2(u_viewport_width, u_viewport_height);
     vpCoords.x = int(vpCoords.x * vout_tex_coords.x);
     vpCoords.y = int(vpCoords.y * vout_tex_coords.y);
-    //do a simple average since this is just a demo\n"
-    vec4 sample1 = texelFetch(u_color_attachment_sampler, vpCoords, 0);
-    vec4 sample2 = texelFetch(u_color_attachment_sampler, vpCoords, 1);
-    vec4 sample3 = texelFetch(u_color_attachment_sampler, vpCoords, 2);
-    vec4 sample4 = texelFetch(u_color_attachment_sampler, vpCoords, 3);
-    fout_color = vec4(sample1 + sample2 + sample3 + sample4) / 4.0f;
+
+    vec4 samples;
+    for (int i = 0; i < u_max_samples; ++i)samples += texelFetch(u_color_attachment_sampler, vpCoords, i);
+    vec4 average = samples / u_max_samples;
+    fout_color = average;
 }

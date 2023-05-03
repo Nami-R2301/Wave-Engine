@@ -2,17 +2,20 @@
 // Created by nami on 24/04/23.
 //
 
+#include "Events/app_event.h"
 #include <Core/text_layer.h>
 
 namespace Wave
 {
   
   Text_layer::Text_layer(const std::vector<std::shared_ptr<Text>> &strings_,
-                         const std::vector<std::shared_ptr<Shader>>& text_shaders_)
+                         const std::vector<std::shared_ptr<Shader>> &text_shaders_,
+                         const Vector_2f &viewport_size_)
   {
     this->strings = strings_;
     this->text_shaders = text_shaders_;
-    this->transform = glm::ortho(0.0f, 1920.0f, 0.0f, 1080.0f);
+    this->viewport_size = viewport_size_;
+    this->transform = glm::ortho(0.0f, this->viewport_size.get_x(), 0.0f, this->viewport_size.get_y());
   }
   
   Text_layer::~Text_layer()
@@ -47,7 +50,18 @@ namespace Wave
   
   void Text_layer::on_event(Event &event)
   {
-  
+    switch (event.get_event_type())
+    {
+      case Wave::Event_type::None:return;
+      case Wave::Event_type::On_window_resize:
+      {
+        auto resize_event = dynamic_cast<On_window_resize &>(event);
+        this->transform = glm::ortho(0.0f, resize_event.get_width(), 0.0f, resize_event.get_height());
+        this->strings[0]->set_offset_y(this->viewport_size.get_y() - 25.0f);
+        break;
+      }
+      default:break;
+    }
   }
   
   void Text_layer::on_ui_render(float time_step)

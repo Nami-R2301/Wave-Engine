@@ -93,9 +93,8 @@ if (UNIX)
                  Example_app/src/example_layer.cpp)
   
   add_executable(Editor
-                 Wave-Editor/src/app_editor.cpp
+                 Wave-Editor/src/editor.cpp
                  Wave-Editor/src/editor_layer.cpp)
-  target_compile_definitions(Editor PUBLIC DEBUG)
   target_include_directories(Editor PUBLIC
                              Wave-Editor/src
                              Wave-Editor/include
