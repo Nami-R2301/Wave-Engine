@@ -9,7 +9,6 @@ endif ()
 
 add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
 target_compile_definitions(ImGUI PUBLIC
-                           IMGUI_IMPL_OPENGL_LOADER_CUSTOM
                            $<$<CONFIG:Debug>:IMGUI_IMPL_OPENGL_DEBUG>)
 target_link_libraries(ImGUI PUBLIC OpenGL::GL)
 target_include_directories(ImGUI PUBLIC
