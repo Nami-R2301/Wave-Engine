@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\example_app.h">
+    <ClInclude Include="include\example_app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\example_layer.h">
+    <ClInclude Include="include\example_layer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

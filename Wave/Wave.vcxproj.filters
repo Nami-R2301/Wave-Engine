@@ -150,12 +150,6 @@
     <ClInclude Include="Include\Dependencies\imGUI\imstb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Dependencies\imGUI\backends\imgui_impl_opengl3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\Dependencies\imGUI\backends\imgui_impl_glfw.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\Objects\gl_text.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -288,12 +282,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Window\window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Include\Dependencies\imGUI\backends\imgui_impl_opengl3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Include\Dependencies\imGUI\backends\imgui_impl_glfw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Objects\gl_text.cpp">

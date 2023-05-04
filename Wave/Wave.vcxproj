@@ -187,8 +187,6 @@
     <ClInclude Include="Include\Core\text_layer.h" />
     <ClInclude Include="Include\Dependencies\freetype\include\freetype\freetype.h" />
     <ClInclude Include="Include\Dependencies\freetype\include\ft2build.h" />
-    <ClInclude Include="Include\Dependencies\imGUI\backends\imgui_impl_glfw.h" />
-    <ClInclude Include="Include\Dependencies\imGUI\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="Include\Dependencies\imGUI\imconfig.h" />
     <ClInclude Include="Include\Dependencies\imGUI\imgui.h" />
     <ClInclude Include="Include\Dependencies\imGUI\imgui_internal.h" />
@@ -232,8 +230,6 @@
     <ClInclude Include="Include\Window\window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Include\Dependencies\imGUI\backends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="Include\Dependencies\imGUI\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="Include\Dependencies\imGUI\imgui.cpp" />
     <ClCompile Include="Include\Dependencies\imGUI\imgui_demo.cpp" />
     <ClCompile Include="Include\Dependencies\imGUI\imgui_draw.cpp" />

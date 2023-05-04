@@ -119,7 +119,7 @@
       <PreprocessorDefinitions>WAVE_PLATFORM_WINDOWS; DEBUG; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\imGUI; $(SolutionDir)Wave\Include\Dependencies\freetype\include; $(SolutionDir)Example_app\Include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\imGUI; $(SolutionDir)Wave\Include\Dependencies\freetype\include; $(SolutionDir)Example_app\include;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -147,7 +147,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WAVE_PLATFORM_WINDOWS; RELEASE; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\imGUI; $(SolutionDir)Wave\Include\Dependencies\freetype\include; $(SolutionDir)Example_app\Include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\imGUI; $(SolutionDir)Wave\Include\Dependencies\freetype\include; $(SolutionDir)Example_app\include;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
@@ -177,8 +177,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\example_app.h" />
-    <ClInclude Include="Include\example_layer.h" />
+    <ClInclude Include="include\example_app.h" />
+    <ClInclude Include="include\example_layer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\example_app.cpp" />
