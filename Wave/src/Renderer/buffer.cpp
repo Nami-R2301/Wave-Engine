@@ -7,7 +7,7 @@
 
 namespace Wave
 {
-  std::shared_ptr<Vertex_buffer> Vertex_buffer::Create(uint64_t size)
+  std::shared_ptr<Vertex_buffer> Vertex_buffer::create(uint64_t size)
   {
     switch (Gl_renderer::get_api())
     {
@@ -30,7 +30,7 @@ namespace Wave
     return nullptr;
   }
   
-  std::shared_ptr<Vertex_buffer> Vertex_buffer::Create(const float *vertices, uint64_t size)
+  std::shared_ptr<Vertex_buffer> Vertex_buffer::create(const void *vertices, uint64_t size, Buffer_type buffer_type)
   {
     switch (Gl_renderer::get_api())
     {
@@ -38,7 +38,7 @@ namespace Wave
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::Opengl:return create_shared_pointer<Gl_vertex_buffer>(vertices, size);
+      case Renderer_api::Opengl:return create_shared_pointer<Gl_vertex_buffer>(vertices, size, buffer_type);
       case Renderer_api::Vulkan:
         alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
@@ -53,7 +53,7 @@ namespace Wave
     return nullptr;
   }
   
-  std::shared_ptr<Index_buffer> Index_buffer::Create(uint32_t *indices, uint32_t size)
+  std::shared_ptr<Index_buffer> Index_buffer::create(const uint32_t *indices, uint32_t size)
   {
     switch (Gl_renderer::get_api())
     {

@@ -6,6 +6,7 @@
 
 #include <Renderer/vertex.h>
 #include <Renderer/texture.h>
+#include <vector>
 
 namespace Wave
 {

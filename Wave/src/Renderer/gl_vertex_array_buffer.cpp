@@ -8,15 +8,16 @@ namespace Wave
     switch (type)
     {
       case Buffer_data_type::Float:return GL_FLOAT;
-      case Buffer_data_type::Float2:return GL_FLOAT;
-      case Buffer_data_type::Float3:return GL_FLOAT;
-      case Buffer_data_type::Float4:return GL_FLOAT;
-      case Buffer_data_type::Mat3:return GL_FLOAT;
-      case Buffer_data_type::Mat4:return GL_FLOAT;
+      case Buffer_data_type::Vector_2f:return GL_FLOAT;
+      case Buffer_data_type::Vector_3f:return GL_FLOAT;
+      case Buffer_data_type::Vector_4f:return GL_FLOAT;
+      case Buffer_data_type::Color_4f:return GL_FLOAT;
+      case Buffer_data_type::Matrix_3f:return GL_FLOAT;
+      case Buffer_data_type::Matrix_4f:return GL_FLOAT;
       case Buffer_data_type::Int:return GL_INT;
-      case Buffer_data_type::Int2:return GL_INT;
-      case Buffer_data_type::Int3:return GL_INT;
-      case Buffer_data_type::Int4:return GL_INT;
+      case Buffer_data_type::Vector_2i:return GL_INT;
+      case Buffer_data_type::Vector_3i:return GL_INT;
+      case Buffer_data_type::Vector_4i:return GL_INT;
       case Buffer_data_type::Bool:return GL_BOOL;
       case Buffer_data_type::None:break;
     }
@@ -82,9 +83,10 @@ namespace Wave
       switch (element.type)
       {
         case Buffer_data_type::Float:
-        case Buffer_data_type::Float2:
-        case Buffer_data_type::Float3:
-        case Buffer_data_type::Float4:
+        case Buffer_data_type::Vector_2f:
+        case Buffer_data_type::Vector_3f:
+        case Buffer_data_type::Color_4f:
+        case Buffer_data_type::Vector_4f:
         {
           glEnableVertexAttribArray(this->vertex_buffer_index);
           glVertexAttribPointer(this->vertex_buffer_index,
@@ -97,9 +99,9 @@ namespace Wave
           break;
         }
         case Buffer_data_type::Int:
-        case Buffer_data_type::Int2:
-        case Buffer_data_type::Int3:
-        case Buffer_data_type::Int4:
+        case Buffer_data_type::Vector_2i:
+        case Buffer_data_type::Vector_3i:
+        case Buffer_data_type::Vector_4i:
         case Buffer_data_type::Bool:
         {
           glEnableVertexAttribArray(this->vertex_buffer_index);
@@ -111,8 +113,8 @@ namespace Wave
           this->vertex_buffer_index++;
           break;
         }
-        case Buffer_data_type::Mat3:
-        case Buffer_data_type::Mat4:
+        case Buffer_data_type::Matrix_3f:
+        case Buffer_data_type::Matrix_4f:
         {
           uint64_t count = element.get_property_count();
           for (uint64_t i = 0; i < count; i++)
@@ -136,6 +138,11 @@ namespace Wave
     }
     
     this->vertex_buffers.push_back(vertex_buffer_);
+  }
+
+  uint32_t Gl_vertex_array_buffer::get_id() const
+  {
+      return this->vertex_array_id;
   }
   
   void Gl_vertex_array_buffer::set_index_buffer(const std::shared_ptr<Index_buffer> &index_buffer_)

@@ -6,6 +6,7 @@
 #include <Core/core.h>
 #include <Core/core_macros.h>
 #include <Core/layer_stack.h>
+#include <Core/text_layer.h>
 #include <Core/settings.h>
 #include <Core/engine_time.h>
 #include <Core/engine.h>
@@ -19,7 +20,6 @@
 
 /************************* Utilities ********************************/
 #include <Utilities/logger.h>
-#include <imGUI/imgui.h>
 #include <Utilities/res_loader.h>
 
 /************************* Input ********************************/
@@ -28,7 +28,6 @@
 #include <Input/mouse_codes.h>
 
 /************************* Math ********************************/
-#include <Math/camera.h>
 #include <Math/matrix_4f.h>
 #include <Math/transform.h>
 
@@ -39,10 +38,12 @@
 #include <Renderer/shader.h>
 #include <Renderer/vertex.h>
 #include <Renderer/vertex_array_buffer.h>
+#include <Renderer/editor_camera.h>
+#include <Renderer/gl_framebuffer.h>
 
 /************************* Objects ********************************/
 #include <Objects/object.h>
-#include <Objects/text.h>
+#include <Objects/gl_text.h>
 
 /************************* Window ********************************/
 #include <Window/window.h>

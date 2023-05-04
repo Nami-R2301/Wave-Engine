@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include <wave_pch.h>
+#include <Math/vector.h>
 
 namespace Wave
 {
-  
-  #define COLOR_SIZE ((sizeof(float) * 4))
   
   // Set custom colors for the background or for fragments.
   class Color
@@ -36,6 +34,8 @@ namespace Wave
     void set_green(float green);
     void set_blue(float blue);
     void set_alpha(float alpha);
+    
+    float &operator [](unsigned int index);
     
     Color &operator =(const Color &other_color);
     bool operator !=(const Color &other_color) const;

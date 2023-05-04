@@ -9,13 +9,6 @@
 namespace Wave
 {
   
-  enum Buffer_type
-  {
-    STATIC_DRAW,
-    DYNAMIC_DRAW,
-    STREAM_DRAW [[maybe_unused]]
-  };
-  
   class Gl_vertex_buffer : public Vertex_buffer
   {
   public:
@@ -23,7 +16,7 @@ namespace Wave
     Gl_vertex_buffer(const void *data, uint64_t size, Buffer_type buffer_type = STATIC_DRAW);
     ~Gl_vertex_buffer() override;
     
-    [[nodiscard]] uint32_t get_id() const;
+    [[nodiscard]] uint32_t get_id() const override;
     [[nodiscard]] bool is_bound() const override;
     void set_data(const void *data, uint64_t size, uint64_t offset) override;
     void bind() override;
@@ -46,7 +39,7 @@ namespace Wave
     Gl_index_buffer(const void *data, uint32_t count_);
     ~Gl_index_buffer() override;
     
-    [[nodiscard]] uint32_t get_id() const;
+    [[nodiscard]] uint32_t get_id() const override;
     [[nodiscard]] bool is_bound() const override;
     void bind() override;
     void unbind() const override;

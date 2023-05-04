@@ -4,14 +4,12 @@
 
 #pragma once
 
-#include <Core/core_macros.h>
+#define _USE_MATH_DEFINES  // For Visual Studio.
 #include <cmath>
 #include <string>
 
 namespace Wave
 {
-  
-  #define VECTOR2F_SIZE ((sizeof(float) * 2))
   
   class Vector_2f
   {
@@ -61,8 +59,6 @@ namespace Wave
     float x = 0;
     float y = 0;
   };
-  
-  #define VECTOR3F_SIZE (sizeof(float) * 3)
   
   class Vector_3f
   {

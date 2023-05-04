@@ -33,42 +33,42 @@ namespace Wave
   
   float Vector_4f::get_x() const
   {
-    return x;
+    return this->x;
   }
   
   void Vector_4f::set_x(float x_)
   {
-    Vector_4f::x = x_;
+    this->x = x_;
   }
   
   float Vector_4f::get_y() const
   {
-    return y;
+    return this->y;
   }
   
   void Vector_4f::set_y(float y_)
   {
-    Vector_4f::y = y_;
+    this->y = y_;
   }
   
   float Vector_4f::get_z() const
   {
-    return z;
+    return this->z;
   }
   
   void Vector_4f::set_z(float z_)
   {
-    Vector_4f::z = z_;
+    this->z = z_;
   }
   
   float Vector_4f::get_w() const
   {
-    return w;
+    return this->w;
   }
   
   void Vector_4f::set_w(float w_)
   {
-    Vector_4f::w = w_;
+    this->w = w_;
   }
   
   float Vector_4f::length() const

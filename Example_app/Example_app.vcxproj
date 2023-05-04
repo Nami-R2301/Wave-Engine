@@ -73,8 +73,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\</OutDir>
     <IntDir>$(SolutionDir)int\$(Configuration)-$(Platform)\$(ProjectName)\</IntDir>
-    <CustomBuildBeforeTargets>Run</CustomBuildBeforeTargets>
-    <CustomBuildAfterTargets>PrepareForRun</CustomBuildAfterTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\</OutDir>
@@ -117,7 +119,7 @@
       <PreprocessorDefinitions>WAVE_PLATFORM_WINDOWS; DEBUG; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies;  $(SolutionDir)Wave\Include\Dependencies\freetype\include; $(SolutionDir)Example_app\Include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\imGUI; $(SolutionDir)Wave\Include\Dependencies\freetype\include; $(SolutionDir)Example_app\Include;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -145,7 +147,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WAVE_PLATFORM_WINDOWS; RELEASE; %(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies;  $(SolutionDir)\Wave\Include\Dependencies\freetype\include;  $(SolutionDir)Example_app\Include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Wave\Include; $(SolutionDir)Wave\Include\Dependencies\GL\glfw\include; $(SolutionDir)Wave\Include\Dependencies; $(SolutionDir)Wave\Include\Dependencies\imGUI; $(SolutionDir)Wave\Include\Dependencies\freetype\include; $(SolutionDir)Example_app\Include;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
@@ -161,10 +163,12 @@
       <AdditionalDependencies>Wave.lib</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>del $(SolutionDir)int</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Rebuilding Wave lib.</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>

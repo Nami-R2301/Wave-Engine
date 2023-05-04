@@ -2,6 +2,7 @@
 // Created by nami on 07/01/23.
 //
 
+#include "Renderer/vertex.h"
 #include <Objects/object.h>
 
 namespace Wave
@@ -89,7 +90,7 @@ namespace Wave
   
   uint64_t Object_2D::get_vertex_size()
   {
-    return VERTEX_2D_SIZE;
+    return sizeof(Vertex_2D);
   }
   
   const std::vector<uint32_t> &Object_2D::get_faces() const
@@ -271,7 +272,7 @@ namespace Wave
         output += "ERROR : Snprintf error when trying to display [Object_2D]!";
         continue;
       }
-      if (big_buffer) output += big_buffer;
+      output += big_buffer;
     }
     output += "\n";
     
@@ -283,7 +284,7 @@ namespace Wave
         output += "ERROR : Snprintf error when trying to display [Object_2D]!";
         continue;
       }
-      if (big_buffer) output += big_buffer;
+      output += big_buffer;
     }
     return output;
   }
@@ -395,7 +396,7 @@ namespace Wave
   
   uint64_t Object_3D::get_vertex_size()
   {
-    return VERTEX_3D_SIZE;
+    return sizeof(Vertex_3D);
   }
   
   const std::vector<uint32_t> &Object_3D::get_faces() const
@@ -623,27 +624,27 @@ namespace Wave
     output = "[Object 3D] : \n";
     for (const Vertex_3D &vertex: this->vertices)
     {
-      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%I64d] = %s", DEFAULT, index,
+      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%ld] = %s", DEFAULT, index,
                    vertex.to_string().c_str()) < 0)
       {
         output += "ERROR : Snprintf error when trying to display [Object_3D]!";
         index++;
         continue;
       }
-      if (big_buffer) output += big_buffer;
+      output += big_buffer;
       index++;
     }
     
     for (const Texture &texture: this->textures)
     {
-      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%I64d] = %s", DEFAULT, index,
+      if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%ld] = %s", DEFAULT, index,
                    texture.to_string().c_str()) < 0)
       {
         output += "ERROR : Snprintf error when trying to display [Object_3D]!";
         index++;
         continue;
       }
-      if (big_buffer) output += big_buffer;
+      output += big_buffer;
       index++;
     }
     free(big_buffer);

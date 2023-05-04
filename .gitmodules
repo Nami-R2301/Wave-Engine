@@ -1,13 +1,20 @@
-[submodule "Wave/Include/Dependencies/googletest"]
-	path = Wave/Include/Dependencies/googletest
-	url = https://www.github.com/google/googletest.git
-[submodule "Wave/Include/Dependencies/freetype"]
-	path = Wave/Include/Dependencies/freetype
-	url = https://www.github.com/freetype/freetype.git
-[submodule "Wave/Include/Dependencies/GL/glfw"]
-	path = Wave/Include/Dependencies/GL/glfw
-	url = https://www.github.com/glfw/glfw.git
-[submodule "Wave/Include/Dependencies/imGUI"]
-	path = Wave/Include/Dependencies/imGUI
-	url = https://github.com/ocornut/imgui.git
+[submodule "Wave/include/Dependencies/glm"]
+	path = Wave/include/Dependencies/glm
+	url = git@github.com:g-truc/glm.git
+[submodule "Wave/include/Dependencies/googletest"]
+	path = Wave/include/Dependencies/googletest
+	url = https://github.com/google/googletest.git
+	branch = v1.13.x
+[submodule "Wave/include/Dependencies/freetype"]
+	path = Wave/include/Dependencies/freetype
+	url = git@github.com:freetype/freetype.git
+[submodule "Wave/include/Dependencies/GL/glfw"]
+	path = Wave/include/Dependencies/GL/glfw
+	url = git@github.com:glfw/glfw.git
+[submodule "Wave/include/Dependencies/imGUI"]
+	path = Wave/include/Dependencies/imGUI
+	url = git@github.com:ocornut/imgui.git
 	branch = docking
+[submodule "Wave/Include/Dependencies/glm"]
+	path = Wave/Include/Dependencies/glm
+	url = https://github.com/g-truc/glm

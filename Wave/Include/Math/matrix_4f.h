@@ -3,13 +3,9 @@
 //
 
 #pragma once
-#define _USE_MATH_DEFINES  // For Visual Studio.
 
-#include <cmath>  // Cos, sin and sqrt functions.
 #include <Core/interfaces.h>
 #include <Core/core_macros.h>
-#include <Utilities/logger.h>
-#include <memory>
 
 namespace Wave
 {

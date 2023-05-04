@@ -16,11 +16,11 @@ add_library(Wave STATIC
             Wave/src/Math/vector_2f.cpp
             Wave/src/Math/vector_3f.cpp
             Wave/src/Math/matrix_4f.cpp
-            Wave/src/Math/quaternion.cpp
+            Wave/src/Math/vector_4f.cpp
             Wave/src/Utilities/logger.cpp
             Wave/src/Math/transform.cpp
             Wave/src/Utilities/res_loader.cpp
-            Wave/src/Math/camera.cpp
+            Wave/src/Renderer/camera.cpp
             Wave/src/Renderer/texture.cpp
             Wave/src/Renderer/gl_vertex_array_buffer.cpp
             Wave/src/Window/display_settings.cpp
@@ -30,7 +30,7 @@ add_library(Wave STATIC
             Wave/src/Events/mouse_event.cpp
             Wave/src/Events/app_event.cpp
             Wave/src/Input/input.cpp
-            Wave/src/Core/text.cpp
+            Wave/src/Objects/text.cpp
             Wave/src/Objects/object.cpp
             Wave/src/Core/layer.cpp
             Wave/src/Core/layer_stack.cpp
@@ -109,7 +109,8 @@ elseif (WIN32)
                REQUIRED)
   message("GTEST LIB DETECTED --> ${GTEST} \n")
   
-  target_compile_definitions(Wave PUBLIC WAVE_PLATFORM_WINDOWS
+  target_compile_definitions(Wave PUBLIC
+                             WAVE_PLATFORM_WINDOWS
                              _WINDLL
                              _UNICODE
                              UNICODE
@@ -132,7 +133,9 @@ elseif (WIN32)
                              Wave/Include
                              Wave/Include/Dependencies
                              Wave/Include/Dependencies/GL/glfw/include
-                             Wave/Include/Dependencies/freetype/include)
+                             Wave/Include/Dependencies/freetype/include
+                             Wave/Include/Dependencies/imGUI
+                             Wave/Include/Dependencies/imGUI/backends)
   
   # WinMain (SUBSYSTEM:WINDOWS or SUBSYSTEM:CONSOLE).
   if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")

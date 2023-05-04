@@ -19,7 +19,7 @@ namespace Wave
     virtual void on_detach();
     virtual void on_update(float time_step);
     virtual void on_event(Event &event);
-    virtual void on_imgui_render(float time_step);
+    virtual void on_ui_render(float time_step);
     
     [[nodiscard]] inline const std::string &get_name() const
     { return this->layer_name; };

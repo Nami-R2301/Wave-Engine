@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <Core/core.h>
-#include "color.h"
 #include <Math/matrix_4f.h>
+#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 
 namespace Wave
 {
@@ -28,6 +28,7 @@ namespace Wave
     
     static std::shared_ptr<Shader> create(const std::string &name, const char *vertex_source,
                                           const char *fragment_source);
+    [[nodiscard]] virtual int32_t get_id() const = 0;
     
     // Uniform handling.
     [[nodiscard]] virtual int get_uniform_location(const char *uniform_name) const = 0;
@@ -37,6 +38,7 @@ namespace Wave
     virtual void set_uniform(const char *uniform_name, bool value) const = 0;
     virtual void set_uniform(const char *uniform_name, int value) const = 0;
     virtual void set_uniform(const char *uniform_name, float value) const = 0;
+    virtual void set_uniform(const char *uniform_name, glm::mat4x4 value) const = 0;
     [[maybe_unused]] virtual void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const = 0;
   };
   
@@ -51,6 +53,7 @@ namespace Wave
     void add_shader(int32_t type, const char *source);
     void bind() const override;
     void unbind() const override;
+    [[nodiscard]] int32_t get_id() const override;
     
     INTERFACE_PRINT
     
@@ -69,6 +72,7 @@ namespace Wave
     void set_uniform(const char *uniform_name, bool value) const override;
     void set_uniform(const char *uniform_name, int value) const override;
     void set_uniform(const char *uniform_name, float value) const override;
+    void set_uniform(const char *uniform_name, glm::mat4x4 value) const override;
     [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
   private:
     std::string name = "No name";

@@ -10,9 +10,6 @@
 namespace Wave
 {
   
-  #define VERTEX_2D_SIZE ((VECTOR2F_SIZE + COLOR_SIZE + VECTOR2F_SIZE)) //  Position (2) + Color (4) + tex_coord (2).
-  #define VERTEX_3D_SIZE ((VECTOR3F_SIZE + VECTOR3F_SIZE + COLOR_SIZE + VECTOR2F_SIZE)) // Position (3) + color (4) + normal (3) + tex_coord (2).
-  
   class Vertex_2D
   {
   public:

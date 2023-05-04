@@ -5,12 +5,28 @@
 #pragma once
 
 // Engine_time
-#include <Core/core.h>
-#include <Core/engine_time.h>
-#include <wave_pch.h>
+#include <cstdarg>
+#include <iostream>
+#include <fstream>
 
 namespace Wave
 {
+
+#define WAVE_INFO  0
+#define WAVE_WARN  1
+#define WAVE_ERROR  2
+#define WAVE_STATUS_IN_PROGRESS  3
+#define WAVE_INSTRUCTION_DONE  4
+#define WAVE_INSTRUCTION_FAIL  5
+#define WAVE_TASK_DONE  6
+#define WAVE_TASK_FAIL  7
+
+#define ERROR_HEAP_ALLOC  (-11)
+#define ERROR_READ_LOG  (-12)
+#define ERROR_READ_SHADER  (-13)
+#define ERROR_SNPRINTF  (-14)
+#define ERROR_VASPRINTF  (-15)
+#define ERROR_LOCALTIME  (-16)
   
   #ifndef COLORLESS
   // The following are ANSI terminal color codes.

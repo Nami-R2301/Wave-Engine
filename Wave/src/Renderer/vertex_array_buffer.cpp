@@ -8,7 +8,7 @@
 namespace Wave
 {
   
-  std::shared_ptr<Vertex_array_buffer> Vertex_array_buffer::Create()
+  std::shared_ptr<Vertex_array_buffer> Vertex_array_buffer::create()
   {
     switch (Gl_renderer::get_api())
     {

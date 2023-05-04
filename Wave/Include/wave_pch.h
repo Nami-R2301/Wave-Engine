@@ -4,15 +4,12 @@
 
 #pragma once
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg>
-#include <cstdio>
 #include <cstring>
 #include <vector>
-#include <string>
 #include <memory>
 #include <map>
 #include <functional>
@@ -22,6 +19,7 @@
 #include <future> // async
 
 #include <Core/core.h>
+#include <Core/core_macros.h>
 #include <Core/interfaces.h>
 
 #include <Utilities/logger.h>

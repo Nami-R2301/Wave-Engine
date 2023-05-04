@@ -3,6 +3,7 @@
 //
 
 #include <Utilities/logger.h>
+#include <Core/engine_time.h>
 
 #ifndef ASPRINTF_H
 #define ASPRINTF_H

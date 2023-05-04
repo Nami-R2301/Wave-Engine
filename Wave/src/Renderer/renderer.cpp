@@ -6,7 +6,6 @@
 
 namespace Wave
 {
-  
   bool Gl_renderer::running = false;
   Renderer_api Gl_renderer::api = Renderer_api::None;
   Renderer_state Gl_renderer::state = {nullptr,
@@ -14,7 +13,7 @@ namespace Wave
                                        nullptr,
                                        Renderer_error_type::NO_ERROR};
   
-  std::shared_ptr<Gl_vertex_array_buffer> Gl_renderer::vertex_array_buffers;
+  std::shared_ptr<Vertex_array_buffer> Gl_renderer::vertex_array_buffers;
   std::vector<Texture> Gl_renderer::textures;
   std::function<void(Event &event)> Gl_renderer::event_callback_function;
   
@@ -120,12 +119,12 @@ namespace Wave
                // Let OpenGL keep track of depth for shapes and auto determine if some shapes closer or further away from
                // the camera should take priority (drawn on top of other ones).
                gl_call(glEnable(GL_DEPTH_TEST));
-               gl_call(glEnable(GL_DEPTH_CLAMP));
+               gl_call(glEnable(GL_MULTISAMPLE));
                gl_call(glEnable(GL_BLEND));
                gl_call(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
                
                // Let OpenGL do the exponential gamma correction for us so textures and colors don't appear as dark.
-               gl_call(glEnable(GL_FRAMEBUFFER_SRGB));
+//               gl_call(glEnable(GL_FRAMEBUFFER_SRGB));
              }, "Renderer 3D loaded")
     
     log_task("RENDERER 3D", YELLOW, 1, "Fetching renderer info on client system ...",
@@ -135,12 +134,8 @@ namespace Wave
   
   void Gl_renderer::on_window_resize(Window *window, float width, float height)
   {
-    float aspect_ratio = width / height;
-    
-    if (aspect_ratio == (16.0f / 9.0f)) { set_aspect_ratio(window, 16.0f, 9.0f); }
-    else if (aspect_ratio == (4.0f / 3.0f)) set_aspect_ratio(window, 4.0f, 3.0f);
-    gl_call(glViewport(0, 0, static_cast<GLsizei>(width),
-                       static_cast<GLsizei>(height)));
+    if (!window) return;
+    Gl_renderer::set_viewport(width, height);
   }
   
   const char *Gl_renderer::get_gl_version()
@@ -172,37 +167,51 @@ namespace Wave
     Gl_renderer::state = new_state;
   }
   
-  void Gl_renderer::set_aspect_ratio(Window *window, float numerator, float denominator)
+  void Gl_renderer::set_viewport(float width, float height)
   {
-    glfw_call(glfwSetWindowAspectRatio(static_cast<GLFWwindow *>(window->get_native_window()),
-                                       static_cast<int32_t>(numerator),
-                                       static_cast<int32_t>(denominator)));
+    gl_call(glViewport(0, 0, width, height));
   }
   
   void Gl_renderer::load_object(const Object_3D *object)
   {
     std::vector<Buffer_element> b_elements;
-    b_elements.emplace_back(Buffer_data_type::Float3, "Position", true);
-    b_elements.emplace_back(Buffer_data_type::Float3, "Normal", true);
-    b_elements.emplace_back(Buffer_data_type::Float4, "Color", true);
-    b_elements.emplace_back(Buffer_data_type::Float2, "Texture coords", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_3f, "Position", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_3f, "Normal", true);
+    b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
     
-    std::shared_ptr<Gl_vertex_buffer> vbo(new Gl_vertex_buffer(object->get_vertices(),
-                                                               Object_3D::get_vertex_size() *
-                                                               object->get_vertex_count(),
-                                                               STATIC_DRAW));
-    Gl_renderer::vertex_array_buffers = create_shared_pointer<Gl_vertex_array_buffer>();
+    auto vbo_ = Vertex_buffer::create(object->get_vertices(),
+                                      Object_3D::get_vertex_size() *
+                                      object->get_vertex_count(),
+                                      STATIC_DRAW);
+    if (!Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers = Vertex_array_buffer::create();
     Gl_renderer::vertex_array_buffers->set_index_buffer(
-        create_shared_pointer<Gl_index_buffer>(object->get_faces().data(),
+        Index_buffer::create(object->get_faces().data(),
                                                static_cast<uint32_t>(object->get_faces().size())));
     Buffer_layout vbo_layout(b_elements);
-    vbo->set_layout(vbo_layout);
-    Gl_renderer::vertex_array_buffers->add_vertex_buffer(vbo);
+    vbo_->set_layout(vbo_layout);
+    Gl_renderer::vertex_array_buffers->add_vertex_buffer(vbo_);
     
     if (!object->get_textures().empty() && object->get_textures()[0].get_id() != 255)
     {
       Gl_renderer::textures.emplace_back(object->get_textures()[0]);
     }
+    Gl_renderer::vertex_array_buffers->unbind();
+  }
+  
+  std::shared_ptr<Vertex_array_buffer> Gl_renderer::load_text()
+  {
+    std::vector<Buffer_element> b_elements;
+    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", true);
+    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
+    
+    Buffer_layout vbo_layout(b_elements);
+    auto vbo_ = Vertex_buffer::create(sizeof(float) * 6 * 4);
+    vbo_->set_layout(vbo_layout);
+    
+    auto vao = Vertex_array_buffer::create();
+    vao->add_vertex_buffer(vbo_);
+    return vao;
   }
   
   void Gl_renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index)
@@ -241,12 +250,59 @@ namespace Wave
     if (!Gl_renderer::textures.empty()) Gl_renderer::textures[0].unbind();
   }
   
+  void Gl_renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao)
+  {
+    gl_call(glActiveTexture(GL_TEXTURE1));
+    gl_call(glBindVertexArray(vao->get_id()));
+    
+    float x = text->get_offset_x(), y = text->get_offset_y(), scale = text->get_scale();
+    
+    // Iterate through all characters
+    std::string::const_iterator c;
+    for (c = text->get_string().begin(); c != text->get_string().end(); c++)
+    {
+      Glyph ch = (*text)[*c];
+      
+      float x_pos = x + ch.bearing.get_x() * scale;
+      float y_pos = y - (ch.size.get_y() - ch.bearing.get_y()) * scale;
+      float w = ch.size.get_x() * scale;
+      float h = ch.size.get_y() * scale;
+      // Update VBO for each character
+      float vertices[6][4] = {
+          {x_pos,     y_pos + h, 0.0f, 0.0f},
+          {x_pos,     y_pos,     0.0f, 1.0f},
+          {x_pos + w, y_pos,     1.0f, 1.0f},
+          
+          {x_pos,     y_pos + h, 0.0f, 0.0f},
+          {x_pos + w, y_pos,     1.0f, 1.0f},
+          {x_pos + w, y_pos + h, 1.0f, 0.0f}
+      };
+      // Render glyph texture over quad
+      gl_call(glBindTexture(GL_TEXTURE_2D, ch.texture_id));
+      
+      // Update content of VBO memory
+      gl_call(glBindBuffer(GL_ARRAY_BUFFER, vao->get_vertex_buffers().back()->get_id()));
+      
+      // Use glBufferSubData and not glBufferData
+      gl_call(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
+      gl_call(glBindBuffer(GL_ARRAY_BUFFER, 0));
+      
+      // Draw
+      gl_call(glDrawArrays(GL_TRIANGLES, 0, 6));
+      // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
+      x += static_cast<float>((ch.advance >> 6)) *
+           scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+    }
+    gl_call(glBindVertexArray(0));
+    gl_call(glBindTexture(GL_TEXTURE_2D, 0));
+  }
+  
   void Gl_renderer::delete_gl_buffers()
   {
     if (Gl_renderer::is_running())
     {
       for (const auto &texture: Gl_renderer::textures) texture.remove();
-      Gl_renderer::vertex_array_buffers->remove();
+      if (Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers->remove();
     }
   }
   
@@ -277,7 +333,7 @@ namespace Wave
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "SHADER CREATION ERROR");
           break;
         case static_cast<GLenum>(Renderer_error_type::SHADER_COMPILATION_ERROR):Gl_renderer::state.type = "SHADER COMPILATION ERROR";
-          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.severity = "Fatal";
           Gl_renderer::state.code = Renderer_error_type::SHADER_COMPILATION_ERROR;
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "SHADER COMPILATION ERROR");
           break;
@@ -311,6 +367,27 @@ namespace Wave
           Gl_renderer::state.code = Renderer_error_type::INVALID_UNIFORM;
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID UNIFORM");
           break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:Gl_renderer::state.type = "INVALID FRAMEBUFFER OPERATION";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::INVALID_FRAMEBUFFER;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID FRAMEBUFFER OPERATION");
+          break;
+        case GL_FRAMEBUFFER_UNDEFINED:Gl_renderer::state.type = "INVALID FRAMEBUFFER UNDEFINED";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::UNDEFINED_FRAMEBUFFER;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID FRAMEBUFFER UNDEFINED");
+          break;
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:Gl_renderer::state.type = "INCOMPLETE FRAMEBUFFER ATTACHMENT";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::INCOMPLETE_FRAMEBUFFER_ATTACHMENT;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INCOMPLETE FRAMEBUFFER ATTACHMENT");
+          break;
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+          Gl_renderer::state.type = "MISSING FRAMEBUFFER ATTACHMENT";
+          Gl_renderer::state.severity = "Warning";
+          Gl_renderer::state.code = Renderer_error_type::MISSING_FRAMEBUFFER_ATTACHMENT;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "MISSING FRAMEBUFFER ATTACHMENT");
+          break;
         case GL_OUT_OF_MEMORY:
         {
           Gl_renderer::state.type = "OUT OF MEMORY";
@@ -336,7 +413,7 @@ namespace Wave
       }
       else if (snprintf(output, sizeof(output),
                         "[OpenGL error]%s\n%48s%sIn function --> %s,\n%48s%sIn file --> %s,\n"
-                        "%48s%sAt line --> %zu\n%48sDescription --> %s%s",
+                        "%48s%sAt line --> %zu,\n%52sDetails --> %s%s",
                         DEFAULT, " ", DEFAULT, function_name, " ", DEFAULT, file_name, " ", DEFAULT, line_number,
                         DEFAULT, error_message, DEFAULT) < 0)
       {
@@ -347,7 +424,7 @@ namespace Wave
       {
         Gl_renderer::state.description = output;
         On_renderer_error gl_error(Gl_renderer::state, Renderer_api::Opengl);
-        Gl_renderer::event_callback_function(gl_error);
+        Gl_renderer::renderer_error_callback(gl_error);
       }
     }
   }

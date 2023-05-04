@@ -19,8 +19,9 @@ public:
   
   void on_update(float time_step) override;
   void on_event(Wave::Event &e) override;
+  void on_ui_render(float time_step) override;
 private:
-  std::shared_ptr<Wave::Camera> demo_camera;
+  std::shared_ptr<Wave::Camera> camera;
   std::vector<std::shared_ptr<Wave::Shader>> shaders;
   std::shared_ptr<Wave::Object_3D> object;
 };

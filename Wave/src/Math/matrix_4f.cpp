@@ -193,14 +193,19 @@ namespace Wave
   void Matrix_4f::init_orthographic_projection(float left_, float right_, float top_, float bottom_, float z_near_,
                                                float z_far_)
   {
+    // LEFT HANDED COORDINATES
     if (right_ - left_ == 0 || top_ - bottom_ == 0) return;
     
-    float scale_x = (right_ - left_) / 2;
-    float scale_y = (top_ - bottom_) / 2;
-    float scale_z = -(z_far_ - z_near_);
+    float scale_x = 2 / (right_ - left_);
+    float scale_y = 2 / (top_ - bottom_);
+    float scale_z = 1 / (z_far_ - z_near_);
+    
+    float pos_x = -(right_ + left_) / (right_ - left_);
+    float pos_y = -(top_ + bottom_) / (top_ - bottom_);
+    float pos_z = -z_near_ / (z_far_ - z_near_);
     
     init_scale(scale_x, scale_y, scale_z);
-    init_translation(0, 0, -z_near_ * 2);
+    init_translation(pos_x, pos_y, pos_z);
   }
   
   void Matrix_4f::init_camera(Vector_3f direction, Vector_3f up)
@@ -215,12 +220,12 @@ namespace Wave
   Vector_4f Matrix_4f::operator *(const Vector_4f &vector_4f) const
   {
     Vector_4f result(vector_4f);
-    
+  
     result.set_x(result.get_x() * get_value(0, 0) +
                  result.get_y() * get_value(0, 1) +
                  result.get_z() * get_value(0, 2) +
                  result.get_w() * get_value(0, 3));
-    
+  
     result.set_y(result.get_x() * get_value(1, 0) +
                  result.get_y() * get_value(1, 1) +
                  result.get_z() * get_value(1, 2) +

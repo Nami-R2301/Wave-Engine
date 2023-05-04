@@ -26,31 +26,19 @@ enum class Renderer_error_type
   INVALID_OPERATION,
   INVALID_ENUM,
   INVALID_VALUE,
+  UNDEFINED_FRAMEBUFFER,
+  INCOMPLETE_FRAMEBUFFER_ATTACHMENT,
+  MISSING_FRAMEBUFFER_ATTACHMENT,
+  INVALID_FRAMEBUFFER,
   INVALID_UNIFORM,
   OUT_OF_MEMORY,
   UNKNOWN_ERROR = -1
 };
 
-/* ---------------------logger.h-------------------- */
-
-#define WAVE_INFO  0
-#define WAVE_WARN  1
-#define WAVE_ERROR  2
-#define WAVE_STATUS_IN_PROGRESS  3
-#define WAVE_INSTRUCTION_DONE  4
-#define WAVE_INSTRUCTION_FAIL  5
-#define WAVE_TASK_DONE  6
-#define WAVE_TASK_FAIL  7
-
-#define ERROR_HEAP_ALLOC  (-11)
-#define ERROR_READ_LOG  (-12)
-#define ERROR_READ_SHADER  (-13)
-#define ERROR_SNPRINTF  (-14)
-#define ERROR_VASPRINTF  (-15)
-#define ERROR_LOCALTIME  (-16)
-
 #define BIT(x) (1 << x)
 #define BIND_EVENT_FUNCTION(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
+
+#include <Utilities/logger.h>
 
 #ifdef DEBUG
 #define INTERFACE_PRINT  [[nodiscard]] std::string to_string() const override;\

@@ -14,20 +14,12 @@
 
 #endif
 
-#include <wave_pch.h>
-
 #include <Core/layer.h>
-
-#include <Utilities/res_loader.h>
-
 #include <Renderer/gl_buffer.h>
 #include <Renderer/gl_vertex_array_buffer.h>
-
 #include <Objects/object.h>
 #include <Objects/text.h>
-
 #include <Events/renderer_event.h>
-
 #include <Window/window.h>
 
 namespace Wave
@@ -37,8 +29,6 @@ namespace Wave
   {
     static void init();
     static void shutdown();
-    
-    static void on_window_resize(uint32_t width, uint32_t height);
     
     static void begin_scene(Camera &camera);
     static void end_scene();
@@ -69,17 +59,19 @@ namespace Wave
     
     // Frame changes.
     static void clear_bg();
-    static void set_aspect_ratio(Window *window, float numerator, float denominator);
+    static void set_viewport(float width, float height);
     static void set_clear_color(const Color &color);
     
     // Loading objects.
     static void load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index = 0);
     static void load_object(const Object_3D *object);
+    [[nodiscard]] static std::shared_ptr<Vertex_array_buffer> load_text();
     
     // Rendering objects.
     static void draw_object(const Object_3D *object);
     static void draw_objects(const std::vector<Object_3D> *objects);
     static void draw_loaded_objects(uint32_t object_count);
+    static void draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao);
     
     // Error handling.
     static bool renderer_error_callback([[maybe_unused]] On_renderer_error &renderer_error);
@@ -94,7 +86,7 @@ namespace Wave
     static Renderer_state state;
     static bool running;
     static Renderer_api api;
-    static std::shared_ptr<Gl_vertex_array_buffer> vertex_array_buffers;
+    static std::shared_ptr<Vertex_array_buffer> vertex_array_buffers;
     static std::vector<Texture> textures;
     static std::function<void(Event &event)> event_callback_function;
     
