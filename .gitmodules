@@ -15,6 +15,6 @@
 	path = Wave/include/Dependencies/imGUI
 	url = git@github.com:orconut/imgui.git
 	branch = docking
-[submodule "Wave/Include/Dependencies/glm"]
-	path = Wave/Include/Dependencies/glm
-	url = https://github.com/g-truc/glm
+[submodule "Wave/Wave/include/Dependencies/glm"]
+	path = Wave/Wave/include/Dependencies/glm
+	url = https://github.com/g-truc/glm.git
