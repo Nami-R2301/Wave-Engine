@@ -28,11 +28,14 @@ namespace Wave
                                                        "../Wave/res/Shaders/default.vert").c_str(),
                                                    Res_loader_3D::load_shader_source(
                                                        "../Wave/res/Shaders/default.frag").c_str()));
-    
+
+    GLint max_samples = 0;
+    gl_call(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
     // Setup default viewport framebuffer specs.
     Framebuffer_options fbSpec;
     fbSpec.width = 1920.0f;  // Fullscreen size.
     fbSpec.height = 1080.0f;  // Fullscreen size.
+    fbSpec.samples = max_samples;
     this->viewport_resolution = {fbSpec.width,
                                  fbSpec.height};
     this->viewport_framebuffer = Framebuffer::create(fbSpec);

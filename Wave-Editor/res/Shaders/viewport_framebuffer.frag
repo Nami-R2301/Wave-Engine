@@ -15,9 +15,5 @@ void main() {
     ivec2 vpCoords = ivec2(u_viewport_width, u_viewport_height);
     vpCoords.x = int(vpCoords.x * vout_tex_coords.x);
     vpCoords.y = int(vpCoords.y * vout_tex_coords.y);
-
-    vec4 samples;
-    for (int i = 0; i < u_max_samples; ++i)samples += texelFetch(u_color_attachment_sampler, vpCoords, i);
-    vec4 average = samples / u_max_samples;
-    fout_color = average;
+    fout_color = texelFetch(u_color_attachment_sampler, vpCoords, u_max_samples - 1);
 }

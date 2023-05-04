@@ -37,7 +37,7 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
   
   // Add text strings
   Wave::Text_format format = {25.0f,
-                              1080.0f - 38.0f,
+                              Engine::get_main_window()->get_height() - 38.0f,
                               1.0f,
                               26.0f,
                               Wave::Text_style::REGULAR,

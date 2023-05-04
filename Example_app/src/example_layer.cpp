@@ -68,3 +68,12 @@ void Example_scene_3D::on_event(Wave::Event &event)
     default:break;
   }
 }
+
+void Example_scene_3D::on_ui_render(float time_step) {
+//   Wave::ImGui_layer::begin();
+//
+//   ImGui::Begin("Test");
+//   ImGui::Text("Testing!");
+//   ImGui::End();
+//   Wave::ImGui_layer::end();
+}
