@@ -38,10 +38,11 @@ namespace Wave
   
   class Text
   {
-  public:
+    public:
     virtual ~Text() = default;
     
-    static std::shared_ptr<Text> create(const char *font_file_path, const std::string &string, const Text_format& format_);
+    static std::shared_ptr<Text>
+    create(const char *font_file_path, const std::string &string, const Text_format &format_);
     
     [[nodiscard]] float get_offset_x() const;
     [[nodiscard]] float get_offset_y() const;
@@ -58,8 +59,8 @@ namespace Wave
     void set_format(const Text_format &format_);
     void set_character(uint8_t character_code, const Glyph &character);
     
-    Glyph &operator [](uint8_t index);
-  protected:
+    Glyph &operator[](uint8_t index);
+    protected:
     std::string text;
     Text_format format;
     FT_Library ft = nullptr;

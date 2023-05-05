@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "Math/vector.h"
-#include "backends/imgui_impl_glfw.h"
-#include <Events/event_dispatcher.h>
+#include <Events/event.h>
 #include <Renderer/color.h>
 #include <functional>
 
@@ -15,9 +13,9 @@ namespace Wave
   
   enum class Context_api
   {
-    GLFW,
-    GLUT,
-    WIN32
+    Glfw,
+    Glut,
+    Win32
   };
   
   typedef struct Api_info
@@ -35,18 +33,21 @@ namespace Wave
     int32_t red_bits = 0;
     int32_t blue_bits = 0;
     int32_t green_bits = 0;
-    uint32_t refresh_rate = 30.0f;
+    int32_t refresh_rate = 30;
   } Monitor_properties;
   
   class Window
   {
-  public:
+    public:
     Window() = default;
     virtual ~Window() = default;
     
-    virtual void setup_api() = 0;
+    static std::unique_ptr<Window> create(Context_api api_chosen);
+    
+    virtual void setup_api() const = 0;
     virtual void setup_monitor() = 0;
     virtual void create_window() = 0;
+    virtual void poll_api_events() = 0;
     virtual void on_update(float time_step) = 0;
     virtual void bind_api_callbacks() = 0;
     virtual void unbind_api_callback(const Event &event) = 0;
@@ -65,8 +66,8 @@ namespace Wave
     [[nodiscard]] virtual float get_width() const = 0;
     [[nodiscard]] virtual float get_height() const = 0;
     [[nodiscard]] virtual const Vector_2f &get_aspect_ratio() const = 0;
-    [[nodiscard]] virtual uint32_t get_refresh_rate() const = 0;
-    [[nodiscard]] virtual uint32_t get_max_refresh_rate() const = 0;
+    [[nodiscard]] virtual int32_t get_refresh_rate() const = 0;
+    [[nodiscard]] virtual int32_t get_max_refresh_rate() const = 0;
     [[nodiscard]] virtual bool is_vsync() const = 0;
     [[nodiscard]] virtual bool is_minimized() const = 0;
     [[nodiscard]] virtual bool is_focused() const = 0;
@@ -83,8 +84,8 @@ namespace Wave
     virtual void set_aspect_ratio(const Vector_2f &aspect_ratio_) = 0;
     virtual void resize(float width_, float height_) = 0;
     virtual void set_fullscreen(bool fullscreen_state) = 0;
-    virtual void set_refresh_rate(uint32_t refresh_rate) = 0;
-    virtual void set_max_refresh_rate(uint32_t refresh_rate) = 0;
+    virtual void set_refresh_rate(int32_t refresh_rate) = 0;
+    virtual void set_max_refresh_rate(int32_t refresh_rate) = 0;
     virtual void set_vsync(bool vsync) = 0;
     virtual void set_window_pos(float x_pos_, float y_pos_) = 0;
     virtual void set_x_scale(float x_scale_) = 0;
@@ -94,94 +95,10 @@ namespace Wave
     [[nodiscard]] virtual float get_y_scale() const = 0;
     [[nodiscard]] virtual Color &get_bg_color() = 0;
     
-    virtual bool operator ==(const Window &window);
-    virtual bool operator !=(const Window &window);
-  
-  private:
-    static std::function<void(Event &)> event_callback_function;
-  };
-  
-  class Gl_window : public Window
-  {
-  public:
-    Gl_window();
-    explicit Gl_window(Context_api api_chosen);
-    ~Gl_window() override;
+    virtual bool operator==(const Window &window);
+    virtual bool operator!=(const Window &window);
     
-    void setup_api() override;
-    void setup_monitor() override;
-    void create_window() override;
-    void on_update(float time_step) override;
-    void bind_api_callbacks() override;
-    void unbind_api_callback(const Event &event) override;
-    void toggle_fullscreen() override;
-    // Let the window open as long as the close flag (gathered by glfwPollEvents) is not set to true.
-    bool is_closing() override;
-    void close() override;  // Free resources and close the window.
-    void shutdown() override;
-    void hide() override;  // Show the window created.
-    
-    // Return a glfwWindow instance in case there's a need to manipulate the window directly.
-    [[nodiscard]] bool glfw_is_init() const;
-    [[nodiscard]] Context_api get_context() const override;
-    [[nodiscard]] void *get_native_window() const override;
-    [[nodiscard]] void *get_native_monitor() const override;
-    [[nodiscard]] const char *get_title() const override;
-    [[nodiscard]] bool is_fullscreen() const override;
-    [[nodiscard]] float get_width() const override;
-    [[nodiscard]] float get_height() const override;
-    [[nodiscard]] const Vector_2f &get_aspect_ratio() const override;
-    [[nodiscard]] uint32_t get_refresh_rate() const override;
-    [[nodiscard]] uint32_t get_max_refresh_rate() const override;
-    [[nodiscard]] bool is_vsync() const override;
-    [[nodiscard]] bool is_minimized() const override;
-    [[nodiscard]] bool is_focused() const override;
-    [[nodiscard]] bool is_hovered() const override;
-    [[nodiscard]] float get_x_scale() const override;
-    [[nodiscard]] float get_y_scale() const override;
-    [[nodiscard]] Color &get_bg_color() override;
-    [[nodiscard]] const Vector_2f &get_window_pos() const override;
-    
-    static void glfw_error_callback(const char *function_name, const char *source_file, size_t line_number);
-    
-    void set_glfw_init_status(bool status);
-    void set_title(const char *title_) override;
-    void set_native_window(void *window_) override;
-    void set_native_monitor(void *monitor_) override;
-    void set_width(float width) override;
-    void set_height(float height) override;
-    void set_aspect_ratio(const Vector_2f &aspect_ratio_) override;
-    void resize(float width_, float height_) override;
-    void set_fullscreen(bool fullscreen_state) override;
-    void set_refresh_rate(uint32_t refresh_rate) override;
-    void set_max_refresh_rate(uint32_t refresh_rate) override;
-    void set_vsync(bool vsync) override;
-    void set_window_pos(float x_pos_, float y_pos_) override;
-    void set_x_scale(float x_scale_) override;
-    void set_y_scale(float y_scale_) override;
-    
-    bool operator !=(const Gl_window &window_);
-    bool operator ==(const Gl_window &window_);
-  private:
-    bool glfw_init = false;  // Flag to check glfw prepare_mesh status.
-    Context_api context_api = Context_api::GLFW;
-    void *window = nullptr;
-    void *monitor = nullptr;
-    Monitor_properties monitor_properties {nullptr};
-    bool vsync = false;
-    uint32_t max_refresh_rate = 30.0f;  // Set max possible fps value for primary display, useful for frame limiting.
-    
-    // Default Window attributes (Center).
-    Vector_2f position_on_screen;
-    
-    float x_scale = 1.0f;
-    float y_scale = 1.0f;
-    Vector_2f aspect_ratio = {16.0f,
-                              9.0f};
-    Color bg_color = Color(0.25f, 1.0f, true);  // Default background color (gray).
-    bool fullscreen = false;
-    bool request_closing = false;
-    Api_info api_info {};
+    private:
     static std::function<void(Event &)> event_callback_function;
   };
 }

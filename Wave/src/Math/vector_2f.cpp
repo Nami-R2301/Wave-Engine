@@ -73,83 +73,83 @@ namespace Wave
   
   std::string Vector_2f::to_string() const
   {
-    char buffer[29 + sizeof(float) * 2] {0};  // Three 8-digit-long float.
-  
+    char buffer[29 + sizeof(float) * 2]{0};  // Three 8-digit-long float.
+    
     if (snprintf(buffer, 29 + sizeof(float) * 2, "x : %.2f, y : %.2f\n", this->x, this->y) < 0)
     {
       return {"[MINOR] [VECTOR 2D ERROR] --> Error converting vector 2D to string, snprintf failed!\n"};
     }
-  
+    
     return {buffer};
   }
   
-  float &Vector_2f::operator [](unsigned int index)
+  float &Vector_2f::operator[](unsigned int index)
   {
     if (index > 1) return this->x;
     return index == 0 ? this->x : this->y;
   }
   
   // Add two vectors.
-  Vector_2f Vector_2f::operator +(const Vector_2f &other_vector) const
+  Vector_2f Vector_2f::operator+(const Vector_2f &other_vector) const
   {
     return {this->x + other_vector.get_x(),
             this->y + other_vector.get_y()};
   }
   
-  Vector_2f Vector_2f::operator -(const Vector_2f &other_vector) const
+  Vector_2f Vector_2f::operator-(const Vector_2f &other_vector) const
   {
     return {this->x - other_vector.get_x(),
             this->y - other_vector.get_y()};
   }
   
-  Vector_2f Vector_2f::operator *(const Vector_2f &other_vector) const
+  Vector_2f Vector_2f::operator*(const Vector_2f &other_vector) const
   {
     return {this->x * other_vector.get_x(),
             this->y * other_vector.get_y()};
   }
   
-  Vector_2f Vector_2f::operator /(const Vector_2f &other_vector) const
+  Vector_2f Vector_2f::operator/(const Vector_2f &other_vector) const
   {
     return {this->x / other_vector.get_x(),
             this->y / other_vector.get_y()};
   }
   
-  Vector_2f Vector_2f::operator +(float coord) const
+  Vector_2f Vector_2f::operator+(float coord) const
   {
     return {this->x + coord,
             this->y + coord};
   }
   
-  Vector_2f Vector_2f::operator -(float coord) const
+  Vector_2f Vector_2f::operator-(float coord) const
   {
     return {this->x - coord,
             this->y - coord};
   }
   
-  Vector_2f Vector_2f::operator *(float coord) const
+  Vector_2f Vector_2f::operator*(float coord) const
   {
     return {this->x * coord,
             this->y * coord};
   }
   
-  Vector_2f Vector_2f::operator /(float coord) const
+  Vector_2f Vector_2f::operator/(float coord) const
   {
     return {this->x / coord,
             this->y / coord};
   }
   
-  bool Vector_2f::operator ==(const Vector_2f &other_vector) const
+  bool Vector_2f::operator==(const Vector_2f &other_vector) const
   {
     if (this == &other_vector) return true;
     return this->x == other_vector.x && this->y == other_vector.y;
   }
   
-  bool Vector_2f::operator !=(const Vector_2f &other_vector) const
+  bool Vector_2f::operator!=(const Vector_2f &other_vector) const
   {
     return !(*this == other_vector);
   }
   
-  Vector_2f &Vector_2f::operator =(const Vector_2f &other_vector)
+  Vector_2f &Vector_2f::operator=(const Vector_2f &other_vector)
   {
     if (this == &other_vector) return *this;
     this->x = other_vector.x;
@@ -157,42 +157,42 @@ namespace Wave
     return *this;
   }
   
-  void Vector_2f::operator +=(const Vector_2f &other_vector)
+  void Vector_2f::operator+=(const Vector_2f &other_vector)
   {
     *this = *this + other_vector;
   }
   
-  void Vector_2f::operator -=(const Vector_2f &other_vector)
+  void Vector_2f::operator-=(const Vector_2f &other_vector)
   {
     *this = *this - other_vector;
   }
   
-  void Vector_2f::operator *=(const Vector_2f &other_vector)
+  void Vector_2f::operator*=(const Vector_2f &other_vector)
   {
     *this = *this * other_vector;
   }
   
-  void Vector_2f::operator /=(const Vector_2f &other_vector)
+  void Vector_2f::operator/=(const Vector_2f &other_vector)
   {
     *this = *this / other_vector;
   }
   
-  void Vector_2f::operator +=(float scalar)
+  void Vector_2f::operator+=(float scalar)
   {
     *this = *this + scalar;
   }
   
-  void Vector_2f::operator -=(float scalar)
+  void Vector_2f::operator-=(float scalar)
   {
     *this = *this - scalar;
   }
   
-  void Vector_2f::operator *=(float scalar)
+  void Vector_2f::operator*=(float scalar)
   {
     *this = *this * scalar;
   }
   
-  void Vector_2f::operator /=(float scalar)
+  void Vector_2f::operator/=(float scalar)
   {
     *this = *this / scalar;
   }

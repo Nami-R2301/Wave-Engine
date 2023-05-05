@@ -11,6 +11,10 @@
 #include <Core/engine_time.h>
 #include <Core/engine.h>
 
+/************************* Imgui ********************************/
+#include <imgui.h>
+#include <imgui_internal.h>
+
 /************************* Events ********************************/
 #include <Events/app_event.h>
 #include <Events/key_event.h>

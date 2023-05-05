@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Core/core.h>
+#include <wave_pch.h>
 #include <Math/matrix_4f.h>
 #include <glm/glm/gtc/matrix_transform.hpp>
 #include <glm/glm/gtc/type_ptr.hpp>
@@ -14,7 +14,7 @@ namespace Wave
   
   class Shader : public Printable
   {
-  public:
+    public:
     ~Shader() override = default;
     virtual void bind() const = 0;
     virtual void unbind() const = 0;
@@ -44,7 +44,7 @@ namespace Wave
   
   class Gl_shader : public Shader
   {
-  public:
+    public:
     Gl_shader() = default;
 //    explicit Gl_shader(const char *program_file_path);  // In case the vertex and fragment shaders are written in a single file.
     Gl_shader(const std::string &name, const char *vertex_source, const char *fragment_source);
@@ -74,7 +74,7 @@ namespace Wave
     void set_uniform(const char *uniform_name, float value) const override;
     void set_uniform(const char *uniform_name, glm::mat4x4 value) const override;
     [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
-  private:
+    private:
     std::string name = "No name";
     int32_t program_id = 0;
     int32_t vertex_shader_id = 0;

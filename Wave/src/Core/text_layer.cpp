@@ -34,7 +34,7 @@ namespace Wave
   
   void Text_layer::on_detach()
   {
-    for (const std::shared_ptr<Shader> &shader : this->text_shaders) shader->unbind();
+    for (const std::shared_ptr<Shader> &shader: this->text_shaders) shader->unbind();
   }
   
   void Text_layer::on_update(float time_step)
@@ -66,6 +66,5 @@ namespace Wave
   
   void Text_layer::on_ui_render(float time_step)
   {
-  
   }
 }

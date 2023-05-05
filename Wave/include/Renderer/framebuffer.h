@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include <Core/core.h>
+#include <wave_pch.h>
+
 namespace Wave
 {
   
@@ -16,7 +17,7 @@ namespace Wave
   
   class Framebuffer
   {
-  public:
+    public:
     virtual ~Framebuffer() = default;
     
     static std::shared_ptr<Framebuffer> create(const Framebuffer_options &opt);

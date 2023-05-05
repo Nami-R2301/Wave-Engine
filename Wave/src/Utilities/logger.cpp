@@ -84,8 +84,7 @@ namespace Wave
     if (result == 0)
     {
       std::cout << "LOG FILE RESET!\tPLEASE RUN THE PROGRAM AGAIN TO VIEW LOGS..." << std::endl;
-    }
-    else
+    } else
     {
       std::cerr << "[LOG ERROR] : CAN'T RESET LOG FILE!\tMAKE SURE YOU RAN THE PROGRAM AT LEAST ONCE..." << std::endl;
     }
@@ -123,59 +122,60 @@ namespace Wave
     struct tm *time_info_non_posix = localtime(&time);
     strftime(current_time, FILENAME_MAX, "%c", time_info_non_posix);
 #endif
-  
+    
     int64_t max_size = FILENAME_MAX;
     auto data_size = static_cast<int64_t>(strlen(string) + chars_written);
     // Avoid allocating a huge amount of memory to account for large inputs by adjusting to the right size.
     if (max_size < data_size) max_size = data_size;
     char *buffer = (char *) calloc(max_size + chars_written, sizeof(char));
     int snprintf_result;
-  
+    
     switch (info_type)
     {
       case WAVE_INFO:
-      
-        snprintf_result = snprintf(buffer, max_size, "\n%s[INFO]%4s [%s] :%10s", DEFAULT,
+        
+        snprintf_result = snprintf(buffer, max_size, "%s[INFO]%4s [%s] :%10s", DEFAULT,
                                    " ", strlen(current_time) > 1 ? current_time
-                                       : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m", DEFAULT);
+                                                                 :
+                                        "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m", DEFAULT);
         break;
       case WAVE_STATUS_IN_PROGRESS:
-        snprintf_result = snprintf(buffer, max_size, "\n%s[PROGRESS] [%s] :%10s", PURPLE,
+        snprintf_result = snprintf(buffer, max_size, "%s[PROGRESS] [%s] :%10s", PURPLE,
                                    strlen(current_time) > 1 ? current_time
-                                       : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m", DEFAULT);
+                                                            : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
+                                   DEFAULT);
         break;
-      case WAVE_INSTRUCTION_DONE:
-        snprintf_result = snprintf(buffer, max_size, " -->%10sDONE%s", GREEN, DEFAULT);
+      case WAVE_INSTRUCTION_DONE:snprintf_result = snprintf(buffer, max_size, " -->%10sDONE%s", GREEN, DEFAULT);
         break;
-      case WAVE_INSTRUCTION_FAIL:
-        snprintf_result = snprintf(buffer, max_size, " -->%10sFAIL%s", RED, DEFAULT);
+      case WAVE_INSTRUCTION_FAIL:snprintf_result = snprintf(buffer, max_size, " -->%10sFAIL%s", RED, DEFAULT);
         break;
       case WAVE_TASK_DONE:
-        snprintf_result = snprintf(buffer, max_size, "\n%s[DONE]%4s [%s] :%10s", GREEN, " ",
+        snprintf_result = snprintf(buffer, max_size, "%s[DONE]%4s [%s] :%10s", GREEN, " ",
                                    strlen(current_time) > 1 ? current_time : "ERROR WHILE TRYING TO FETCH LOCALTIME!",
                                    DEFAULT);
         break;
       case WAVE_TASK_FAIL:
-        snprintf_result = snprintf(buffer, max_size, "\n%s[FAIL]%4s [%s] :%10s", RED, " ",
+        snprintf_result = snprintf(buffer, max_size, "%s[FAIL]%4s [%s] :%10s", RED, " ",
                                    strlen(current_time) > 1 ? current_time
-                                       : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
+                                                            : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
                                    DEFAULT);
         break;
       case WAVE_WARN:
-        snprintf_result = snprintf(buffer, max_size, "\n%s[WARN]%4s [%s] :%10s", YELLOW, " ",
+        snprintf_result = snprintf(buffer, max_size, "%s[WARN]%4s [%s] :%10s", YELLOW, " ",
                                    current_time, DEFAULT);
         break;
       case WAVE_ERROR:
-        snprintf_result = snprintf(buffer, max_size, "\n%s[ERROR]%3s [%s] :%10s", RED, " ",
+        snprintf_result = snprintf(buffer, max_size, "%s[ERROR]%3s [%s] :%10s", RED, " ",
                                    strlen(current_time) > 1 ? current_time
-                                       : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
+                                                            : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
                                    DEFAULT);
         break;
       default:
         snprintf_result = snprintf(buffer, max_size,
                                    "\n%s[ERROR]%-3s [%s] :\t\t UNEXPECTED ERROR OCCURRED...\tSEE LOGS FOR MORE INFO",
                                    RED, " ", strlen(current_time) > 1 ? current_time
-                                       : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m");
+                                                                      :
+                                             "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m");
         break;
     }
     if (snprintf_result < 0)
@@ -184,14 +184,21 @@ namespace Wave
       free(string);
       return;
     }
-  
+    
     const char *output;
     // Separate the buffer with the actual message logged in order to let operator overloading take effect for strings
     // passed in (i.e. events).
     output = strcat(buffer, string);
-    std::cout << output;
-    log_stream << output;  // Save to log file.
-  
+    if (info_type == WAVE_INSTRUCTION_DONE || info_type == WAVE_INSTRUCTION_FAIL)
+    {
+      std::cout << output;
+      log_stream << output;
+    } else
+    {
+      std::cout << std::endl << output;
+      log_stream << std::endl << output;  // Save to log file.
+    }
+    
     va_end(args);
     free(string);
     free(buffer);

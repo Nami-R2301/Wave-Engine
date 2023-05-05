@@ -5,14 +5,12 @@
 #pragma once
 
 // Engine_time
-#include <Core/core.h>
-#include <Core/engine_time.h>
 #include <wave_pch.h>
 
 namespace Wave
 {
-  
-  #ifndef COLORLESS
+
+#ifndef COLORLESS
   // The following are ANSI terminal color codes.
 #define DEFAULT  "\033[0m"
 #define RED  "\033[31m"
@@ -20,14 +18,14 @@ namespace Wave
 #define GREEN  "\033[32m"
 #define CYAN  "\033[0;36m"
 #define PURPLE  "\033[0;35m"
-  #else
-    #define DEFAULT  ""
+#else
+#define DEFAULT  ""
 #define RED  ""
 #define YELLOW  ""
 #define GREEN  ""
 #define CYAN  ""
 #define PURPLE  ""
-  #endif
+#endif
   
   void open_stream();
   

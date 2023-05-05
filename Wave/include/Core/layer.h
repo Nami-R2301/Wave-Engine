@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <Core/core.h>
+#include <wave_pch.h>
 #include <Events/event.h>
 
 namespace Wave
 {
   class Layer
   {
-  public:
+    public:
     explicit Layer(const std::string &name = "Layer");
     virtual ~Layer();
     
@@ -23,9 +23,9 @@ namespace Wave
     
     [[nodiscard]] inline const std::string &get_name() const
     { return this->layer_name; };
-  protected:
+    protected:
     std::string layer_name;
-  private:
+    private:
     bool activated = true;
   };
 }

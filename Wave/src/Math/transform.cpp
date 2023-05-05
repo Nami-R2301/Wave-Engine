@@ -84,41 +84,41 @@ namespace Wave
     return output;
   }
   
-  Transform Transform::operator +(const Transform &transform) const
+  Transform Transform::operator+(const Transform &transform) const
   {
     return {this->translation + transform.translation,
             this->rotation + transform.rotation,
             this->scale + transform.scale};
   }
   
-  Transform Transform::operator -(const Transform &transform) const
+  Transform Transform::operator-(const Transform &transform) const
   {
     return {this->translation - transform.translation,
             this->rotation - transform.rotation,
             this->scale - transform.scale};
   }
   
-  Transform Transform::operator *(const Transform &transform) const
+  Transform Transform::operator*(const Transform &transform) const
   {
     return {this->translation * transform.translation,
             this->rotation * transform.rotation,
             this->scale * transform.scale};
   }
   
-  Transform Transform::operator /(const Transform &transform) const
+  Transform Transform::operator/(const Transform &transform) const
   {
     return {this->translation / transform.translation,
             this->rotation / transform.rotation,
             this->scale / transform.scale};
   }
   
-  bool Transform::operator ==(const Transform &trsf) const
+  bool Transform::operator==(const Transform &trsf) const
   {
     if (this == &trsf) return true;
     return this->scale == trsf.scale && this->rotation == trsf.rotation && this->translation == trsf.translation;
   }
   
-  Transform &Transform::operator =(const Transform &transform)
+  Transform &Transform::operator=(const Transform &transform)
   {
     if (this == &transform) return *this;
     this->translation = transform.translation;
@@ -127,7 +127,7 @@ namespace Wave
     return *this;
   }
   
-  void Transform::operator +=(const Transform &transform)
+  void Transform::operator+=(const Transform &transform)
   {
     *this = *this + transform;
   }

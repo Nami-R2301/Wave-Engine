@@ -129,12 +129,11 @@ namespace Wave
   
   void Res_loader_3D::load_obj_vertex()
   {
-    char x[sizeof(double) * 4] {0}, y[sizeof(double) * 4] {0}, z[sizeof(double) * 4] {0};
+    char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(this->file_ptr, "%s %s %s\n", x, y, z) == EOF)
     {
       Wave::alert(WAVE_WARN, "[RES ERROR] : Loading vertex positions (v)");
-    }
-    else
+    } else
     {
       this->vertices.emplace_back(Vector_3f(strtof(x, nullptr),
                                             strtof(y, nullptr),
@@ -148,8 +147,7 @@ namespace Wave
     if (fscanf(this->file_ptr, "%s %s %s\n", face_data[0], face_data[1], face_data[2]) == EOF)
     {
       Wave::alert(WAVE_WARN, "[RES ERROR] : Loading face indices (f)");
-    }
-    else
+    } else
     {
       std::string line(face_data[0]);
       line += "/";
@@ -167,8 +165,10 @@ namespace Wave
       {
         token = line.substr(0, pos);
         line.erase(0, pos + delim.length());
-        if (token.empty()) { face_indexes.push_back(0); }
-        else { face_indexes.push_back((int) strtoul(token.c_str(), nullptr, 10)); }
+        if (token.empty())
+        { face_indexes.push_back(0); }
+        else
+        { face_indexes.push_back((int) strtoul(token.c_str(), nullptr, 10)); }
       }
       
       Face face = {face_indexes[0] - 1,
@@ -191,8 +191,7 @@ namespace Wave
     if (fscanf(this->file_ptr, "%s %s %s\n", x, y, z) == EOF)
     {
       Wave::alert(WAVE_WARN, "[RES ERROR] : Loading normal positions (v)");
-    }
-    else
+    } else
     {
       this->normals.emplace_back(strtof(x, nullptr),
                                  strtof(y, nullptr),

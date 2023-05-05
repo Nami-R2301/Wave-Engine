@@ -18,7 +18,7 @@ namespace Wave
   
   class Printable
   {
-  public:
+    public:
     virtual ~Printable() = default;
     [[nodiscard]] virtual std::string to_string() const = 0;
     virtual void print(Print_type type) const = 0;
@@ -26,7 +26,7 @@ namespace Wave
   
   class Movable
   {
-  public:
+    public:
     virtual ~Movable() = default;
     virtual void move(const Vector_3f &position) = 0;
   };

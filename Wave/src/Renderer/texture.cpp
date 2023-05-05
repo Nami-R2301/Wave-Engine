@@ -6,6 +6,7 @@
 #include <Renderer/renderer.h>
 
 #define STB_IMAGE_IMPLEMENTATION
+
 #include <Dependencies/Stb/stb_image.h>
 
 namespace Wave
@@ -36,15 +37,15 @@ namespace Wave
       glGenTextures(1, &this->texture_id);
       glBindTexture(GL_TEXTURE_2D, this->texture_id);
       glTexImage2D(
-          GL_TEXTURE_2D,
-          0,
-          GL_RED,
-          static_cast<int32_t>(face->glyph->bitmap.width),
-          static_cast<int32_t>(face->glyph->bitmap.rows),
-          0,
-          GL_RED,
-          GL_UNSIGNED_BYTE,
-          face->glyph->bitmap.buffer);
+        GL_TEXTURE_2D,
+        0,
+        GL_RED,
+        static_cast<int32_t>(face->glyph->bitmap.width),
+        static_cast<int32_t>(face->glyph->bitmap.rows),
+        0,
+        GL_RED,
+        GL_UNSIGNED_BYTE,
+        face->glyph->bitmap.buffer);
       
       // set texture options
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -57,17 +58,17 @@ namespace Wave
   void Texture::bind_to_context()
   {
     // Initialize openGL texture buffers.
-    gl_call(glGenTextures(1, &this->texture_id));
+    GL_CALL(glGenTextures(1, &this->texture_id));
     
     // Initialize flags for texture buffers.
-    gl_call(glBindTexture(GL_TEXTURE_2D, this->texture_id));
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));  // Min surface to cover.
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));  // Max surface to cover and extend.
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));  // Normalize x-axis of texture.
-    gl_call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));  // Normalize y-axis of texture.
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, this->texture_id));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));  // Min surface to cover.
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));  // Max surface to cover and extend.
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));  // Normalize x-axis of texture.
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));  // Normalize y-axis of texture.
     
     // Assign texture image to texture buffer.
-    gl_call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, this->width, this->height, 0,
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, this->width, this->height, 0,
                          GL_RGBA, GL_UNSIGNED_BYTE, this->local_buffer));
   }
   
@@ -75,8 +76,8 @@ namespace Wave
   {
     if (this->texture_id != 255)
     {
-      gl_call(glActiveTexture(GL_TEXTURE0 + slot_));  // Set our active texture slot.
-      gl_call(glBindTexture(GL_TEXTURE_2D, this->texture_id));
+      GL_CALL(glActiveTexture(GL_TEXTURE0 + slot_));  // Set our active texture slot.
+      GL_CALL(glBindTexture(GL_TEXTURE_2D, this->texture_id));
     }
   }
   
@@ -84,7 +85,7 @@ namespace Wave
   {
     if (this->texture_id != 255)
     {
-      gl_call(glBindTexture(GL_TEXTURE_2D, 0));
+      GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     }
   }
   
@@ -93,7 +94,7 @@ namespace Wave
     unbind();
     if (this->texture_id != 255)
     {
-      gl_call(glDeleteTextures(1, &this->texture_id));
+      GL_CALL(glDeleteTextures(1, &this->texture_id));
     }
   }
   
@@ -147,7 +148,7 @@ namespace Wave
     this->bits_per_pixel = bits_per_pixel_;
   }
   
-  Texture &Texture::operator =(const Texture &other_texture)
+  Texture &Texture::operator=(const Texture &other_texture)
   {
     if (this == &other_texture) return *this;
     if (other_texture.texture_id == 255) return *this;
@@ -161,7 +162,7 @@ namespace Wave
   
   std::string Texture::to_string() const
   {
-    char buffer[FILENAME_MAX * 4] {0};
+    char buffer[FILENAME_MAX * 4]{0};
     if (snprintf(buffer, sizeof(buffer), "[TEXTURE] :\n%55sID --> %d\n%55sLocal buffer --> %hhu\n"
                                          "%55sHeight --> %d\n%55sWidth --> %d\n%55sBits per pixel (bbp) --> %u",
                  DEFAULT, this->texture_id, DEFAULT, *this->local_buffer,

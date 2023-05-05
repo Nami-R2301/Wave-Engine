@@ -101,14 +101,14 @@ namespace Wave
     auto angle_to_rad = (float) (angle * (M_PI / 180));
     float sin_half_angle = sinf(angle_to_rad / 2);
     float cos_half_angle = cosf(angle_to_rad / 2);
-  
+    
     float rotation_x = axis.get_x() * sin_half_angle, rotation_y = axis.get_y() * sin_half_angle,
-        rotation_z = axis.get_z() * sin_half_angle, rotation_w = cos_half_angle;
-  
+      rotation_z = axis.get_z() * sin_half_angle, rotation_w = cos_half_angle;
+    
     Vector_4f rotation(rotation_x, rotation_y, rotation_z, rotation_w);
     Vector_4f conjugate = rotation.conjugate();
     Vector_4f w = (rotation * *this) * conjugate;
-  
+    
     return {w.get_x(),
             w.get_y(),
             w.get_z()};
@@ -123,7 +123,7 @@ namespace Wave
   
   std::string Vector_3f::to_string() const
   {
-    char buffer[29 + sizeof(float) * 3] {0};  // Three 8-digit-long float.
+    char buffer[29 + sizeof(float) * 3]{0};  // Three 8-digit-long float.
     
     if (snprintf(buffer, 29 + sizeof(float) * 3, "x : %.2f, y : %.2f, z : %.2f\n", this->x, this->y, this->z) < 0)
     {
@@ -132,70 +132,70 @@ namespace Wave
     return buffer;
   }
   
-  float &Vector_3f::operator [](unsigned int index)
+  float &Vector_3f::operator[](unsigned int index)
   {
     if (index > 2) return this->x;
     return index == 0 ? this->x : index == 1 ? this->y : this->z;
   }
   
   // Add two vectors.
-  Vector_3f Vector_3f::operator +(const Vector_3f &other_vector) const
+  Vector_3f Vector_3f::operator+(const Vector_3f &other_vector) const
   {
     return {this->x + other_vector.get_x(),
             this->y + other_vector.get_y(),
             this->z + other_vector.get_z()};
   }
   
-  Vector_3f Vector_3f::operator -(const Vector_3f &other_vector) const
+  Vector_3f Vector_3f::operator-(const Vector_3f &other_vector) const
   {
     return {this->x - other_vector.get_x(),
             this->y - other_vector.get_y(),
             this->z - other_vector.get_z()};
   }
   
-  Vector_3f Vector_3f::operator *(const Vector_3f &other_vector) const
+  Vector_3f Vector_3f::operator*(const Vector_3f &other_vector) const
   {
     return {this->x * other_vector.get_x(),
             this->y * other_vector.get_y(),
             this->z * other_vector.get_z()};
   }
   
-  Vector_3f Vector_3f::operator /(const Vector_3f &other_vector) const
+  Vector_3f Vector_3f::operator/(const Vector_3f &other_vector) const
   {
     return {this->x / other_vector.get_x(),
             this->y / other_vector.get_y(),
             this->z / other_vector.get_z()};
   }
   
-  Vector_3f Vector_3f::operator +(float coord) const
+  Vector_3f Vector_3f::operator+(float coord) const
   {
     return {this->x + coord,
             this->y + coord,
             this->z + coord};
   }
   
-  Vector_3f Vector_3f::operator -(float coord) const
+  Vector_3f Vector_3f::operator-(float coord) const
   {
     return {this->x - coord,
             this->y - coord,
             this->z - coord};
   }
   
-  Vector_3f Vector_3f::operator *(float coord) const
+  Vector_3f Vector_3f::operator*(float coord) const
   {
     return {this->x * coord,
             this->y * coord,
             this->z * coord};
   }
   
-  Vector_3f Vector_3f::operator /(float coord) const
+  Vector_3f Vector_3f::operator/(float coord) const
   {
     return {this->x / coord,
             this->y / coord,
             this->z / coord};
   }
   
-  bool Vector_3f::operator ==(const Vector_3f &other_vector) const
+  bool Vector_3f::operator==(const Vector_3f &other_vector) const
   {
     if (this == &other_vector) return true;
     if (this->length() != other_vector.length()) return false;
@@ -204,13 +204,13 @@ namespace Wave
             this->z == other_vector.get_z());
   }
   
-  bool Vector_3f::operator !=(const Vector_3f &other_vector) const
+  bool Vector_3f::operator!=(const Vector_3f &other_vector) const
   {
     if (this == &other_vector) return false;
     return this->x != other_vector.x && this->y != other_vector.y && this->z != other_vector.z;
   }
   
-  Vector_3f &Vector_3f::operator =(const Vector_3f &other_vector)
+  Vector_3f &Vector_3f::operator=(const Vector_3f &other_vector)
   {
     if (this == &other_vector) return *this;
     this->x = other_vector.x;
@@ -219,22 +219,22 @@ namespace Wave
     return *this;
   }
   
-  void Vector_3f::operator +=(const Vector_3f &other_vector)
+  void Vector_3f::operator+=(const Vector_3f &other_vector)
   {
     *this = *this + other_vector;
   }
   
-  void Vector_3f::operator -=(const Vector_3f &other_vector)
+  void Vector_3f::operator-=(const Vector_3f &other_vector)
   {
     *this = *this - other_vector;
   }
   
-  void Vector_3f::operator *=(const Vector_3f &other_vector)
+  void Vector_3f::operator*=(const Vector_3f &other_vector)
   {
     *this = *this * other_vector;
   }
   
-  void Vector_3f::operator /=(const Vector_3f &other_vector)
+  void Vector_3f::operator/=(const Vector_3f &other_vector)
   {
     *this = *this / other_vector;
   }

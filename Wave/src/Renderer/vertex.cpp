@@ -90,14 +90,14 @@ namespace Wave
     this->tex_coord = Vector_2f(x, y);
   }
   
-  bool Vertex_2D::operator ==(const Vertex_2D &other_vertex)
+  bool Vertex_2D::operator==(const Vertex_2D &other_vertex)
   {
     if (this == &other_vertex) return true;
     return this->position == other_vertex.position && this->color == other_vertex.color &&
            this->tex_coord == other_vertex.tex_coord;
   }
   
-  Vertex_2D &Vertex_2D::operator =(const Vertex_2D &other_vertex)
+  Vertex_2D &Vertex_2D::operator=(const Vertex_2D &other_vertex)
   {
     if (this == &other_vertex) return *this;
     this->set_position(other_vertex.get_position());
@@ -221,7 +221,7 @@ namespace Wave
   
   std::string Vertex_3D::to_string() const
   {
-    char buffer[FILENAME_MAX * 4] {0};
+    char buffer[FILENAME_MAX * 4]{0};
     if (snprintf(buffer, sizeof(buffer), "[VERTEX 3D] :\n%55sPosition on screen --> %s%55sNormal --> %s"
                                          "%55sColor --> %s%55sTexture coordinates --> %s",
                  DEFAULT, this->position.to_string().c_str(), DEFAULT,
@@ -316,13 +316,13 @@ namespace Wave
     return vertex;
   }
   
-  bool Vertex_3D::operator ==(const Vertex_3D &_vertex_)
+  bool Vertex_3D::operator==(const Vertex_3D &_vertex_)
   {
     if (this == &_vertex_) return true;
     return (this->position == _vertex_.position && this->color == _vertex_.color);
   }
   
-  Vertex_3D &Vertex_3D::operator =(const Vertex_3D &_vertex_)
+  Vertex_3D &Vertex_3D::operator=(const Vertex_3D &_vertex_)
   {
     if (this == &_vertex_) return *this;
     this->set_position(_vertex_.get_position());

@@ -29,7 +29,7 @@ namespace Wave
   
   Gl_vertex_array_buffer::Gl_vertex_array_buffer()
   {
-    log_instruction("VAO", DEFAULT, "Creating vertex array", gl_call(glCreateVertexArrays(1, &this->vertex_array_id)))
+    LOG_INSTRUCTION("VAO", DEFAULT, "Creating vertex array", GL_CALL(glCreateVertexArrays(1, &this->vertex_array_id)))
   }
   
   Gl_vertex_array_buffer::~Gl_vertex_array_buffer()
@@ -39,12 +39,12 @@ namespace Wave
   
   void Gl_vertex_array_buffer::bind() const
   {
-    gl_call(glBindVertexArray(this->vertex_array_id));
+    GL_CALL(glBindVertexArray(this->vertex_array_id));
   }
   
   void Gl_vertex_array_buffer::unbind() const
   {
-    gl_call(glBindVertexArray(0));
+    GL_CALL(glBindVertexArray(0));
   }
   
   bool Gl_vertex_array_buffer::is_bound() const
@@ -56,14 +56,14 @@ namespace Wave
   {
     if (Gl_vertex_array_buffer::is_bound())
     {
-      log_instruction("VAO", DEFAULT, "Deleting vertex array", gl_call(glDeleteVertexArrays(1, &this->vertex_array_id)))
-      log_instruction("VAO", DEFAULT, "Deleting vertex buffers",
+      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex array", GL_CALL(glDeleteVertexArrays(1, &this->vertex_array_id)))
+      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex buffers",
                       for (const auto &vertex_buffer: this->vertex_buffers)
                       {
-                        log_instruction("VAO", DEFAULT, "Deleting vertex buffer", vertex_buffer->remove())
+                        LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex buffer", vertex_buffer->remove())
                       })
       
-      log_instruction("VAO", DEFAULT, "Deleting index buffer", this->index_buffer->remove())
+      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting index buffer", this->index_buffer->remove())
       this->bound = false;
     }
   }

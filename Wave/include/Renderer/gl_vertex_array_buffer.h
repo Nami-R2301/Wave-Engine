@@ -6,7 +6,7 @@ namespace Wave
 {
   class Gl_vertex_array_buffer : public Vertex_array_buffer
   {
-  public:
+    public:
     Gl_vertex_array_buffer();
     ~Gl_vertex_array_buffer() override;
     
@@ -21,7 +21,7 @@ namespace Wave
     [[nodiscard]] uint32_t get_id() const override;
     [[nodiscard]] const std::vector<std::shared_ptr<Vertex_buffer>> &get_vertex_buffers() const override;
     [[nodiscard]] const std::shared_ptr<Index_buffer> &get_index_buffer() const override;
-  private:
+    private:
     uint32_t vertex_array_id = 0;
     uint32_t vertex_buffer_index = 0;
     std::vector<std::shared_ptr<Vertex_buffer>> vertex_buffers;

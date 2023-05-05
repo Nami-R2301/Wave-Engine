@@ -71,8 +71,7 @@ namespace Wave
           {
             output += buffer_c;
           }
-        }
-        else if (snprintf(buffer_c, FILENAME_MAX, "%.2f,\t", get_value(i, j)) >= 0)
+        } else if (snprintf(buffer_c, FILENAME_MAX, "%.2f,\t", get_value(i, j)) >= 0)
         {
           output += buffer_c;
         }
@@ -217,15 +216,15 @@ namespace Wave
     this->matrix.get()[2][0] = direction.get_x(), this->matrix.get()[2][1] = direction.get_y(), this->matrix.get()[2][2] = direction.get_z();
   }
   
-  Vector_4f Matrix_4f::operator *(const Vector_4f &vector_4f) const
+  Vector_4f Matrix_4f::operator*(const Vector_4f &vector_4f) const
   {
     Vector_4f result(vector_4f);
-  
+    
     result.set_x(result.get_x() * get_value(0, 0) +
                  result.get_y() * get_value(0, 1) +
                  result.get_z() * get_value(0, 2) +
                  result.get_w() * get_value(0, 3));
-  
+    
     result.set_y(result.get_x() * get_value(1, 0) +
                  result.get_y() * get_value(1, 1) +
                  result.get_z() * get_value(1, 2) +
@@ -243,7 +242,7 @@ namespace Wave
     return result;
   }
   
-  Matrix_4f Matrix_4f::operator *(const Matrix_4f &other_matrix) const
+  Matrix_4f Matrix_4f::operator*(const Matrix_4f &other_matrix) const
   {
     Matrix_4f result;
     
@@ -315,7 +314,7 @@ namespace Wave
     return result;
   }
   
-  Matrix_4f &Matrix_4f::operator =(const Matrix_4f &other_matrix)
+  Matrix_4f &Matrix_4f::operator=(const Matrix_4f &other_matrix)
   {
     if (this == &other_matrix) return *this;
     this->matrix = other_matrix.matrix;
@@ -324,7 +323,7 @@ namespace Wave
     return *this;
   }
   
-  bool Matrix_4f::operator ==(const Matrix_4f &mtx) const
+  bool Matrix_4f::operator==(const Matrix_4f &mtx) const
   {
     if (this == &mtx) return true;
     for (int i = 0; i < this->num_rows; ++i)

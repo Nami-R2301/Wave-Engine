@@ -41,7 +41,7 @@ namespace Wave
   
   void Perspective_camera::on_event(Event &event)
   {
-    switch(event.get_event_type())
+    switch (event.get_event_type())
     {
       case Event_type::On_window_resize:
       {
@@ -145,12 +145,10 @@ namespace Wave
   
   void Orthographic_camera::on_event(Event &event)
   {
-  
   }
   
   void Orthographic_camera::on_window_resize(On_window_resize &resize_event)
   {
-  
   }
   
   void Orthographic_camera::move(const Vector_3f &direction_, const float amount)

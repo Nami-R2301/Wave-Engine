@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Core/core.h>
+#include <wave_pch.h>
 #include <Renderer/color.h>
 
 namespace Wave
@@ -51,11 +51,11 @@ namespace Wave
   
   struct Buffer_element
   {
-  public:
+    public:
     Buffer_element() = default;
     
     Buffer_element(Buffer_data_type type, std::string name, bool normalized = false)
-        : name(std::move(name)), type(type), size(Buffer_data_type_size(type)), offset(0), normalized(normalized)
+      : name(std::move(name)), type(type), size(Buffer_data_type_size(type)), offset(0), normalized(normalized)
     {
     }
     
@@ -91,29 +91,34 @@ namespace Wave
   
   class Buffer_layout
   {
-  public:
+    public:
     Buffer_layout() = default;
     
     explicit Buffer_layout(const std::vector<Buffer_element> &elements)
-        : elements(elements)
+      : elements(elements)
     {
       calculate_offsets_and_stride();
     }
     
     [[nodiscard]] uint64_t get_stride() const
     { return this->stride; }
+    
     [[nodiscard]] const std::vector<Buffer_element> &get_elements() const
     { return this->elements; }
     
     std::vector<Buffer_element>::iterator begin()
     { return this->elements.begin(); }
+    
     std::vector<Buffer_element>::iterator end()
     { return this->elements.end(); }
+    
     [[nodiscard]] std::vector<Buffer_element>::const_iterator begin() const
     { return this->elements.begin(); }
+    
     [[nodiscard]] std::vector<Buffer_element>::const_iterator end() const
     { return this->elements.end(); }
-  private:
+    
+    private:
     void calculate_offsets_and_stride()
     {
       size_t offset = 0;
@@ -125,7 +130,8 @@ namespace Wave
         this->stride += element.size;
       }
     }
-  private:
+    
+    private:
     std::vector<Buffer_element> elements;
     uint64_t stride = 0;
   };
@@ -139,7 +145,7 @@ namespace Wave
   
   class Vertex_buffer
   {
-  public:
+    public:
     virtual ~Vertex_buffer() = default;
     
     [[nodiscard]] virtual bool is_bound() const = 0;
@@ -155,13 +161,13 @@ namespace Wave
     
     static std::shared_ptr<Vertex_buffer> create(uint64_t size);
     static std::shared_ptr<Vertex_buffer> create(const void *vertices, uint64_t size, Buffer_type buffer_type);
-  protected:
+    protected:
     bool bound = false;
   };
   
   class Index_buffer
   {
-  public:
+    public:
     virtual ~Index_buffer() = default;
     
     [[nodiscard]] virtual uint32_t get_id() const = 0;
@@ -173,7 +179,7 @@ namespace Wave
     [[nodiscard]] virtual uint32_t get_count() const = 0;
     
     static std::shared_ptr<Index_buffer> create(const uint32_t *indices, uint32_t size);
-  protected:
+    protected:
     bool bound = false;
   };
 }

@@ -71,7 +71,7 @@ namespace Wave
   
   std::string Color::to_string() const
   {
-    char buffer[76 + sizeof(float) * 4] {0};
+    char buffer[76 + sizeof(float) * 4]{0};
     
     if (snprintf(buffer, 75 + sizeof(float) * 4,
                  "Red value : %.2f, Green value : %.2f, Blue value : %.2f, Alpha value : %.2f",
@@ -128,7 +128,7 @@ namespace Wave
     this->alpha = alpha_;
   }
   
-  float &Color::operator [](unsigned int index)
+  float &Color::operator[](unsigned int index)
   {
     switch (index)
     {
@@ -140,7 +140,7 @@ namespace Wave
     }
   }
   
-  Color &Color::operator =(const Color &other_color)
+  Color &Color::operator=(const Color &other_color)
   {
     if (this == &other_color) return *this;
     this->red = other_color.red;
@@ -150,7 +150,7 @@ namespace Wave
     return *this;
   }
   
-  bool Color::operator ==(const Color &other_color)
+  bool Color::operator==(const Color &other_color)
   {
     if (this == &other_color) return true;
     return (this->red == other_color.red &&
@@ -159,7 +159,7 @@ namespace Wave
             this->alpha == other_color.alpha);
   }
   
-  bool Color::operator !=(const Color &other_color) const
+  bool Color::operator!=(const Color &other_color) const
   {
     if (this == &other_color) return true;
     return this->red == other_color.red &&

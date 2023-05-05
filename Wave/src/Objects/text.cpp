@@ -56,7 +56,7 @@ namespace Wave
     this->characters[character_code] = character;
   }
   
-  std::shared_ptr<Text> Text::create(const char *font_file_path, const std::string &text_, const Text_format& format_)
+  std::shared_ptr<Text> Text::create(const char *font_file_path, const std::string &text_, const Text_format &format_)
   {
     switch (Gl_renderer::get_api())
     {
@@ -77,7 +77,7 @@ namespace Wave
     }
   }
   
-  Glyph &Text::operator [](uint8_t index)
+  Glyph &Text::operator[](uint8_t index)
   {
     return index < this->characters.size() ? this->characters[index] : this->characters[0];
   }

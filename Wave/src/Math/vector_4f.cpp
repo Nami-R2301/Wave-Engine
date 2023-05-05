@@ -132,7 +132,7 @@ namespace Wave
     float cos_half_angle = cosf(angle_to_rad / 2);
     
     float rotation_x = axis.get_x() * sin_half_angle, rotation_y = axis.get_y() * sin_half_angle,
-        rotation_z = axis.get_z() * sin_half_angle, rotation_w = cos_half_angle;
+      rotation_z = axis.get_z() * sin_half_angle, rotation_w = cos_half_angle;
     
     Vector_4f rotation(rotation_x, rotation_y, rotation_z, rotation_w);
     Vector_4f conjugate = rotation.conjugate();
@@ -154,7 +154,7 @@ namespace Wave
   
   std::string Vector_4f::to_string() const
   {
-    char buffer[35 + sizeof(float) * 4] {0};  // Three 8-digit-long float.
+    char buffer[35 + sizeof(float) * 4]{0};  // Three 8-digit-long float.
     
     if (snprintf(buffer, 29 + sizeof(float) * 3, "x : %.2f, y : %.2f, z : %.2f, w : %.2f\n",
                  this->x, this->y, this->z, this->w) < 0)
@@ -164,13 +164,13 @@ namespace Wave
     return buffer;
   }
   
-  float &Vector_4f::operator [](unsigned int index)
+  float &Vector_4f::operator[](unsigned int index)
   {
     if (index > 3) return this->x;
     return index == 0 ? this->x : index == 1 ? this->y : index == 2 ? this->z : this->w;
   }
   
-  Vector_4f Vector_4f::operator *(const Vector_4f &other_vector) const
+  Vector_4f Vector_4f::operator*(const Vector_4f &other_vector) const
   {
     float w_ = this->w * other_vector.get_w() - this->x * other_vector.get_x() - this->y * other_vector.get_y() -
                this->z * other_vector.get_z();
@@ -186,7 +186,7 @@ namespace Wave
             w_};
   }
   
-  Vector_4f Vector_4f::operator *(const Vector_3f &other_vector) const
+  Vector_4f Vector_4f::operator*(const Vector_3f &other_vector) const
   {
     float w_ = -this->x * other_vector.get_x() - this->y * other_vector.get_y() - this->z * other_vector.get_z();
     float x_ = this->w * other_vector.get_x() + this->y * other_vector.get_z() - this->z * other_vector.get_y();
@@ -198,7 +198,7 @@ namespace Wave
             w_};
   }
   
-  Vector_4f Vector_4f::operator +(const Vector_4f &other_vector) const
+  Vector_4f Vector_4f::operator+(const Vector_4f &other_vector) const
   {
     return {this->x + other_vector.get_x(),
             this->y + other_vector.get_y(),
@@ -206,7 +206,7 @@ namespace Wave
             this->w + other_vector.get_w()};
   }
   
-  Vector_4f Vector_4f::operator +(float coord) const
+  Vector_4f Vector_4f::operator+(float coord) const
   {
     return {this->x + coord,
             this->y + coord,
@@ -214,7 +214,7 @@ namespace Wave
             this->w + coord};
   }
   
-  Vector_4f Vector_4f::operator -(const Vector_4f &other_vector) const
+  Vector_4f Vector_4f::operator-(const Vector_4f &other_vector) const
   {
     return {this->x - other_vector.get_x(),
             this->y - other_vector.get_y(),
@@ -222,7 +222,7 @@ namespace Wave
             this->w - other_vector.get_w()};
   }
   
-  Vector_4f Vector_4f::operator -(float coord) const
+  Vector_4f Vector_4f::operator-(float coord) const
   {
     return {this->x - coord,
             this->y - coord,
@@ -230,7 +230,7 @@ namespace Wave
             this->w - coord};
   }
   
-  Vector_4f Vector_4f::operator *(float coord) const
+  Vector_4f Vector_4f::operator*(float coord) const
   {
     return {this->x * coord,
             this->y * coord,
@@ -238,7 +238,7 @@ namespace Wave
             this->w * coord};
   }
   
-  Vector_4f Vector_4f::operator /(const Vector_4f &other_vector) const
+  Vector_4f Vector_4f::operator/(const Vector_4f &other_vector) const
   {
     return {this->x / other_vector.get_x(),
             this->y / other_vector.get_y(),
@@ -246,7 +246,7 @@ namespace Wave
             this->w / other_vector.get_w()};
   }
   
-  Vector_4f Vector_4f::operator /(float coord) const
+  Vector_4f Vector_4f::operator/(float coord) const
   {
     return {this->x / coord,
             this->y / coord,
@@ -254,7 +254,7 @@ namespace Wave
             this->w / coord};
   }
   
-  bool Vector_4f::operator ==(const Vector_4f &other_vector) const
+  bool Vector_4f::operator==(const Vector_4f &other_vector) const
   {
     if (this == &other_vector) return true;
     if (this->length() != other_vector.length()) return false;
@@ -264,14 +264,14 @@ namespace Wave
             this->w == other_vector.get_w());
   }
   
-  bool Vector_4f::operator !=(const Vector_4f &other_vector) const
+  bool Vector_4f::operator!=(const Vector_4f &other_vector) const
   {
     if (this == &other_vector) return false;
     return this->x != other_vector.x && this->y != other_vector.y && this->z != other_vector.z &&
            this->w != other_vector.w;
   }
   
-  Vector_4f &Vector_4f::operator =(const Vector_4f &other_vector)
+  Vector_4f &Vector_4f::operator=(const Vector_4f &other_vector)
   {
     if (this == &other_vector) return *this;
     this->x = other_vector.x;
@@ -281,22 +281,22 @@ namespace Wave
     return *this;
   }
   
-  void Vector_4f::operator +=(const Vector_4f &other_vector)
+  void Vector_4f::operator+=(const Vector_4f &other_vector)
   {
     *this = *this + other_vector;
   }
   
-  void Vector_4f::operator -=(const Vector_4f &other_vector)
+  void Vector_4f::operator-=(const Vector_4f &other_vector)
   {
     *this = *this - other_vector;
   }
   
-  void Vector_4f::operator *=(const Vector_4f &other_vector)
+  void Vector_4f::operator*=(const Vector_4f &other_vector)
   {
     *this = *this * other_vector;
   }
   
-  void Vector_4f::operator /=(const Vector_4f &other_vector)
+  void Vector_4f::operator/=(const Vector_4f &other_vector)
   {
     *this = *this / other_vector;
   }

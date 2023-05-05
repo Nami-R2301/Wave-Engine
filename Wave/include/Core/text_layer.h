@@ -14,7 +14,7 @@ namespace Wave
   
   class Text_layer : public Layer
   {
-  public:
+    public:
     Text_layer(const std::vector<std::shared_ptr<Text>> &strings_,
                const std::vector<std::shared_ptr<Shader>> &text_shaders_,
                const Vector_2f &viewport_size);
@@ -25,7 +25,7 @@ namespace Wave
     void on_update(float time_step) override;
     void on_event(Event &event) override;
     void on_ui_render(float time_step) override;
-  private:
+    private:
     std::vector<std::shared_ptr<Text>> strings;
     std::vector<std::shared_ptr<Shader>> text_shaders;
     std::vector<std::shared_ptr<Vertex_array_buffer>> vao_list{};

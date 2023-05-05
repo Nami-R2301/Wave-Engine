@@ -14,9 +14,9 @@ namespace Wave
   bool Input::is_key_pressed(int32_t key_code)
   {
     bool previous_key_state = Input::key_states[key_code];
-    glfw_call(Input::set_key_state(key_code,
-                                   glfwGetKey(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
-                                              key_code)));
+    (Input::set_key_state(key_code,
+                          glfwGetKey(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
+                                     key_code)));
     
     return previous_key_state != WAVE_PRESS && Input::key_states[key_code] == WAVE_PRESS;
   }
@@ -24,10 +24,10 @@ namespace Wave
   bool Input::is_key_held(int32_t key_code)
   {
     bool previous_key_state = Input::key_states[key_code];  // Save previous key State.
-    glfw_call(
-        Input::set_key_state(key_code,
-                             glfwGetKey(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
-                                        key_code)));
+    (
+      Input::set_key_state(key_code,
+                           glfwGetKey(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
+                                      key_code)));
     
     return previous_key_state == WAVE_PRESS && Input::key_states[key_code] != WAVE_RELEASE;
   }
@@ -35,10 +35,10 @@ namespace Wave
   bool Input::is_key_released(int key_code)
   {
     bool previous_key_state = Input::key_states[key_code];  // Save previous key State.
-    glfw_call(
-        Input::set_key_state(key_code,
-                             glfwGetKey(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
-                                        key_code)));
+    (
+      Input::set_key_state(key_code,
+                           glfwGetKey(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
+                                      key_code)));
     
     return previous_key_state == WAVE_PRESS && Input::key_states[key_code] == WAVE_RELEASE;
   }
@@ -52,9 +52,9 @@ namespace Wave
   {
     return
       // Pressed down first key while holding down second key.
-        (Input::is_key_pressed(first_key) && Input::is_key_held(second_key)) ||
-        // Pressed down second key while holding down first key.
-        (Input::is_key_pressed(second_key) && Input::is_key_held(first_key));
+      (Input::is_key_pressed(first_key) && Input::is_key_held(second_key)) ||
+      // Pressed down second key while holding down first key.
+      (Input::is_key_pressed(second_key) && Input::is_key_held(first_key));
   }
   
   bool Input::is_key_pair_held(int first_key, int second_key)
@@ -87,10 +87,10 @@ namespace Wave
   {
     // Mouse button was not pressed prior.
     bool previous_mouse_btn_state = mouse_button_states[mouse_button];  // Save previous mouse button State.
-    glfw_call(
-        Input::set_mouse_button_state(mouse_button, glfwGetMouseButton(
-            static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
-            mouse_button)));
+    (
+      Input::set_mouse_button_state(mouse_button, glfwGetMouseButton(
+        static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
+        mouse_button)));
     
     return previous_mouse_btn_state == WAVE_RELEASE && Input::mouse_button_states[mouse_button] == WAVE_PRESS;
   }
@@ -98,10 +98,10 @@ namespace Wave
   bool Input::is_mouse_button_held(int mouse_button)
   {
     bool previous_mouse_btn_state = Input::mouse_button_states[mouse_button];  // Save previous mouse button State.
-    glfw_call(
-        Input::set_mouse_button_state(mouse_button, glfwGetMouseButton(
-            static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
-            mouse_button)));
+    (
+      Input::set_mouse_button_state(mouse_button, glfwGetMouseButton(
+        static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
+        mouse_button)));
     
     return previous_mouse_btn_state == WAVE_PRESS && Input::mouse_button_states[mouse_button] == WAVE_PRESS;
   }
@@ -109,35 +109,35 @@ namespace Wave
   bool Input::is_mouse_button_released(int mouse_button)
   {
     bool previous_mouse_btn_state = Input::mouse_button_states[mouse_button];  // Save previous mouse button State.
-    glfw_call(
-        Input::set_mouse_button_state(mouse_button, glfwGetMouseButton(
-            static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
-            mouse_button)));
+    (
+      Input::set_mouse_button_state(mouse_button, glfwGetMouseButton(
+        static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
+        mouse_button)));
     
     return previous_mouse_btn_state == WAVE_PRESS && Input::mouse_button_states[mouse_button] == WAVE_RELEASE;
   }
   
   void Input::set_mouse_cursor_position(const Vector_2f &position)
   {
-    glfw_call(
-        glfwSetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), position.get_x(),
-                         position.get_y()));
+    (
+      glfwSetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), position.get_x(),
+                       position.get_y()));
   }
   
   Vector_2f Input::get_mouse_cursor_position()
   {
     double position_x = 0.0f, position_y = 0.0f;
-    glfw_call(glfwGetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), &position_x,
-                               &position_y));
+    glfwGetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), &position_x,
+                     &position_y);
     return {(float) position_x,
             (float) position_y};
   }
   
   int Input::get_mouse_cursor_attribute()
   {
-    glfw_call(int result =
-        glfwGetInputMode(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
-                  GLFW_CURSOR));
+    int result =
+      glfwGetInputMode(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()),
+                       GLFW_CURSOR);
     return result;
   }
   
@@ -153,14 +153,14 @@ namespace Wave
   
   void Input::set_mouse_cursor_attribute(int value)
   {
-    glfw_call(glfwSetInputMode(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), GLFW_CURSOR,
-                               value));
+    glfwSetInputMode(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), GLFW_CURSOR,
+                     value);
   }
 
 //  bool Input::is_mouse_cursor_within(const Object_3D &object, const Transform &transform)
 //  {
 //    double position_x = 0.0f, position_y = 0.0f;
-//    glfw_call(glfwGetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), &position_x,
+//    (glfwGetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), &position_x,
 //                               &position_y));
 //
 //    for (size_t i = 0; i < object.get_vertices().size(); ++i)

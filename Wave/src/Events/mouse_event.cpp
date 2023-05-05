@@ -23,13 +23,13 @@ namespace Wave
   {
     std::string output("[On mouse button press] :\n");
     
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer), "%50sMouse button pressed --> %c\n",
                  DEFAULT, get_current_mouse_button()) < 0)
     {
       output += "Snprintf error when trying to display [On_mouse_button_press] event!";
-    }
-    else { output += buffer; }
+    } else
+    { output += buffer; }
     
     return output;
   }
@@ -50,13 +50,13 @@ namespace Wave
   {
     std::string output("[On mouse button hold] :\n");
     
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer), "%50sMouse button held --> %c\n",
                  DEFAULT, get_current_mouse_button()) < 0)
     {
       output += "Snprintf error when trying to display [On_mouse_button_hold] event!";
-    }
-    else { output += buffer; }
+    } else
+    { output += buffer; }
     
     return output;
   }
@@ -72,13 +72,13 @@ namespace Wave
   {
     std::string output("[On mouse button release] :\n");
     
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer), "%50sMouse button release --> %c\n",
                  DEFAULT, get_current_mouse_button()) < 0)
     {
       output += "Snprintf error when trying to display [On_mouse_button_release] event!";
-    }
-    else { output += buffer; }
+    } else
+    { output += buffer; }
     
     return output;
   }
@@ -110,14 +110,14 @@ namespace Wave
     std::string output("[On mouse cursor movement] :\n");
     Vector_2f position = get_mouse_cursor_position();
     
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer),
                  "%50sCurrent mouse position --> (%.2f, %.2f)\n",
                  DEFAULT, position.get_x(), position.get_y()) < 0)
     {
       output += "Snprintf error when trying to display [On_mouse_cursor_movement] event!";
-    }
-    else { output += buffer; }
+    } else
+    { output += buffer; }
     
     return output;
   }
@@ -134,14 +134,14 @@ namespace Wave
     std::string output("[On mouse wheel input] :\n");
     Vector_2f offset = get_mouse_wheel_offset();
     
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer),
                  "%50sMouse wheel offset --> (%.2f, %.2f)\n",
                  DEFAULT, offset.get_x(), offset.get_y()) < 0)
     {
       output += "Snprintf error when trying to display [On_mouse_wheel_input] event!";
-    }
-    else { output += buffer; }
+    } else
+    { output += buffer; }
     
     return output;
   }

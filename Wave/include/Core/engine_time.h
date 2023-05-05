@@ -9,11 +9,11 @@ namespace Wave
   
   typedef struct Timer
   {
-  private:
+    private:
     high_resolution_clock::time_point start_time = high_resolution_clock::time_point();
     high_resolution_clock::time_point end_time = high_resolution_clock::time_point();
-  
-  public:
+    
+    public:
     void start()
     {
       start_time = high_resolution_clock::now();
@@ -47,14 +47,14 @@ namespace Wave
   
   class Engine_time
   {
-  public:
+    public:
     static time_t get_real_time();
     [[nodiscard]] float get_up_time() const;
     [[nodiscard]] float get_previous_engine_time() const;
     void update_engine_run_time();
     
     void set_previous_engine_time(const std::chrono::high_resolution_clock::time_point &previous_time_);
-  private:
+    private:
     std::chrono::high_resolution_clock::time_point previous_time;
     std::chrono::high_resolution_clock::time_point current_time;
   };

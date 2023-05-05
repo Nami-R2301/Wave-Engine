@@ -19,7 +19,7 @@ namespace Wave
   
   class Gl_framebuffer : public Framebuffer
   {
-  public:
+    public:
     Gl_framebuffer() = default;
     explicit Gl_framebuffer(const Framebuffer_options &opt);
     ~Gl_framebuffer() override;
@@ -33,9 +33,9 @@ namespace Wave
     void bind() override;
     void unbind() override;
     void remove() override;
-  public:
+    public:
     Framebuffer_viewport_data data;
-  private:
+    private:
     uint32_t renderer_id = 0;
     Framebuffer_options options{0};
     uint32_t color_attachment = 0;

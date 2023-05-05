@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Core/core_macros.h>
+#include <wave_pch.h>
 #include <Core/interfaces.h>
 #include <Utilities/logger.h>
 #include <freetype/freetype.h>
@@ -14,7 +14,7 @@ namespace Wave
   
   class Texture : public Printable
   {
-  public:
+    public:
     Texture() = default;
     explicit Texture(const char *file_path);
     Texture(const char *file_path, FT_Face face);
@@ -40,8 +40,8 @@ namespace Wave
     void unbind() const;
     void remove() const;
     
-    Texture &operator =(const Texture &other_texture);
-  private:
+    Texture &operator=(const Texture &other_texture);
+    private:
     uint32_t texture_id = 255;
     unsigned char *local_buffer = nullptr;
     int width = 0;

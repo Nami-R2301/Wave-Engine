@@ -12,7 +12,7 @@ namespace Wave
   
   class Vertex_2D
   {
-  public:
+    public:
     Vertex_2D() = default;
     Vertex_2D(float x_coord, float y_coord, float red, float green, float blue, float alpha);
     Vertex_2D(const Vector_2f &position, const Color &color_);
@@ -36,9 +36,9 @@ namespace Wave
     void set_tex_coord(const Vector_2f &tex_coord_);
     void set_tex_coord(float x, float y);
     
-    bool operator ==(const Vertex_2D &other_vertex);
-    Vertex_2D &operator =(const Vertex_2D &other_vertex);
-  private:
+    bool operator==(const Vertex_2D &other_vertex);
+    Vertex_2D &operator=(const Vertex_2D &other_vertex);
+    private:
     Vector_2f position = Vector_2f(0);
     Color color;
     Vector_2f tex_coord = Vector_2f(0);
@@ -47,7 +47,7 @@ namespace Wave
   // Manipulation of vertices to pass on to our opengl vertex_source shaders.
   class Vertex_3D
   {
-  public:
+    public:
     Vertex_3D() = default;
     Vertex_3D(float x_coord, float y_coord, float z_coord, float red, float green, float blue, float alpha);
     Vertex_3D(const Vector_2f &position, const Color &color_);
@@ -82,9 +82,9 @@ namespace Wave
     void set_tex_coord(float x, float y);
     
     explicit operator Vertex_2D() const;
-    bool operator ==(const Vertex_3D &);
-    Vertex_3D &operator =(const Vertex_3D &);
-  private:
+    bool operator==(const Vertex_3D &);
+    Vertex_3D &operator=(const Vertex_3D &);
+    private:
     Vector_3f position = Vector_3f(0);
     Vector_3f normal = Vector_3f(0, 0, 1);
     Color color;

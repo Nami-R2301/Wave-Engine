@@ -23,12 +23,12 @@ namespace Wave
     const char *type;
     const char *severity;
     const char *description;
-    Renderer_error_type code;
+    int32_t code;
   } Renderer_state;
   
   class On_renderer_error : public Event
   {
-  public:
+    public:
     explicit On_renderer_error(Renderer_state state_, Renderer_api api_);
     ~On_renderer_error() override = default;
     
@@ -36,11 +36,12 @@ namespace Wave
     [[nodiscard]] Renderer_api get_renderer_api() const;
     
     EVENT_CLASS_TYPE(Event_type::On_renderer_error);
+    
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_RENDERER);
     
     INTERFACE_PRINT
-  private:
-    Renderer_state state {};
-    Renderer_api api {};
+    private:
+    Renderer_state state{};
+    Renderer_api api{};
   };
 }

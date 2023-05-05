@@ -36,7 +36,8 @@ namespace Wave
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
     float fontSize = 18.0f;// *2.0f;
-    io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf", fontSize * 1.10f);
+    io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf",
+                                                  fontSize * 1.10f);
     io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf", fontSize * 1.10f);
     io.FontGlobalScale = 0.8f;
     io.DisplaySize = ImVec2(static_cast<float>(Engine::get_main_window()->get_width()),
@@ -65,7 +66,6 @@ namespace Wave
   
   void ImGui_layer::on_update(float time_step)
   {
-  
   }
   
   void ImGui_layer::on_detach()
@@ -85,7 +85,6 @@ namespace Wave
   
   void ImGui_layer::on_ui_render(float time_step)
   {
-  
   }
   
   void ImGui_layer::begin()
@@ -105,7 +104,7 @@ namespace Wave
     
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
-      GLFWwindow* backup_current_context = glfwGetCurrentContext();
+      GLFWwindow *backup_current_context = glfwGetCurrentContext();
       ImGui::UpdatePlatformWindows();
       ImGui::RenderPlatformWindowsDefault();
       glfwMakeContextCurrent(backup_current_context);
@@ -126,10 +125,10 @@ namespace Wave
                              1.0f);
     
     // Window Background.
-    colors[ImGuiCol_WindowBg] = ImVec4 {0.15f,
-                                        0.15f,
-                                        0.15f,
-                                        1.0f};
+    colors[ImGuiCol_WindowBg] = ImVec4{0.15f,
+                                       0.15f,
+                                       0.15f,
+                                       1.0f};
     
     // Title Background.
     colors[ImGuiCol_TitleBg] = dark_grey;
@@ -157,18 +156,18 @@ namespace Wave
 //    colors[ImGuiCol_Text] = ImVec4 {};
     
     // Buttons
-    colors[ImGuiCol_Button] = ImVec4 {0.2f,
-                                      0.205f,
-                                      0.21f,
-                                      1.0f};
-    colors[ImGuiCol_ButtonHovered] = ImVec4 {0.3f,
-                                             0.305f,
-                                             0.31f,
-                                             1.0f};
-    colors[ImGuiCol_ButtonActive] = ImVec4 {0.15f,
-                                            0.1505f,
-                                            0.151f,
+    colors[ImGuiCol_Button] = ImVec4{0.2f,
+                                     0.205f,
+                                     0.21f,
+                                     1.0f};
+    colors[ImGuiCol_ButtonHovered] = ImVec4{0.3f,
+                                            0.305f,
+                                            0.31f,
                                             1.0f};
+    colors[ImGuiCol_ButtonActive] = ImVec4{0.15f,
+                                           0.1505f,
+                                           0.151f,
+                                           1.0f};
   }
   
   [[maybe_unused]] uint32_t ImGui_layer::get_active_widget_id()

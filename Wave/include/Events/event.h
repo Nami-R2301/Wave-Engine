@@ -5,7 +5,7 @@
 #pragma once
 
 #include <wave_pch.h>
-#include <Core/core_macros.h>
+#include <wave_pch.h>
 
 namespace Wave
 {
@@ -47,18 +47,19 @@ namespace Wave
     On_mouse_wheel_scroll,
     On_mouse_movement
   };
-  
-  #define EVENT_CLASS_TYPE(type) static Event_type get_static_type() { return type; }\
+
+#define EVENT_CLASS_TYPE(type) static Event_type get_static_type() { return type; }\
                  Event_type get_event_type() const override { return get_static_type(); }
-  
-  #define EVENT_CLASS_CATEGORY(category) virtual int get_category_flags() const override { return (int) category; }
+
+#define EVENT_CLASS_CATEGORY(category) virtual int get_category_flags() const override { return (int) category; }
   
   class Event : public Printable
   {
     friend class Event_dispatcher;
-  
-  public:
+    
+    public:
     ~Event() override = default;
+    
     [[nodiscard]] virtual inline Event_type get_event_type() const
     {
       return this->event_type;
@@ -89,7 +90,7 @@ namespace Wave
       return {"[Generic event]\n"};
     };
     bool handled = false;
-  protected:
+    protected:
     Event_type event_type = Event_type::None;
   };
 }

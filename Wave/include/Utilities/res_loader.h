@@ -41,7 +41,7 @@ namespace Wave
   
   class Res_loader_3D
   {
-  public:
+    public:
     explicit Res_loader_3D(const char *file_path);
     ~Res_loader_3D();
     
@@ -49,7 +49,7 @@ namespace Wave
     Mesh_3D load_3D_mesh();
     static std::string load_shader_source(const char *file_path);
     static Texture load_texture(const char *file_path);
-  private:
+    private:
     std::vector<Vertex_3D> vertices;
     std::vector<Face> face_indices;
     std::vector<Vector_3f> normals;

@@ -3,18 +3,15 @@
 //
 
 #pragma once
-#define _USE_MATH_DEFINES  // For Visual Studio.
 
-#include <cmath>  // Cos, sin and sqrt functions.
-#include <Math/vector.h>
-#include <Core/core_macros.h>
+#include <wave_pch.h>
 
 namespace Wave
 {
   
   class Matrix_4f : public Printable
   {
-  public:
+    public:
     Matrix_4f();
     Matrix_4f(const Matrix_4f &other_matrix);
     ~Matrix_4f() override = default;
@@ -38,12 +35,12 @@ namespace Wave
     void set_value(int row, int col, float value);
     
     INTERFACE_PRINT
-  
-    Matrix_4f operator *(const Matrix_4f &other_matrix) const;
-    Vector_4f operator *(const Vector_4f &vector_4f) const;
-    Matrix_4f &operator =(const Matrix_4f &other_matrix);
-    bool operator ==(const Matrix_4f &mtx) const;
-  private:
+    
+    Matrix_4f operator*(const Matrix_4f &other_matrix) const;
+    Vector_4f operator*(const Vector_4f &vector_4f) const;
+    Matrix_4f &operator=(const Matrix_4f &other_matrix);
+    bool operator==(const Matrix_4f &mtx) const;
+    private:
     int num_rows = 0;
     int num_cols = 0;
     std::shared_ptr<float[4][4]> matrix;

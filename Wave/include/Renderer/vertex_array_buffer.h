@@ -10,7 +10,7 @@ namespace Wave
 {
   class Vertex_array_buffer
   {
-  public:
+    public:
     virtual ~Vertex_array_buffer() = default;
     
     virtual void bind() const = 0;
@@ -26,7 +26,7 @@ namespace Wave
     [[nodiscard]] virtual const std::shared_ptr<Index_buffer> &get_index_buffer() const = 0;
     
     static std::shared_ptr<Vertex_array_buffer> create();
-  protected:
+    protected:
     bool bound = false;
   };
 }

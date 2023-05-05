@@ -2,16 +2,16 @@
 // Created by nami on 9/5/22.
 //
 
+#include "Events/renderer_event.h"
 #include <Renderer/renderer.h>
 
 namespace Wave
 {
-  bool Gl_renderer::running = false;
   Renderer_api Gl_renderer::api = Renderer_api::None;
   Renderer_state Gl_renderer::state = {nullptr,
                                        nullptr,
                                        nullptr,
-                                       Renderer_error_type::NO_ERROR};
+                                       WAVE_RENDERER_INIT};
   
   std::shared_ptr<Vertex_array_buffer> Gl_renderer::vertex_array_buffers;
   std::vector<Texture> Gl_renderer::textures;
@@ -21,7 +21,7 @@ namespace Wave
   
   bool Gl_renderer::is_running()
   {
-    return Gl_renderer::running;
+    return Gl_renderer::get_state().code == WAVE_RENDERER_RUNNING;
   }
   
   Renderer_state Gl_renderer::get_state()
@@ -51,22 +51,15 @@ namespace Wave
     }
   }
   
-  bool Gl_renderer::renderer_error_callback([[maybe_unused]] On_renderer_error &renderer_error)
+  bool Gl_renderer::renderer_error_callback(On_renderer_error &renderer_error)
   {
-    // Reset state to prevent subsequent renderer events to propagate errors.
-    Gl_renderer::set_state({nullptr,
-                            nullptr,
-                            nullptr,
-                            Renderer_error_type::NO_ERROR});
-    
-    if (strcmp(renderer_error.get_renderer_state().severity, "Warning") == 0)
+    if (renderer_error.get_renderer_state().severity[0] == 'W')  // Warning
     {
       renderer_error.print(Print_type::Warn);
-    }
-    else if (strcmp(renderer_error.get_renderer_state().severity, "Fatal") == 0)
+    } else if (renderer_error.get_renderer_state().severity[0] == 'F')  // Fatal error
     {
       renderer_error.print(Print_type::Error);
-      Gl_renderer::shutdown();
+      Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN});
     }
     return true;
   }
@@ -79,55 +72,57 @@ namespace Wave
   void Gl_renderer::clear_bg()
   {
     // Clear and change the back buffer color bit with our color.
-    gl_call(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
   }
   
   void Gl_renderer::set_clear_color(const Color &color)
   {
-    gl_call(glClearColor(color.get_red(), color.get_green(), color.get_blue(), color.get_alpha()));
-  }
-  
-  void Gl_renderer::enable_textures(bool enabled)
-  {
-    if (enabled) { glEnable(GL_TEXTURE_2D); }
-    else { glDisable(GL_TEXTURE_2D); }
+    GL_CALL(glClearColor(color.get_red(), color.get_green(), color.get_blue(), color.get_alpha()));
   }
   
   void Gl_renderer::init()
   {
-    Gl_renderer::running = true;
-    log_task("RENDERER 3D", CYAN, 1, "Loading 3D renderer ...",
+    LOG_TASK("RENDERER 3D", CYAN, 1, "Loading 3D renderer ...",
              {
-               log_instruction("RENDERER 3D", DEFAULT, "Loading GLEW", gl_call(glewInit()))
+               LOG_INSTRUCTION("RENDERER 3D", DEFAULT, "Loading GLEW", GL_CALL(glewInit()))
                Gl_renderer::set_state(Gl_renderer::get_state());
                
-               // Enable openGL error handling.
-               gl_call(glEnable(
-                   GL_DEBUG_OUTPUT_SYNCHRONOUS));  // Calls to callback will be synchronous for debug breakpoints.
-               gl_call(glEnable(GL_DEBUG_OUTPUT));  // Enable debug output.
-               log_instruction("RENDERER 3D|GLEW", DEFAULT, "Enabling textures",
-                               enable_textures(true))  // Enable textures.
+               /****** Enable OpenGL error handling. ********/
+               // Check if we successfully initialized a debug context
+               int flags;
+               glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+               if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+               {
+                 glEnable(GL_DEBUG_OUTPUT);  // Enable debug output.
+                 glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);  // Call the callback as soon as there's an error.
+#if defined(OPENGL_VERSION_4_3_PLUS) && defined(DEBUG)
+                 glDebugMessageCallback(gl_asynchronous_error_callback, nullptr);
+                 // Filter the messages we want to debug or not with the last param 'enabled'.
+                 glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, 0, nullptr, GL_FALSE);
+#endif
+               }
                
                Color background_color;  // Default dark-mode-like color for background.
-               gl_call(glClearColor(background_color.get_red(), background_color.get_green(),
+               GL_CALL(glClearColor(background_color.get_red(), background_color.get_green(),
                                     background_color.get_blue(), background_color.get_alpha()));
                
-               gl_call(glFrontFace(GL_CW)); // Every shape drawn in clock-wise manner will be considered the FRONT face.
-               gl_call(glCullFace(GL_FRONT_AND_BACK)); // The back side of shapes will NOT be drawn.
-               gl_call(glDisable(GL_CULL_FACE)); // Don't update the back face of shapes since the camera won't see it.
+               GL_CALL(glFrontFace(GL_CW)); // Every shape drawn in clock-wise manner will be considered the FRONT face.
+               GL_CALL(glCullFace(GL_FRONT_AND_BACK)); // The back side of shapes will NOT be drawn.
+               GL_CALL(glDisable(GL_CULL_FACE)); // Don't update the back face of shapes since the camera won't see it.
                
                // Let OpenGL keep track of depth for shapes and auto determine if some shapes closer or further away from
                // the camera should take priority (drawn on top of other ones).
-               gl_call(glEnable(GL_DEPTH_TEST));
-               gl_call(glEnable(GL_MULTISAMPLE));
-               gl_call(glEnable(GL_BLEND));
-               gl_call(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+               GL_CALL(glEnable(GL_DEPTH_TEST));
+               GL_CALL(glEnable(GL_MULTISAMPLE));
+               GL_CALL(glEnable(GL_BLEND));
+               GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
                
                // Let OpenGL do the exponential gamma correction for us so textures and colors don't appear as dark.
-//               gl_call(glEnable(GL_FRAMEBUFFER_SRGB));
-             }, "Renderer 3D loaded")
+//               GL_CALL(glEnable(GL_FRAMEBUFFER_SRGB));
+      }, "Renderer 3D loaded")
+    Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_RUNNING});
     
-    log_task("RENDERER 3D", YELLOW, 1, "Fetching renderer info on client system ...",
+    LOG_TASK("RENDERER 3D", YELLOW, 1, "Fetching renderer info on client system ...",
              Gl_renderer::show_renderer_info(),
              "Renderer info fetched")
   }
@@ -147,7 +142,7 @@ namespace Wave
   {
     // Get GLFW and OpenGL version.
     int32_t num_ext;
-    gl_call(glGetIntegerv(GL_NUM_EXTENSIONS, &num_ext));
+    GL_CALL(glGetIntegerv(GL_NUM_EXTENSIONS, &num_ext));
     Wave::alert(WAVE_INFO, "[RENDERER] --> Api (Glew) version : %d.%d.%d", GLEW_VERSION_MAJOR, GLEW_VERSION_MINOR,
                 GLEW_VERSION_MICRO);
     Wave::alert(WAVE_INFO, "[RENDERER] --> Graphics renderer : %s", glGetString(GL_RENDERER));
@@ -169,7 +164,10 @@ namespace Wave
   
   void Gl_renderer::set_viewport(float width, float height)
   {
-    gl_call(glViewport(0, 0, width, height));
+    if (width <= 0.0f || height <= 0.0f)
+      gl_synchronous_error_callback(GL_INVALID_VIEWPORT_DIMENSIONS, "Invalid viewport size given!", __FUNCTION__,
+                                    __FILE__, __LINE__);
+    GL_CALL(glViewport(0, 0, width, height));
   }
   
   void Gl_renderer::load_object(const Object_3D *object)
@@ -186,8 +184,8 @@ namespace Wave
                                       STATIC_DRAW);
     if (!Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers = Vertex_array_buffer::create();
     Gl_renderer::vertex_array_buffers->set_index_buffer(
-        Index_buffer::create(object->get_faces().data(),
-                                               static_cast<uint32_t>(object->get_faces().size())));
+      Index_buffer::create(object->get_faces().data(),
+                           static_cast<uint32_t>(object->get_faces().size())));
     Buffer_layout vbo_layout(b_elements);
     vbo_->set_layout(vbo_layout);
     Gl_renderer::vertex_array_buffers->add_vertex_buffer(vbo_);
@@ -229,7 +227,6 @@ namespace Wave
   void Gl_renderer::draw_objects(const std::vector<Object_3D> *objects)
   {
     for (const Object_3D &object: *objects) draw_object(&object);
-    
   }
   
   void Gl_renderer::draw_loaded_objects(uint32_t object_count)
@@ -244,7 +241,7 @@ namespace Wave
   {
     Gl_renderer::vertex_array_buffers->bind();
     if (!Gl_renderer::textures.empty()) Gl_renderer::textures.back().bind(0);
-    gl_call(glDrawElements(GL_TRIANGLES, Gl_renderer::vertex_array_buffers->get_index_buffer()->get_count(),
+    GL_CALL(glDrawElements(GL_TRIANGLES, Gl_renderer::vertex_array_buffers->get_index_buffer()->get_count(),
                            GL_UNSIGNED_INT, nullptr));
     Gl_renderer::vertex_array_buffers->unbind();
     if (!Gl_renderer::textures.empty()) Gl_renderer::textures[0].unbind();
@@ -252,8 +249,8 @@ namespace Wave
   
   void Gl_renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao)
   {
-    gl_call(glActiveTexture(GL_TEXTURE1));
-    gl_call(glBindVertexArray(vao->get_id()));
+    GL_CALL(glActiveTexture(GL_TEXTURE1));
+    GL_CALL(glBindVertexArray(vao->get_id()));
     
     float x = text->get_offset_x(), y = text->get_offset_y(), scale = text->get_scale();
     
@@ -269,32 +266,32 @@ namespace Wave
       float h = ch.size.get_y() * scale;
       // Update VBO for each character
       float vertices[6][4] = {
-          {x_pos,     y_pos + h, 0.0f, 0.0f},
-          {x_pos,     y_pos,     0.0f, 1.0f},
-          {x_pos + w, y_pos,     1.0f, 1.0f},
-          
-          {x_pos,     y_pos + h, 0.0f, 0.0f},
-          {x_pos + w, y_pos,     1.0f, 1.0f},
-          {x_pos + w, y_pos + h, 1.0f, 0.0f}
+        {x_pos,     y_pos + h, 0.0f, 0.0f},
+        {x_pos,     y_pos,     0.0f, 1.0f},
+        {x_pos + w, y_pos,     1.0f, 1.0f},
+        
+        {x_pos,     y_pos + h, 0.0f, 0.0f},
+        {x_pos + w, y_pos,     1.0f, 1.0f},
+        {x_pos + w, y_pos + h, 1.0f, 0.0f}
       };
       // Render glyph texture over quad
-      gl_call(glBindTexture(GL_TEXTURE_2D, ch.texture_id));
+      GL_CALL(glBindTexture(GL_TEXTURE_2D, ch.texture_id));
       
       // Update content of VBO memory
-      gl_call(glBindBuffer(GL_ARRAY_BUFFER, vao->get_vertex_buffers().back()->get_id()));
+      GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, vao->get_vertex_buffers().back()->get_id()));
       
       // Use glBufferSubData and not glBufferData
-      gl_call(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
-      gl_call(glBindBuffer(GL_ARRAY_BUFFER, 0));
+      GL_CALL(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
+      GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
       
       // Draw
-      gl_call(glDrawArrays(GL_TRIANGLES, 0, 6));
+      GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
       // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
       x += static_cast<float>((ch.advance >> 6)) *
            scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }
-    gl_call(glBindVertexArray(0));
-    gl_call(glBindTexture(GL_TEXTURE_2D, 0));
+    GL_CALL(glBindVertexArray(0));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
   }
   
   void Gl_renderer::delete_gl_buffers()
@@ -306,10 +303,20 @@ namespace Wave
     }
   }
   
-  void Gl_renderer::gl_error_callback(GLenum error_code, const char *error_message, const char *function_name,
-                                      const char *file_name, size_t line_number)
+  void Gl_renderer::shutdown()
+  {
+    if (Gl_renderer::is_running())
+    {
+      LOG_INSTRUCTION("RENDERER 3D", DEFAULT, "Deleting buffers", Gl_renderer::delete_gl_buffers())
+    }
+    Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN});
+  }
+  
+  void gl_synchronous_error_callback(GLenum error_code, const char *error_message, const char *function_name,
+                                     const char *file_name, size_t line_number)
   {
     if (!Gl_renderer::is_running()) return;
+    Renderer_state temp{};
     char _source[FILENAME_MAX * 4];
     char output[FILENAME_MAX * 4];
     int snprintf_result;
@@ -317,124 +324,311 @@ namespace Wave
     {
       switch (error_code)
       {
-        case static_cast<GLenum>(Renderer_error_type::API_ERROR):Gl_renderer::state.type = "API ERROR";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::API_ERROR;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "API ERROR");
-          break;
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:Gl_renderer::state.type = "WINDOW SYSTEM ERROR";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::WINDOW_SYSTEM_ERROR;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "WINDOW SYSTEM ERROR");
-          break;
-        case static_cast<GLenum>(Renderer_error_type::SHADER_CREATION_ERROR):Gl_renderer::state.type = "SHADER CREATION ERROR";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::SHADER_CREATION_ERROR;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "SHADER CREATION ERROR");
-          break;
-        case static_cast<GLenum>(Renderer_error_type::SHADER_COMPILATION_ERROR):Gl_renderer::state.type = "SHADER COMPILATION ERROR";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::SHADER_COMPILATION_ERROR;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "SHADER COMPILATION ERROR");
-          break;
-        case GL_DEBUG_SOURCE_THIRD_PARTY:Gl_renderer::state.type = "THIRD PARTY ERROR";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::THIRD_PARTY_ERROR;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "THIRD PARTY ERROR");
-          break;
-        case GL_DEBUG_SOURCE_APPLICATION:Gl_renderer::state.type = "APPLICATION ERROR";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::APPLICATION_ERROR;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "APPLICATION ERROR");
-          break;
-        case GL_INVALID_OPERATION:Gl_renderer::state.type = "INVALID OPERATION";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::INVALID_OPERATION;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID OPERATION");
-          break;
-        case GL_INVALID_ENUM:Gl_renderer::state.type = "INVALID ENUM";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::INVALID_ENUM;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID ENUM");
-          break;
-        case GL_INVALID_VALUE:Gl_renderer::state.type = "INVALID VALUE";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::INVALID_VALUE;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID VALUE");
-          break;
-        case static_cast<GLenum>(Renderer_error_type::INVALID_UNIFORM):Gl_renderer::state.type = "INVALID UNIFORM";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::INVALID_UNIFORM;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID UNIFORM");
-          break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:Gl_renderer::state.type = "INVALID FRAMEBUFFER OPERATION";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::INVALID_FRAMEBUFFER;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID FRAMEBUFFER OPERATION");
-          break;
-        case GL_FRAMEBUFFER_UNDEFINED:Gl_renderer::state.type = "INVALID FRAMEBUFFER UNDEFINED";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::UNDEFINED_FRAMEBUFFER;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INVALID FRAMEBUFFER UNDEFINED");
-          break;
-        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:Gl_renderer::state.type = "INCOMPLETE FRAMEBUFFER ATTACHMENT";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::INCOMPLETE_FRAMEBUFFER_ATTACHMENT;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "INCOMPLETE FRAMEBUFFER ATTACHMENT");
-          break;
-        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-          Gl_renderer::state.type = "MISSING FRAMEBUFFER ATTACHMENT";
-          Gl_renderer::state.severity = "Warning";
-          Gl_renderer::state.code = Renderer_error_type::MISSING_FRAMEBUFFER_ATTACHMENT;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "MISSING FRAMEBUFFER ATTACHMENT");
-          break;
-        case GL_OUT_OF_MEMORY:
+        case GL_DEBUG_SOURCE_API:
         {
-          Gl_renderer::state.type = "OUT OF MEMORY";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::OUT_OF_MEMORY;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "OUT OF MEMORY");
+          temp.type = "Api error";
+          temp.severity = "Warning";
+          temp.code = GL_DEBUG_SOURCE_API;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Api error");
           break;
         }
-        default:Gl_renderer::state.type = "UNKNOWN ERROR";
-          Gl_renderer::state.severity = "Fatal";
-          Gl_renderer::state.code = Renderer_error_type::UNKNOWN_ERROR;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "UNKNOWN ERROR");
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        {
+          temp.type = "Window creation error";
+          temp.severity = "Fatal";
+          temp.code = GL_DEBUG_SOURCE_WINDOW_SYSTEM;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Window creation error");
+          break;
+        }
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        {
+          temp.type = "Shader compilation error";
+          temp.severity = "Fatal";
+          temp.code = GL_DEBUG_SOURCE_SHADER_COMPILER;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Shader compilation error");
+          break;
+        }
+        case GL_DEBUG_SOURCE_THIRD_PARTY:
+        {
+          temp.type = "Third party error";
+          temp.severity = "Warning";
+          temp.code = GL_DEBUG_SOURCE_THIRD_PARTY;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Third party error");
+          break;
+        }
+        case GL_DEBUG_SOURCE_APPLICATION:
+        {
+          temp.type = "App error";
+          temp.severity = "Fatal";
+          temp.code = GL_DEBUG_SOURCE_APPLICATION;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "App error");
+          break;
+        }
+        case GL_INVALID_OPERATION:
+        {
+          temp.type = "Invalid operation";
+          temp.severity = "Warning";
+          temp.code = GL_INVALID_OPERATION;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid operation");
+          break;
+        }
+        case GL_INVALID_ENUM:
+        {
+          temp.type = "Invalid enum";
+          temp.severity = "Warning";
+          temp.code = GL_INVALID_ENUM;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid enum");
+          break;
+        }
+        case GL_INVALID_VIEWPORT_DIMENSIONS:
+        {
+          temp.type = "Invalid viewport dimensions";
+          temp.severity = "Fatal";
+          temp.code = GL_INVALID_ENUM;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid viewport dimensions");
+          break;
+        }
+        case GL_INVALID_VALUE:
+        {
+          temp.type = "Invalid value";
+          temp.severity = "Warning";
+          temp.code = GL_INVALID_VALUE;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid value");
+          break;
+        }
+        case GL_DEBUG_SOURCE_INVALID_UNIFORM:
+        {
+          temp.type = "Invalid uniform";
+          temp.severity = "Warning";
+          temp.code = GL_DEBUG_SOURCE_INVALID_UNIFORM;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid uniform");
+          break;
+        }
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+        {
+          temp.type = "Invalid framebuffer operation";
+          temp.severity = "Fatal";
+          temp.code = GL_INVALID_FRAMEBUFFER_OPERATION;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid framebuffer operation");
+          break;
+        }
+        case GL_FRAMEBUFFER_UNDEFINED:
+        {
+          temp.type = "Invalid framebuffer (undefined)";
+          temp.severity = "Fatal";
+          temp.code = GL_FRAMEBUFFER_UNDEFINED;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid framebuffer (undefined)");
+          break;
+        }
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        {
+          temp.type = "Incomplete framebuffer attachment";
+          temp.severity = "Fatal";
+          temp.code = GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Incomplete framebuffer attachment");
+          break;
+        }
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        {
+          temp.type = "Missing framebuffer attachment";
+          temp.severity = "Fatal";
+          temp.code = GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Missing framebuffer color or depth attachment");
+          break;
+        }
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+        {
+          temp.type = "Framebuffer texture 2D incomplete multisample";
+          temp.severity = "Fatal";
+          temp.code = GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Framebuffer texture 2D incomplete multisample");
+          break;
+        }
+        case GL_OUT_OF_MEMORY:
+        {
+          temp.type = "Out of memory";
+          temp.severity = "Fatal";
+          temp.code = GL_OUT_OF_MEMORY;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Out of memory");
+          break;
+        }
+        default:temp.type = "Other error";
+          temp.severity = "Fatal";
+          temp.code = GL_DEBUG_SOURCE_OTHER;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Other error");
           break;
       }
       
-      Gl_renderer::state.description = error_message;
+      temp.description = error_message;
       
       if (snprintf_result < 0)
       {
         Wave::alert(WAVE_ERROR, "%s[SNPRINTF]%s IN FUNCTION %s IN CASE %d",
                     RED, DEFAULT, __FUNCTION__, error_code);
-        Gl_renderer::state.description = std::string("Unknown error").c_str();
-      }
-      else if (snprintf(output, sizeof(output),
-                        "[OpenGL error]%s\n%48s%sIn function --> %s,\n%48s%sIn file --> %s,\n"
-                        "%48s%sAt line --> %zu,\n%52sDetails --> %s%s",
-                        DEFAULT, " ", DEFAULT, function_name, " ", DEFAULT, file_name, " ", DEFAULT, line_number,
-                        DEFAULT, error_message, DEFAULT) < 0)
+        temp.description = std::string("Unknown error").c_str();
+      } else if (snprintf(output, sizeof(output),
+                          "OpenGL call returned an error :\n%52sIn function --> %s,\n%52sIn file --> %s,\n"
+                          "%52sAt line --> %zu,\n%52sDetails --> %s%s",
+                          DEFAULT, function_name, DEFAULT, file_name, DEFAULT, line_number,
+                          DEFAULT, error_message, DEFAULT) < 0)
       {
-        Gl_renderer::state.description = std::string(
-            "Error while building string with snprintf() on line 531 in file renderer.cpp!").c_str();
-      }
-      else
+        temp.description = std::string(
+          "Error while building string with snprintf() on line 531 in file renderer.cpp!").c_str();
+      } else
       {
-        Gl_renderer::state.description = output;
-        On_renderer_error gl_error(Gl_renderer::state, Renderer_api::Opengl);
+        temp.description = output;
+        On_renderer_error gl_error(temp, Renderer_api::Opengl);
         Gl_renderer::renderer_error_callback(gl_error);
       }
     }
   }
+
+#ifdef OPENGL_VERSION_4_3_PLUS
   
-  void Gl_renderer::shutdown()
+  void gl_asynchronous_error_callback(GLenum error_code, GLenum type, [[maybe_unused]] GLuint id,
+                                      GLenum severity, GLsizei length, const GLchar *error_message,
+                                      [[maybe_unused]] const void *userParam)
   {
-    if (Gl_renderer::is_running())
+    if (!Gl_renderer::is_running()) return;
+    
+    Renderer_state temp{};
+    char output[length * 4];
+    if (error_code != GL_NO_ERROR)
     {
-      log_instruction("RENDERER 3D", DEFAULT, "Deleting buffers", Gl_renderer::delete_gl_buffers())
+      
+      switch (type)
+      {
+        case GL_DEBUG_TYPE_ERROR: temp.type = "Error";
+          break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: temp.type = "Deprecated Behaviour";
+          break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: temp.type = "Undefined Behaviour";
+          break;
+        case GL_DEBUG_TYPE_PORTABILITY: temp.type = "Portability";
+          break;
+        case GL_DEBUG_TYPE_PERFORMANCE: temp.type = "Performance";
+          break;
+        case GL_DEBUG_TYPE_MARKER: temp.type = "Marker";
+          break;
+        case GL_DEBUG_TYPE_PUSH_GROUP: temp.type = "Push Group";
+          break;
+        case GL_DEBUG_TYPE_POP_GROUP: temp.type = "Pop Group";
+          break;
+        case GL_DEBUG_TYPE_OTHER: temp.type = "Other";
+          break;
+        default: temp.type = "Unknown";
+          break;
+      }
+      //TODO Replace return statements for both low and notification severity levels for thorough debugging.
+      switch (severity)
+      {
+        case GL_DEBUG_SEVERITY_HIGH: temp.severity = "Fatal (High)";
+          break;
+        case GL_DEBUG_SEVERITY_MEDIUM: temp.severity = "Fatal (Medium)";
+          break;
+        case GL_DEBUG_SEVERITY_LOW: temp.severity = "Warn (low)";
+          break;  // Silence low warnings for now due to clutter in terminal when this is logged.
+        case GL_DEBUG_SEVERITY_NOTIFICATION: temp.severity = "Warn (info)";
+          return;  // Silence info for now due to clutter in terminal when this is logged.
+        default: temp.severity = "Warn (Unknown)";
+          break;
+      }
+      
+      switch (error_code)
+      {
+        case GL_DEBUG_SOURCE_API:
+        {
+          temp.code = GL_DEBUG_SOURCE_API;
+          break;
+        }
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        {
+          temp.code = GL_DEBUG_SOURCE_WINDOW_SYSTEM;
+          break;
+        }
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        {
+          temp.code = GL_DEBUG_SOURCE_SHADER_COMPILER;
+          break;
+        }
+        case GL_DEBUG_SOURCE_THIRD_PARTY:
+        {
+          temp.code = GL_DEBUG_SOURCE_THIRD_PARTY;
+          break;
+        }
+        case GL_DEBUG_SOURCE_APPLICATION:
+        {
+          temp.code = GL_DEBUG_SOURCE_APPLICATION;
+          break;
+        }
+        case GL_INVALID_OPERATION:
+        {
+          temp.code = GL_INVALID_OPERATION;
+          break;
+        }
+        case GL_INVALID_ENUM:
+        {
+          temp.code = GL_INVALID_ENUM;
+          break;
+        }
+        case GL_INVALID_VALUE:
+        {
+          temp.code = GL_INVALID_VALUE;
+          break;
+        }
+        case GL_DEBUG_SOURCE_INVALID_UNIFORM:
+        {
+          temp.code = GL_DEBUG_SOURCE_INVALID_UNIFORM;
+          break;
+        }
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+        {
+          temp.code = GL_INVALID_FRAMEBUFFER_OPERATION;
+          break;
+        }
+        case GL_FRAMEBUFFER_UNDEFINED:
+        {
+          temp.code = GL_FRAMEBUFFER_UNDEFINED;
+          break;
+        }
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        {
+          temp.code = GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+          break;
+        }
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        {
+          temp.code = GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+          break;
+        }
+        case GL_OUT_OF_MEMORY:
+        {
+          temp.code = GL_OUT_OF_MEMORY;
+          break;
+        }
+        default:
+        {
+          temp.code = GL_DEBUG_SOURCE_OTHER;
+          break;
+        }
+      }
+      
+      temp.description = error_message;
+      
+      if (snprintf(output,
+                 sizeof(output),
+                 "%s%s",
+                 error_message, DEFAULT) < 0)
+      {
+        temp.description = std::string(
+          "Error while building string with snprintf() on line 531 in file renderer.cpp!").c_str();
+      } else
+      {
+        temp.description = output;
+        On_renderer_error gl_error(temp, Renderer_api::Opengl);
+        Gl_renderer::renderer_error_callback(gl_error);
+      }
     }
-    Gl_renderer::running = false;
   }
+#endif
 }

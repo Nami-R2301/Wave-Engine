@@ -16,7 +16,7 @@ namespace Wave
   
   std::string On_key_press::to_string() const
   {
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer), "[On key press] :\n%50sKey pressed --> %c\n",
                  DEFAULT, get_current_key_code()) < 0)
     {
@@ -39,7 +39,7 @@ namespace Wave
   
   std::string On_key_hold::to_string() const
   {
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer),
                  "[On key hold] :\n%50sKey held --> %c\n", DEFAULT, get_current_key_code()) < 0)
     {
@@ -62,7 +62,7 @@ namespace Wave
   
   std::string On_key_release::to_string() const
   {
-    char buffer[FILENAME_MAX] {0};
+    char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer), "[On key release] :\n%50sKey released --> %c\n",
                  DEFAULT, get_current_key_code()) < 0)
     {

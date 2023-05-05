@@ -18,7 +18,7 @@ namespace Wave
   
   class Object_2D : public Printable, Movable
   {
-  public:
+    public:
     Object_2D() = default;
     Object_2D(const Vector_2f &position_on_screen_, const std::vector<Vertex_2D> &vertices_);
     explicit Object_2D(const std::vector<Vertex_2D> &vertices_);
@@ -80,23 +80,23 @@ namespace Wave
     
     void update_model_matrix();
     
-    [[nodiscard]] Object_2D &operator =(const Object_2D &obj);
-    bool operator ==(const Object_2D &obj) const;
-  protected:
-    Vector_3f position {0.0f};
+    [[nodiscard]] Object_2D &operator=(const Object_2D &obj);
+    bool operator==(const Object_2D &obj) const;
+    protected:
+    Vector_3f position{0.0f};
     std::vector<Vertex_2D> vertices;
     std::vector<uint32_t> faces;
     std::vector<Vector_2f> tex_coords;
     std::vector<Texture> textures;
-    Matrix_4f model_matrix {};
-    Transform model_transform {};
+    Matrix_4f model_matrix{};
+    Transform model_transform{};
   };
   
   /************************************** 2D OBJECTS *************************************/
   
   class Point : public Object_2D
   {
-  public:
+    public:
     explicit Point(const std::vector<Vertex_3D> &vertices_);
     Point(float point);
     ~Point() override = default;
@@ -104,7 +104,7 @@ namespace Wave
   
   class Line : public Object_2D
   {
-  public:
+    public:
     Line(float point_a, float point_b);
     Line(const Point &a, const Point &b);
     Line(const std::vector<Vertex_3D> &vertices_);
@@ -113,7 +113,7 @@ namespace Wave
   
   class Square : public Object_2D
   {
-  public:
+    public:
     Square(float point_a, float point_b, float point_c, float point_d);
     Square(const Point &a, const Point &b, const Point &c, const Point &d);
     Square(const std::vector<Vertex_3D> &vertices_);
@@ -122,7 +122,7 @@ namespace Wave
   
   class Triangle : public Object_2D
   {
-  public:
+    public:
     Triangle(float point_a, float point_b, float point_c);
     Triangle(const Point &a, const Point &b, const Point &c);
     explicit Triangle(const std::vector<Vertex_3D> &vertices_);
@@ -131,14 +131,14 @@ namespace Wave
   
   class Circle : public Object_2D
   {
-  public:
+    public:
     Circle(float radius);
     ~Circle() override = default;
   };
   
   class Diamond_2D : public Object_2D
   {
-  public:
+    public:
     Diamond_2D(float point_a, float point_b, float point_c, float point_d);
     Diamond_2D(const Point &a, const Point &b, const Point &c, const Point &d);
     Diamond_2D(const std::vector<Vertex_3D> &vertices_);
@@ -149,7 +149,7 @@ namespace Wave
   
   class Object_3D : public Printable, Movable
   {
-  public:
+    public:
     Object_3D() = default;
     Object_3D(const std::vector<Vertex_3D> &vertices_, const std::vector<uint32_t> &faces_);
     Object_3D(const std::vector<Vertex_3D> &vertices_, const std::vector<uint32_t> &faces_,
@@ -213,31 +213,31 @@ namespace Wave
     void apply_vertex_properties(const Mesh_3D &mesh);
     
     explicit operator Object_2D() const;
-    [[nodiscard]] Object_3D &operator =(const Object_3D &obj);
-    bool operator ==(const Object_3D &obj) const;
-  protected:
-    Vector_3f position {0.0f};
+    [[nodiscard]] Object_3D &operator=(const Object_3D &obj);
+    bool operator==(const Object_3D &obj) const;
+    protected:
+    Vector_3f position{0.0f};
     std::vector<Vertex_3D> vertices;
     std::vector<Vector_3f> normals;
     std::vector<uint32_t> faces;
     std::vector<Vector_2f> tex_coords;
     std::vector<Texture> textures;
-    Matrix_4f model_matrix {};
-    Transform model_transform {};
+    Matrix_4f model_matrix{};
+    Transform model_transform{};
   };
   
   /************************************** 3D OBJECTS *************************************/
   
   class Cube : public Object_3D
   {
-  public:
+    public:
     explicit Cube(const Mesh_3D &mesh, const Vector_3f &scale = Vector_3f(1.0f), const Color &color = Color());
     ~Cube() override = default;
   };
   
   class Pyramid : public Object_3D
   {
-  public:
+    public:
     Pyramid(const std::vector<Vertex_3D> &vertices_);
     Pyramid(const std::vector<Vertex_3D> &vertices_, const std::vector<uint64_t> &faces_);
     ~Pyramid() override = default;
@@ -245,7 +245,7 @@ namespace Wave
   
   class Sphere : public Object_3D
   {
-  public:
+    public:
     Sphere(const std::vector<Vertex_3D> &vertices_);
     Sphere(const std::vector<Vertex_3D> &vertices_, const std::vector<uint64_t> &faces_);
     ~Sphere() override = default;
@@ -253,7 +253,7 @@ namespace Wave
   
   class Diamond_3D : public Object_3D
   {
-  public:
+    public:
     Diamond_3D(const std::vector<Vertex_3D> &vertices_);
     Diamond_3D(const std::vector<Vertex_3D> &vertices_, const std::vector<uint64_t> &faces_);
     ~Diamond_3D() override = default;

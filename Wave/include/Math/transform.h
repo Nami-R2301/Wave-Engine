@@ -5,14 +5,14 @@
 #pragma once
 
 #include <Renderer/camera.h>
-#include <Core/core_macros.h>
+#include <wave_pch.h>
 
 namespace Wave
 {
   
   class Transform : public Printable
   {
-  public:
+    public:
     Transform();
     Transform(const Vector_3f &translation_, const Vector_3f &rotation_, const Vector_3f &scale_);
     ~Transform() override = default;
@@ -32,14 +32,14 @@ namespace Wave
     
     INTERFACE_PRINT;
     
-    Transform operator +(const Transform &transform) const;
-    Transform operator -(const Transform &transform) const;
-    Transform operator *(const Transform &transform) const;
-    Transform operator /(const Transform &transform) const;
-    void operator +=(const Transform &transform);
-    bool operator ==(const Transform &transform) const;
-    Transform &operator =(const Transform &transform);
-  private:
+    Transform operator+(const Transform &transform) const;
+    Transform operator-(const Transform &transform) const;
+    Transform operator*(const Transform &transform) const;
+    Transform operator/(const Transform &transform) const;
+    void operator+=(const Transform &transform);
+    bool operator==(const Transform &transform) const;
+    Transform &operator=(const Transform &transform);
+    private:
     Vector_3f translation = Vector_3f(0);
     Vector_3f rotation = Vector_3f(0);
     Vector_3f scale = Vector_3f(1);

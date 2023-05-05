@@ -12,7 +12,7 @@ namespace Wave
   // Set custom colors for the background or for fragments.
   class Color
   {
-  public:
+    public:
     explicit Color(float uniform, float alpha, bool normalized = false);
     Color(float red, float green, float blue, float alpha, bool normalized = false); // Dark gray.
     explicit Color(unsigned long hex_color = 0xFFFFFFFF);
@@ -35,13 +35,13 @@ namespace Wave
     void set_blue(float blue);
     void set_alpha(float alpha);
     
-    float &operator [](unsigned int index);
+    float &operator[](unsigned int index);
     
-    Color &operator =(const Color &other_color);
-    bool operator !=(const Color &other_color) const;
-    bool operator ==(const Color &other_color);
-  
-  private:
+    Color &operator=(const Color &other_color);
+    bool operator!=(const Color &other_color) const;
+    bool operator==(const Color &other_color);
+    
+    private:
     float red = 1.0f;
     float green = 1.0f;
     float blue = 1.0f;

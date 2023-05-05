@@ -10,7 +10,7 @@ namespace Wave
 {
   
   
-  Editor::Editor() : Engine(Renderer_api::Opengl)
+  Editor::Editor() : Engine(Renderer_api::Opengl, Context_api::Glfw)
   {
     // Add Cameras
     this->demo_perspective_camera = create_shared_pointer<Editor_camera>(Engine::get_main_window()->get_width(),
@@ -20,17 +20,17 @@ namespace Wave
     // Add shaders
     this->demo_shaders.emplace_back(Wave::Shader::create("Text",
                                                          Wave::Res_loader_3D::load_shader_source(
-                                                             "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                           "../Wave/res/Shaders/text-glyph.vert").c_str(),
                                                          Wave::Res_loader_3D::load_shader_source(
-                                                             "../Wave/res/Shaders/text-glyph.frag").c_str()));
+                                                           "../Wave/res/Shaders/text-glyph.frag").c_str()));
     this->demo_shaders.emplace_back(Shader::create("Default",
                                                    Res_loader_3D::load_shader_source(
-                                                       "../Wave/res/Shaders/default.vert").c_str(),
+                                                     "../Wave/res/Shaders/default.vert").c_str(),
                                                    Res_loader_3D::load_shader_source(
-                                                       "../Wave/res/Shaders/default.frag").c_str()));
-
+                                                     "../Wave/res/Shaders/default.frag").c_str()));
+    
     GLint max_samples = 0;
-    gl_call(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
     // Setup default viewport framebuffer specs.
     Framebuffer_options fbSpec;
     fbSpec.width = 1920.0f;  // Fullscreen size.
@@ -43,9 +43,9 @@ namespace Wave
     
     // Add objects
     this->demo_objects.emplace_back(
-        create_shared_pointer<Object_3D>(Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
+      create_shared_pointer<Object_3D>(Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
     this->demo_objects.emplace_back(
-        create_shared_pointer<Object_3D>(Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
+      create_shared_pointer<Object_3D>(Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
     
     // Add text strings
     Wave::Text_format format = {25.0f,
@@ -68,7 +68,6 @@ namespace Wave
   
   void Editor::init()
   {
-  
   }
   
   void Editor::on_update(float time_step)
@@ -80,9 +79,9 @@ namespace Wave
     {
       ImVec2 size = viewport_undocked->Size;
       float title_tab_height = viewport_undocked->TitleBarHeight();
+      
       // Redraw framebuffer on resize.
-      if (this->viewport_framebuffer->get_options().width > 0.0f &&
-          this->viewport_framebuffer->get_options().height > 0.0f &&
+      if (size.x > 0.0f && size.y - title_tab_height > 0.0f &&
           (size.x != this->viewport_framebuffer->get_options().width ||
            size.y - title_tab_height != this->viewport_framebuffer->get_options().height
            || viewport_undocked->Pos.x != this->viewport_framebuffer_boundaries.get_x() ||
@@ -91,7 +90,6 @@ namespace Wave
         this->viewport_framebuffer_boundaries = Vector_4f(viewport_undocked->Pos.x, viewport_undocked->Pos.y, size.x,
                                                           size.y);
         this->viewport_framebuffer->resize(size.x, size.y - title_tab_height, &this->viewport_framebuffer_boundaries);
-        this->demo_texts[0]->set_offset_y(this->viewport_resolution.get_y() - 25.0f);
       }
     }
     

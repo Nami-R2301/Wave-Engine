@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ImGUI/imGUI_layer.h>
-#include <Core/core_macros.h>
 #include <Core/settings.h>
 #include <Core/layer_stack.h>
 
@@ -18,9 +17,9 @@ namespace Wave
   
   class Engine
   {
-  public:
+    public:
     Engine();
-    explicit Engine(Renderer_api choice);
+    explicit Engine(Renderer_api choice, Context_api api_choice);
     virtual ~Engine();
     
     [[nodiscard]] static Engine *get_app();
@@ -64,17 +63,17 @@ namespace Wave
     static void shutdown();
     [[nodiscard]] static bool has_crashed();
     static void wait(float start_time, float end_time);
-  private:
+    private:
     static Engine *instance;
     static bool running_state;
     static long frame_drawn_counter;
     static float engine_framerate;
     static Engine_time current_time;
     static int32_t exit_code;  // Document the program_id exit code for maintenance.
-    static Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
+    [[maybe_unused]] static Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
     static std::unique_ptr<Window> main_window;  // Default to OpenGL implementation.
     Layer_stack layer_stack;  // List containing all of our app layers.
-  private:
+    private:
     std::future<void> demo_futures;  // For async job handling.
   };
   

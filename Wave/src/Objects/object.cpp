@@ -254,7 +254,6 @@ namespace Wave
   
   void Object_2D::update_model_matrix()
   {
-  
   }
   
   std::string Object_2D::to_string() const
@@ -289,13 +288,13 @@ namespace Wave
     return output;
   }
   
-  bool Object_2D::operator ==(const Object_2D &obj) const
+  bool Object_2D::operator==(const Object_2D &obj) const
   {
     if (this == &obj) return true;
     return this->model_transform == obj.model_transform && this->model_matrix == obj.model_matrix;
   }
   
-  Object_2D &Object_2D::operator =(const Object_2D &obj)
+  Object_2D &Object_2D::operator=(const Object_2D &obj)
   {
     if (this == &obj) return *this;
     if (*this == obj) return *this;
@@ -589,24 +588,24 @@ namespace Wave
       
       replace_vertex(face.first_vertex_index,
                      Vertex_3D(
-                         this->vertices[face.first_vertex_index].get_position() + this->position,
-                         this->vertices[face.first_vertex_index].get_color(),
-                         this->normals[face.first_normal_index],
-                         this->tex_coords[face.first_texture_index]));
+                       this->vertices[face.first_vertex_index].get_position() + this->position,
+                       this->vertices[face.first_vertex_index].get_color(),
+                       this->normals[face.first_normal_index],
+                       this->tex_coords[face.first_texture_index]));
       
       replace_vertex(face.second_vertex_index,
                      Vertex_3D(
-                         this->vertices[face.second_vertex_index].get_position() + this->position,
-                         this->vertices[face.second_vertex_index].get_color(),
-                         this->normals[face.second_normal_index],
-                         this->tex_coords[face.second_texture_index]));
+                       this->vertices[face.second_vertex_index].get_position() + this->position,
+                       this->vertices[face.second_vertex_index].get_color(),
+                       this->normals[face.second_normal_index],
+                       this->tex_coords[face.second_texture_index]));
       
       replace_vertex(face.third_vertex_index,
                      Vertex_3D(
-                         this->vertices[face.third_vertex_index].get_position() + this->position,
-                         this->vertices[face.third_vertex_index].get_color(),
-                         this->normals[face.third_normal_index],
-                         this->tex_coords[face.third_texture_index]));
+                       this->vertices[face.third_vertex_index].get_position() + this->position,
+                       this->vertices[face.third_vertex_index].get_color(),
+                       this->normals[face.third_normal_index],
+                       this->tex_coords[face.third_texture_index]));
     }
   }
   
@@ -664,7 +663,7 @@ namespace Wave
     return object;
   }
   
-  Object_3D &Object_3D::operator =(const Object_3D &obj)
+  Object_3D &Object_3D::operator=(const Object_3D &obj)
   {
     if (this == &obj) return *this;
     this->position = obj.position;
@@ -678,7 +677,7 @@ namespace Wave
     return *this;
   }
   
-  bool Object_3D::operator ==(const Object_3D &obj) const
+  bool Object_3D::operator==(const Object_3D &obj) const
   {
     if (this == &obj) return true;
     return this->model_transform == obj.model_transform && this->model_matrix == obj.model_matrix;

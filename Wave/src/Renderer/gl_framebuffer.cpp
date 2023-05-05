@@ -17,39 +17,39 @@ namespace Wave
   
   Gl_framebuffer::Gl_framebuffer(const Framebuffer_options &opt)
   {
-    gl_call(glCreateFramebuffers(1, &this->renderer_id));
-    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+    GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
     // Determine max samples.
     GLint max_samples = 0;
-    gl_call(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
     
     // Creating the 2D texture of our viewport.
-    gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
-    gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, opt.width, opt.height,
+    GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
+    GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, opt.width, opt.height,
                                     GL_FALSE));
     
     // Depth attachment.
-//    gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
-//    gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
-//    gl_call(
-//        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8, opt.width, opt.height,
-//                                GL_FALSE));
+    GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
+    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
+    GL_CALL(
+      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8, opt.width, opt.height,
+                              GL_FALSE));
     
-    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
                                    this->color_attachment, 0));
-//    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE,
-//                                   this->depth_attachment, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE,
+                                   this->depth_attachment, 0));
     
-    uint64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
     {
-      Gl_renderer::gl_error_callback(status,
-                                     "Cannot show framebuffer, framebuffer incomplete!",
-                                     "Gl_framebuffer()",
-                                     "gl_framebuffer.cpp",
-                                     __LINE__ - 5);
+      gl_synchronous_error_callback(status,
+                                    "Cannot show framebuffer, framebuffer incomplete!",
+                                    "Gl_framebuffer()",
+                                    "gl_framebuffer.cpp",
+                                    __LINE__ - 5);
     }
     this->options = opt;
     Gl_framebuffer::unbind();
@@ -74,9 +74,9 @@ namespace Wave
   {
     if (this->renderer_id)
     {
-      gl_call(glDeleteFramebuffers(1, &this->renderer_id));
-      gl_call(glDeleteTextures(1, &this->color_attachment));
-      gl_call(glDeleteTextures(1, &this->depth_attachment));
+      GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
+      GL_CALL(glDeleteTextures(1, &this->color_attachment));
+      GL_CALL(glDeleteTextures(1, &this->depth_attachment));
     }
     delete[] this->data.ibo_data;
     delete[] this->data.vbo_data;
@@ -84,67 +84,66 @@ namespace Wave
   
   void Gl_framebuffer::reset()
   {
-    if (this->renderer_id)
-    {
-      gl_call(glDeleteFramebuffers(1, &this->renderer_id));
-      gl_call(glDeleteTextures(1, &this->color_attachment));
-      gl_call(glDeleteTextures(1, &this->depth_attachment));
-    }
-    
-    gl_call(glCreateFramebuffers(1, &this->renderer_id));
-    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
-    
-    // Determine max samples.
-    GLint max_samples = 0;
-    gl_call(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
-    
-    // Creating the 2D texture of our viewport.
-    gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
-    gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, this->options.width,
-                                    this->options.height,
-                                    GL_FALSE));
-    
-    // Depth attachment.
-//    gl_call(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
-//    gl_call(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
-//    gl_call(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8, this->options.width,
-//                                    this->options.height, GL_FALSE));
-//
-    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
-                                   this->color_attachment, 0));
-//    gl_call(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE,
-//                                   this->depth_attachment, 0));
-    
-    uint64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
-      Gl_renderer::gl_error_callback(status,
-                                     "Cannot show framebuffer, framebuffer incomplete!",
-                                     "Gl_framebuffer()",
-                                     "gl_framebuffer.cpp",
-                                     __LINE__ - 5);
-    }
-    
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-      alert(WAVE_ERROR, "[GL Framebuffer] --> Cannot show framebuffer, framebuffer incomplete!");
-    }
-
-    gl_call(glDrawBuffer(GL_COLOR_ATTACHMENT0));
-    
-    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    LOG_TASK("Framebuffer", CYAN, 3, "Invalidating framebuffer",
+             {
+               if (this->renderer_id)
+               {
+                 GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
+                 GL_CALL(glDeleteTextures(1, &this->color_attachment));
+                 GL_CALL(glDeleteTextures(1, &this->depth_attachment));
+               }
+               
+               GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
+               GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+               
+               // Determine max samples.
+               GLint max_samples = 0;
+               GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+               
+               // Creating the 2D texture of our viewport.
+               GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
+               GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
+               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, this->options.width,
+                                               this->options.height,
+                                               GL_FALSE));
+               
+               // Depth attachment.
+               GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
+               GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
+               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8,
+                                               this->options.width,
+                                               this->options.height, GL_FALSE));
+               
+               GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
+                                              this->color_attachment, 0));
+               GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE,
+                                              this->depth_attachment, 0));
+               
+               int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+               if (status != GL_FRAMEBUFFER_COMPLETE)
+               {
+                 gl_synchronous_error_callback(status,
+                                               "Cannot show framebuffer, framebuffer incomplete!",
+                                               "Gl_framebuffer()",
+                                               "gl_framebuffer.cpp",
+                                               __LINE__ - 5);
+               }
+               
+               GL_CALL(glDrawBuffer(GL_COLOR_ATTACHMENT0));
+               GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+             }, "Framebuffer invalidated")
   }
   
   void Gl_framebuffer::bind()
   {
-    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
-    gl_call(glViewport(0, 0, this->options.width, this->options.height));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+    LOG_INSTRUCTION("Gl Framebuffer", CYAN, "Setting up framebuffer viewport",
+                    Gl_renderer::set_viewport(-this->options.width, this->options.height));
   }
   
   void Gl_framebuffer::resize(float width, float height, void *data_)
   {
-    assert(width != 0 && height != 0);
+    assert(width > 0 && height > 0);
     if (width != this->options.width || height != this->options.height)
     {
       alert(WAVE_WARN, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
@@ -162,32 +161,32 @@ namespace Wave
     
     // defines the vertices of the viewport quad
     const float vertex_buffer_data[16]
-        {
-            // Positions
-            viewport_rectangle->get_x() + viewport_rectangle->get_z(),
-            viewport_rectangle->get_y() + viewport_rectangle->get_w(),
-            // Tex_coords
-            1.0f,
-            0.0f,
-            // Positions
-            viewport_rectangle->get_x() + viewport_rectangle->get_z(),
-            viewport_rectangle->get_y(),
-            // Tex_coords
-            1.0f,
-            1.0f,
-            // Positions
-            viewport_rectangle->get_x(),
-            viewport_rectangle->get_y(),
-            // Tex_coords
-            0.0f,
-            1.0f,
-            // Positions
-            viewport_rectangle->get_x(),
-            viewport_rectangle->get_y() + viewport_rectangle->get_w(),
-            // Tex_coords
-            0.0f,
-            0.0f
-        };
+      {
+        // Positions
+        viewport_rectangle->get_x() + viewport_rectangle->get_z(),
+        viewport_rectangle->get_y() + viewport_rectangle->get_w(),
+        // Tex_coords
+        1.0f,
+        0.0f,
+        // Positions
+        viewport_rectangle->get_x() + viewport_rectangle->get_z(),
+        viewport_rectangle->get_y(),
+        // Tex_coords
+        1.0f,
+        1.0f,
+        // Positions
+        viewport_rectangle->get_x(),
+        viewport_rectangle->get_y(),
+        // Tex_coords
+        0.0f,
+        1.0f,
+        // Positions
+        viewport_rectangle->get_x(),
+        viewport_rectangle->get_y() + viewport_rectangle->get_w(),
+        // Tex_coords
+        0.0f,
+        0.0f
+      };
     
     memcpy(this->data.vbo_data, vertex_buffer_data, sizeof(vertex_buffer_data));
     this->data.vao->get_vertex_buffers().back()->set_data(this->data.vbo_data, sizeof(vertex_buffer_data), 0);
@@ -201,17 +200,17 @@ namespace Wave
   
   void Gl_framebuffer::unbind()
   {
-    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
   }
   
   void Gl_framebuffer::remove()
   {
-    gl_call(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     if (this->renderer_id)
     {
-      gl_call(glDeleteFramebuffers(1, &this->renderer_id));
-      gl_call(glDeleteTextures(1, &this->color_attachment));
-      gl_call(glDeleteTextures(1, &this->depth_attachment));
+      GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
+      GL_CALL(glDeleteTextures(1, &this->color_attachment));
+      GL_CALL(glDeleteTextures(1, &this->depth_attachment));
     }
   }
   

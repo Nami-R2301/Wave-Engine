@@ -11,7 +11,7 @@ namespace Wave
   
   class Event_dispatcher
   {
-  public:
+    public:
     inline explicit Event_dispatcher(Event &event_) : event(event_)
     {};
     ~Event_dispatcher() = default;
@@ -26,7 +26,8 @@ namespace Wave
       }
       return false;
     }
-  private:
+    
+    private:
     Event &event;
   };
 }

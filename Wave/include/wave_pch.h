@@ -5,6 +5,7 @@
 #pragma once
 
 #define _USE_MATH_DEFINES
+
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -23,6 +24,9 @@
 
 #include <Core/core.h>
 #include <Core/interfaces.h>
+#include <Core/engine_time.h>
+
+#include <Math/vector.h>
 
 #include <Utilities/logger.h>
 

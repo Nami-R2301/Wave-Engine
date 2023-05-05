@@ -11,7 +11,7 @@ namespace Wave
   
   class ImGui_layer : public Layer
   {
-  public:
+    public:
     ImGui_layer();
     ~ImGui_layer() override = default;
     

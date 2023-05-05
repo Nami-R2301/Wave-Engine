@@ -8,13 +8,13 @@
 
 namespace Wave
 {
-  
-  #define NUM_KEY_CODES  349  // 349 - first 32 chars.
-  #define NUM_MOUSE_BUTTONS  8
+
+#define NUM_KEY_CODES  349  // 349 - first 32 chars.
+#define NUM_MOUSE_BUTTONS  8
   
   class Input
   {
-  public:
+    public:
     // KEY QUERY FUNCTIONS.
     static void set_key_state(int key_code, bool state);
     static bool is_key_pressed(int key_code);
@@ -40,7 +40,7 @@ namespace Wave
     // MOUSE STATE FUNCTIONS.
     [[nodiscard]] static bool is_mouse_locked();
     static void set_mouse_locked(bool value);
-  private:
+    private:
     static bool key_states[NUM_KEY_CODES];
     static bool mouse_button_states[NUM_MOUSE_BUTTONS];
     static bool mouse_locked;

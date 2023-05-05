@@ -17,7 +17,7 @@ namespace Wave
   
   class Editor_layer : public Layer
   {
-  public:
+    public:
     Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
                  const std::vector<std::shared_ptr<Wave::Shader>> &shaders_,
                  const std::vector<std::shared_ptr<Wave::Object_3D>> &objects_,
@@ -36,7 +36,7 @@ namespace Wave
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     Framebuffer_draw_data framebuffer_viewport_data;
     ImGuiID dockSpace_id = 0, viewport_panel_dock_id = 0, scene_panel_dock_id = 0, stats_panel_dock_id = 0;
-  private:
+    private:
     std::shared_ptr<Wave::Camera> camera;
     std::vector<std::shared_ptr<Wave::Shader>> shaders;
     std::vector<std::shared_ptr<Wave::Object_3D>> objects;
