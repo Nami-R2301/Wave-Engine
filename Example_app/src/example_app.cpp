@@ -7,7 +7,7 @@
 // NEED TO BE INCLUDED IN MAIN APP ONLY
 #include <entrypoint.h>
 
-Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl)
+Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl, Wave::Context_api::Glfw)
 {
   // Add Cameras
   this->demo_perspective_camera = Wave::create_shared_pointer<Wave::Editor_camera>(

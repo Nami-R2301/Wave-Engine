@@ -2,6 +2,7 @@
 // Created by nami on 23/04/23.
 //
 
+#include "imgui.h"
 #include <editor_layer.h>
 
 namespace Wave
@@ -250,8 +251,10 @@ namespace Wave
     
     if (ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoBackground))
     {
+      
       ImGuiDockNode *viewport_dock_node;
       viewport_dock_node = ImGui::DockBuilderGetNode(this->viewport_panel_dock_id);
+//      viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;
       viewport_dock_node->HostWindow->DrawList->AddCallback(draw_viewport_quad,
                                                             &this->framebuffer_viewport_data);
     }

@@ -35,7 +35,7 @@ namespace Wave
     Framebuffer_options fbSpec;
     fbSpec.width = 1920.0f;  // Fullscreen size.
     fbSpec.height = 1080.0f;  // Fullscreen size.
-    fbSpec.samples = max_samples;
+    fbSpec.samples = max_samples / 4 <= 4 ? max_samples : max_samples / 4;
     this->viewport_resolution = {fbSpec.width,
                                  fbSpec.height};
     this->viewport_framebuffer = Framebuffer::create(fbSpec);

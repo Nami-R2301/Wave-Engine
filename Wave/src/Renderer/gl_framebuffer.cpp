@@ -20,21 +20,17 @@ namespace Wave
     GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
-    // Determine max samples.
-    GLint max_samples = 0;
-    GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
-    
     // Creating the 2D texture of our viewport.
     GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
     GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-    GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, opt.width, opt.height,
+    GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, opt.samples, GL_RGBA8, opt.width, opt.height,
                                     GL_FALSE));
     
     // Depth attachment.
     GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
     GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
     GL_CALL(
-      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8, opt.width, opt.height,
+      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, opt.samples, GL_DEPTH24_STENCIL8, opt.width, opt.height,
                               GL_FALSE));
     
     GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
@@ -96,21 +92,18 @@ namespace Wave
                GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
                GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
                
-               // Determine max samples.
-               GLint max_samples = 0;
-               GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
-               
                // Creating the 2D texture of our viewport.
                GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
                GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_RGBA8, this->options.width,
+               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, this->options.samples, GL_RGBA8,
+                                               this->options.width,
                                                this->options.height,
                                                GL_FALSE));
                
                // Depth attachment.
                GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
                GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
-               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, max_samples, GL_DEPTH24_STENCIL8,
+               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, this->options.samples, GL_DEPTH24_STENCIL8,
                                                this->options.width,
                                                this->options.height, GL_FALSE));
                
@@ -137,8 +130,7 @@ namespace Wave
   void Gl_framebuffer::bind()
   {
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
-    LOG_INSTRUCTION("Gl Framebuffer", CYAN, "Setting up framebuffer viewport",
-                    Gl_renderer::set_viewport(-this->options.width, this->options.height));
+    Gl_renderer::set_viewport(this->options.width, this->options.height);
   }
   
   void Gl_framebuffer::resize(float width, float height, void *data_)
@@ -190,11 +182,6 @@ namespace Wave
     
     memcpy(this->data.vbo_data, vertex_buffer_data, sizeof(vertex_buffer_data));
     this->data.vao->get_vertex_buffers().back()->set_data(this->data.vbo_data, sizeof(vertex_buffer_data), 0);
-//    alert(WAVE_WARN, "Vertex 0 : %.2f; Vertex 1 : %.2f; Vertex 5 : %.2f; Vertex 6 : %.2f; Vertex 10 %.2f;"
-//                     " Vertex 11 %.2f; Vertex 15 %.2f; Vertex 16 %.2f",
-//          vertex_buffer_data[0], vertex_buffer_data[1], vertex_buffer_data[5], vertex_buffer_data[6],
-//          vertex_buffer_data[10],
-//          vertex_buffer_data[11], vertex_buffer_data[15], vertex_buffer_data[16]);
     this->data.vao->unbind();
   }
   

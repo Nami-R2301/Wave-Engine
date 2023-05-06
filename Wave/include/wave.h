@@ -1,10 +1,8 @@
 #pragma once
 
 /************************* Core ********************************/
-#include <Core/platform_detection.h>
-#include <Core/interfaces.h>
 #include <Core/core.h>
-#include <Core/core_macros.h>
+#include <Core/interfaces.h>
 #include <Core/layer_stack.h>
 #include <Core/text_layer.h>
 #include <Core/settings.h>
@@ -36,12 +34,8 @@
 #include <Math/transform.h>
 
 /************************* Renderer ********************************/
-#include <Renderer/renderer.h>
-#include <Renderer/buffer.h>
-#include <Renderer/color.h>
 #include <Renderer/shader.h>
-#include <Renderer/vertex.h>
-#include <Renderer/vertex_array_buffer.h>
+#include <Renderer/renderer.h>
 #include <Renderer/editor_camera.h>
 #include <Renderer/gl_framebuffer.h>
 
