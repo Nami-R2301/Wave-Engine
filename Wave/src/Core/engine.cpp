@@ -228,7 +228,8 @@ namespace Wave
         draw_time.start();
       }
     }
-    if (!Gl_renderer::is_running())
+    // In case we call shutdown directly and the renderer is shutdown already.
+    if (Engine::running_state && !Gl_renderer::is_running())
     {
       Engine::set_exit_status(WAVE_ENGINE_RENDERER_CRASH);
       return;
@@ -302,17 +303,18 @@ namespace Wave
   {
     Engine::set_running_state(false);
     
+    Engine::main_window->close();
+    Gl_renderer::shutdown();
+    
     if ((Engine::get_exit_status() >> 4) &
         (WAVE_ENGINE_CONTEXT_CRASH >> 4))  // Shift 4 bits to the right to mask error.
     {
       alert(WAVE_ERROR, "[ENGINE] --> Window has not been requested to close by the user!");
-      Engine::main_window->close();
     }
     if ((Engine::get_exit_status() >> 4) &
         (WAVE_ENGINE_RENDERER_CRASH >> 4))  // Shift 4 bits to the right to mask error.
     {
       alert(WAVE_ERROR, "[ENGINE] --> Renderer has encountered a fatal error!");
-      Gl_renderer::shutdown();
     }
   }
   

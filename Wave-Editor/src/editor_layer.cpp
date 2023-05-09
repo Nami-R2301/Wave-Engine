@@ -36,9 +36,9 @@ namespace Wave
     // Setup framebuffer shader.
     this->framebuffer_viewport_data.framebuffer_viewport_shader = Shader::create("Framebuffer Editor Viewport",
                                                                                  Res_loader_3D::load_shader_source(
-                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer.vert").c_str(),
+                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert").c_str(),
                                                                                  Res_loader_3D::load_shader_source(
-                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer.frag").c_str());
+                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag").c_str());
     
     // Setup objects in scene.
     Wave::Gl_renderer::load_object(this->objects[0].get());
@@ -175,8 +175,8 @@ namespace Wave
       ImGui::DockBuilderFinish(dock_main_id);
       this->viewport_panel_dock_id = dock_main_id;
     }
-    ImGuiStyle &style = ImGui::GetStyle();
-    style.WindowMinSize.x = 50.0f;
+    
+    dockspace_flags |= ImDrawListFlags_AntiAliasedLinesUseTex;
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
       Editor_layer::dockSpace_id = ImGui::GetID("Wave-Engine-DockSpace");
@@ -249,16 +249,27 @@ namespace Wave
     }
     ImGui::End();  // Stats
     
-    if (ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoBackground))
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Viewport");
+    ImGuiDockNode *viewport_dock_node;
+    viewport_dock_node = ImGui::DockBuilderGetNode(this->viewport_panel_dock_id);
+    viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;
+    
+    if (this->framebuffer_viewport_data.viewport->get_options().samples == 1)
     {
-      
-      ImGuiDockNode *viewport_dock_node;
-      viewport_dock_node = ImGui::DockBuilderGetNode(this->viewport_panel_dock_id);
-//      viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;
+      // Traditional mono-sampled framebuffer.
+      uint64_t texture_id = this->framebuffer_viewport_data.viewport->get_color_attachment();
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      ImGui::Image(reinterpret_cast<void *>(texture_id),
+                   ImVec2(viewport_size.x, viewport_size.y),
+                   ImVec2(0, 1), ImVec2(1, 0));
+    } else
+    {
       viewport_dock_node->HostWindow->DrawList->AddCallback(draw_viewport_quad,
                                                             &this->framebuffer_viewport_data);
     }
     ImGui::End();  // Viewport
+    ImGui::PopStyleVar();  // Window padding.
     ImGui::End(); // Wave-Engine.
     ImGui::PopStyleVar();  // Window Border size.
     ImGui::PopStyleVar();  // Window Rounding.

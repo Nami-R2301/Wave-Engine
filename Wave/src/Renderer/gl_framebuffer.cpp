@@ -20,22 +20,48 @@ namespace Wave
     GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
+    int64_t texture_enum = opt.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+    
     // Creating the 2D texture of our viewport.
-    GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-    GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, opt.samples, GL_RGBA8, opt.width, opt.height,
-                                    GL_FALSE));
+    GL_CALL(glCreateTextures(texture_enum, 1, &this->color_attachment));
+    GL_CALL(glBindTexture(texture_enum, this->color_attachment));
+    if (opt.samples > 1)
+    {
+      GL_CALL(glTexImage2DMultisample(texture_enum, opt.samples, GL_RGBA8, opt.width, opt.height,
+                                      GL_FALSE));
+    } else
+    {
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      GL_CALL(glTexImage2D(texture_enum, 0, GL_RGBA8, opt.width, opt.height,
+                           0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+    }
     
     // Depth attachment.
-    GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
-    GL_CALL(
-      glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, opt.samples, GL_DEPTH24_STENCIL8, opt.width, opt.height,
-                              GL_FALSE));
+    GL_CALL(glCreateTextures(texture_enum, 1, &this->depth_attachment));
+    GL_CALL(glBindTexture(texture_enum, this->depth_attachment));
     
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
+    if (opt.samples > 1)
+    {
+      GL_CALL(glTexImage2DMultisample(texture_enum, opt.samples, GL_DEPTH24_STENCIL8, opt.width,
+                                      opt.height, GL_FALSE));
+    } else
+    {
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      GL_CALL(glTexImage2D(texture_enum, 0, GL_DEPTH24_STENCIL8, opt.width, opt.height,
+                           0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr));
+    }
+    
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
                                    this->color_attachment, 0));
-    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE,
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
                                    this->depth_attachment, 0));
     
     int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -80,51 +106,70 @@ namespace Wave
   
   void Gl_framebuffer::reset()
   {
-    LOG_TASK("Framebuffer", CYAN, 3, "Invalidating framebuffer",
-             {
-               if (this->renderer_id)
-               {
-                 GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-                 GL_CALL(glDeleteTextures(1, &this->color_attachment));
-                 GL_CALL(glDeleteTextures(1, &this->depth_attachment));
-               }
-               
-               GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
-               GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
-               
-               // Creating the 2D texture of our viewport.
-               GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->color_attachment));
-               GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->color_attachment));
-               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, this->options.samples, GL_RGBA8,
-                                               this->options.width,
-                                               this->options.height,
-                                               GL_FALSE));
-               
-               // Depth attachment.
-               GL_CALL(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &this->depth_attachment));
-               GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, this->depth_attachment));
-               GL_CALL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, this->options.samples, GL_DEPTH24_STENCIL8,
-                                               this->options.width,
-                                               this->options.height, GL_FALSE));
-               
-               GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE,
-                                              this->color_attachment, 0));
-               GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE,
-                                              this->depth_attachment, 0));
-               
-               int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-               if (status != GL_FRAMEBUFFER_COMPLETE)
-               {
-                 gl_synchronous_error_callback(status,
-                                               "Cannot show framebuffer, framebuffer incomplete!",
-                                               "Gl_framebuffer()",
-                                               "gl_framebuffer.cpp",
-                                               __LINE__ - 5);
-               }
-               
-               GL_CALL(glDrawBuffer(GL_COLOR_ATTACHMENT0));
-               GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-             }, "Framebuffer invalidated")
+    if (this->renderer_id)
+    {
+      GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
+      GL_CALL(glDeleteTextures(1, &this->color_attachment));
+      GL_CALL(glDeleteTextures(1, &this->depth_attachment));
+    }
+    
+    GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+    
+    int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+    
+    // Creating the 2D texture of our viewport.
+    GL_CALL(glCreateTextures(texture_enum, 1, &this->color_attachment));
+    GL_CALL(glBindTexture(texture_enum, this->color_attachment));
+    if (this->options.samples > 1)
+    {
+      GL_CALL(glTexImage2DMultisample(texture_enum, this->options.samples, GL_RGBA8,
+                                      this->options.width, this->options.height, GL_FALSE));
+    } else
+    {
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      GL_CALL(glTexImage2D(texture_enum, 0, GL_RGBA8, this->options.width, this->options.height,
+                           0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+    }
+    
+    // Depth attachment.
+    GL_CALL(glCreateTextures(texture_enum, 1, &this->depth_attachment));
+    GL_CALL(glBindTexture(texture_enum, this->depth_attachment));
+    
+    if (this->options.samples > 1)
+    {
+      GL_CALL(glTexImage2DMultisample(texture_enum, this->options.samples, GL_DEPTH24_STENCIL8,
+                                      this->options.width, this->options.height, GL_FALSE));
+    } else
+    {
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      GL_CALL(glTexImage2D(texture_enum, 0, GL_DEPTH24_STENCIL8, this->options.width,
+                           this->options.height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr));
+    }
+    
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
+                                   this->color_attachment, 0));
+    GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
+                                   this->depth_attachment, 0));
+    
+    int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE)
+    {
+      gl_synchronous_error_callback(status,
+                                    "Cannot show framebuffer, framebuffer incomplete!",
+                                    "Gl_framebuffer()",
+                                    "gl_framebuffer.cpp",
+                                    __LINE__ - 5);
+    }
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
   }
   
   void Gl_framebuffer::bind()

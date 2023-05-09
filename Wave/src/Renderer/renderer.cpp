@@ -59,7 +59,8 @@ namespace Wave
     } else if (renderer_error.get_renderer_state().severity[0] == 'F')  // Fatal error
     {
       renderer_error.print(Print_type::Error);
-      Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN});
+      Gl_renderer::set_state({nullptr, nullptr, nullptr,
+                              renderer_error.get_renderer_state().code});
     }
     return true;
   }
@@ -310,6 +311,13 @@ namespace Wave
       LOG_INSTRUCTION("RENDERER 3D", DEFAULT, "Deleting buffers", Gl_renderer::delete_gl_buffers())
     }
     Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN});
+  }
+  
+  bool Gl_renderer::has_crashed()
+  {
+    return Gl_renderer::state.code != WAVE_RENDERER_RUNNING &&
+           Gl_renderer::state.code != WAVE_RENDERER_INIT &&
+           Gl_renderer::state.code != WAVE_RENDERER_SHUTDOWN;
   }
   
   void gl_synchronous_error_callback(GLenum error_code, const char *error_message, const char *function_name,

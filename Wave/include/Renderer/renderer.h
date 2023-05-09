@@ -43,7 +43,7 @@
   void gl_asynchronous_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, \
             const void *userParam);
             
-#define GL_CALL(x) x;
+#define GL_CALL(x) x
 #else
 
 #define GL_ASYNC_ERROR_CALLBACK
@@ -66,7 +66,7 @@
 #define LOG_TASK(category, color, number, start_msg, event, end_msg)\
       Wave::alert(WAVE_STATUS_IN_PROGRESS, "[%s] [%s#%d%s] --> %s", category, color, number, DEFAULT, start_msg); \
     event;\
-    if (Wave::Gl_renderer::is_running() || Wave::Gl_renderer::get_state().code == WAVE_RENDERER_INIT)                                  \
+    if (!Wave::Gl_renderer::has_crashed())                                  \
     Wave::alert(WAVE_TASK_DONE, "[%s] [%s#%d%s] --> %s %sSuccessfully%s", category, color, number, DEFAULT, end_msg, GREEN, DEFAULT); \
     else Wave::alert(WAVE_TASK_FAIL, "[%s] [%s#%d%s] --> %s %sUnsuccessfully%s", category, color, number, DEFAULT, end_msg, RED, DEFAULT);\
 
@@ -133,6 +133,7 @@ namespace Wave
     // Cleanup.
     static void delete_gl_buffers();
     static void shutdown();
+    static bool has_crashed();
     private:
     static Renderer_state state;
     static Renderer_api api;
