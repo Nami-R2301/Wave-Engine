@@ -17,19 +17,18 @@ namespace Wave
       this->app = new Example_app();
       this->app->init();
     }
+
+    ~Object_tests()
+    {
+      this->app->shutdown();
+      delete app;
+    }
     
     void SetUp() override
     {
       // Code here will be called immediately after the constructor (right
       // before each test).
       this->dummy_2d = (Object_2D *) Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("cube.obj").load_3D_mesh()).get();
-    }
-    
-    void TearDown() override
-    {
-      // Code here will be called immediately after each test (right
-      // before the destructor).
-      this->app->shutdown();
     }
     
     // shared user data

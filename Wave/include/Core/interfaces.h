@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <string>
 #include <Math/vector.h>
 
 namespace Wave

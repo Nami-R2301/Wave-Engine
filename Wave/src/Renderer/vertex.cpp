@@ -3,6 +3,7 @@
 //
 
 #include <Renderer/vertex.h>
+#include <Utilities/logger.h>
 
 namespace Wave
 {

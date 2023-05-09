@@ -63,10 +63,10 @@ namespace Wave
   {
     while (this->file_ptr)  // Get current line.
     {
-      char line_c[FILENAME_MAX];
+      char line_c[FILENAME_MAX * 4]{0};
       std::string line;
       int resource = fscanf(this->file_ptr, "%s", line_c);
-      line_c[FILENAME_MAX - 1] = '\0';
+      line_c[(FILENAME_MAX * 4) -1] = '\0';
       line = std::string(line_c);
       if (resource == EOF) break;
       
@@ -102,10 +102,10 @@ namespace Wave
   {
     while (this->file_ptr)  // Get current line.
     {
-      char line_c[FILENAME_MAX];
+      char line_c[FILENAME_MAX * 4]{0};
       std::string line;
       int resource = fscanf(this->file_ptr, "%s", line_c);
-      line_c[FILENAME_MAX - 1] = '\0';
+      line_c[(FILENAME_MAX * 4) - 1] = '\0';
       line = std::string(line_c);
       if (resource == EOF) break;
       
@@ -143,7 +143,7 @@ namespace Wave
   
   void Res_loader_3D::load_obj_face()
   {
-    char face_data[3][FILENAME_MAX];
+    char face_data[3][FILENAME_MAX * 4];
     if (fscanf(this->file_ptr, "%s %s %s\n", face_data[0], face_data[1], face_data[2]) == EOF)
     {
       Wave::alert(WAVE_WARN, "[RES ERROR] : Loading face indices (f)");
@@ -187,7 +187,7 @@ namespace Wave
   
   void Res_loader_3D::load_obj_normal()
   {
-    char x[sizeof(double) * 4], y[sizeof(double) * 4], z[sizeof(double) * 4];
+    char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(this->file_ptr, "%s %s %s\n", x, y, z) == EOF)
     {
       Wave::alert(WAVE_WARN, "[RES ERROR] : Loading normal positions (v)");
@@ -201,7 +201,7 @@ namespace Wave
   
   void Res_loader_3D::load_obj_texture_coords()
   {
-    char x[sizeof(double) * 4], y[sizeof(double) * 4];
+    char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0};
     if (fscanf(this->file_ptr, "%s %s", x, y) == EOF)
     {
       Wave::alert(WAVE_WARN, "[RES ERROR] : Loading Texture coordinates (vt)");

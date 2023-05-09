@@ -142,6 +142,11 @@ namespace Wave
     
     this->vertex_buffers.push_back(vertex_buffer_);
   }
+
+  uint32_t Gl_vertex_array_buffer::get_id() const
+  {
+      return this->vertex_array_id;
+  }
   
   void Gl_vertex_array_buffer::set_index_buffer(const std::shared_ptr<Index_buffer> &index_buffer_)
   {
