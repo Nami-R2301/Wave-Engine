@@ -120,7 +120,7 @@ namespace Wave
     this->shaders[1]->unbind();
   }
   
-  void Editor_layer::on_event(Event &event)
+  void Editor_layer::on_event([[maybe_unused]] Event &event)
   {
   }
   

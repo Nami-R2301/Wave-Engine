@@ -1,4 +1,3 @@
-#include <Renderer/gl_vertex_array_buffer.h>
 #include <Renderer/renderer.h>
 
 namespace Wave
@@ -154,11 +153,6 @@ namespace Wave
     index_buffer_->bind();
     
     this->index_buffer = index_buffer_;
-  }
-  
-  uint32_t Gl_vertex_array_buffer::get_id() const
-  {
-    return this->vertex_array_id;
   }
   
   const std::vector<std::shared_ptr<Vertex_buffer>> &Gl_vertex_array_buffer::get_vertex_buffers() const

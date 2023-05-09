@@ -33,9 +33,4 @@ namespace Wave
   void Layer::on_ui_render(float time_step)
   {
   }
-  
-  void Layer::on_ui_render(float time_step)
-  {
-  
-  }
 }
