@@ -7,6 +7,13 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
     set(CMAKE_BUILD_TYPE "RELEASE" FORCE)
 endif ()
 
+add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
+target_compile_definitions(ImGUI PUBLIC $<$<CONFIG:Debug>:IMGUI_IMPL_OPENGL_DEBUG>)
+target_link_libraries(ImGUI PUBLIC OpenGL::GL)
+target_include_directories(ImGUI PUBLIC
+        ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/
+        ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/GL/)
+
 add_library(Wave STATIC
         Wave/src/Core/engine.cpp
         Wave/src/Renderer/vertex.cpp
@@ -43,7 +50,6 @@ add_library(Wave STATIC
         Wave/src/Renderer/vertex_array_buffer.cpp
         Wave/src/Events/renderer_event.cpp
         Wave/src/ImGUI/imGUI_layer.cpp
-        Wave/src/ImGUI/imGUI_build.cpp
         Wave/src/Renderer/editor_camera.cpp
         Wave/src/Window/glfw/glfw_window.cpp)
 
@@ -52,6 +58,7 @@ message("Freetype LIB DETECTED\n")
 
 
 if (UNIX)
+    set(CMAKE_INSTALL_PREFIX "/opt/Wave-Engine")
     message("Unix-like system detected. Setting up configuration for GNU...\n")
     find_package(GLEW REQUIRED)
     message("GLEW LIB DETECTED -->  ${GLEW_LIB}")
@@ -65,15 +72,16 @@ if (UNIX)
             GLFW3_STATIC
             GLEW_STATIC
             $<$<CONFIG:Release>:RELEASE>
-            $<$<CONFIG:Debug>:DEBUG>)
+            $<$<CONFIG:Debug>:DEBUG>
+            ${CMAKE_BUILD_TYPE})
 
     target_precompile_headers(Wave PUBLIC Wave/include/wave_pch.h)
 
     target_link_libraries(Wave PUBLIC
+            ImGUI
             freetype
             GLEW
-            glfw
-            OpenGL::GL)
+            glfw)
 
     target_include_directories(Wave PUBLIC
             Wave/include
@@ -120,6 +128,9 @@ if (UNIX)
             $<$<CONFIG:Release>:-O2>)
 
     target_precompile_headers(Editor PUBLIC Wave/include/wave_pch.h)
+
+    install(TARGETS Editor
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 elseif (WIN32)
     message("Windows system detected. Setting up configuration for MSVCRT...\n")
