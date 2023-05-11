@@ -117,9 +117,9 @@ namespace Wave
   {
     auto &colors = ImGui::GetStyle().Colors;
     
-    auto dark_grey = ImVec4(0.2f,
-                            0.2f,
-                            0.2f,
+    auto dark_grey = ImVec4(0.1f,
+                            0.1f,
+                            0.1f,
                             1.0f);
     auto light_grey = ImVec4(0.4f,
                              0.4f,
@@ -127,9 +127,9 @@ namespace Wave
                              1.0f);
     
     // Window Background.
-    colors[ImGuiCol_WindowBg] = ImVec4{0.15f,
-                                       0.15f,
-                                       0.15f,
+    colors[ImGuiCol_WindowBg] = ImVec4{0.2f,
+                                       0.2f,
+                                       0.2f,
                                        1.0f};
     
     // Title Background.

@@ -2,14 +2,13 @@
 // Created by nami on 29/03/23.
 //
 
-#include <Renderer/buffer.h>
-#include <Renderer/renderer.h>
+#include <Renderer/gl_renderer.h>
 
 namespace Wave
 {
   std::shared_ptr<Vertex_buffer> Vertex_buffer::create(uint64_t size)
   {
-    switch (Gl_renderer::get_api())
+    switch (Renderer::get_api())
     {
       case Renderer_api::None:
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
@@ -32,7 +31,7 @@ namespace Wave
   
   std::shared_ptr<Vertex_buffer> Vertex_buffer::create(const void *vertices, uint64_t size, Buffer_type buffer_type)
   {
-    switch (Gl_renderer::get_api())
+    switch (Renderer::get_api())
     {
       case Renderer_api::None:
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
@@ -55,7 +54,7 @@ namespace Wave
   
   std::shared_ptr<Index_buffer> Index_buffer::create(const uint32_t *indices, uint32_t size)
   {
-    switch (Gl_renderer::get_api())
+    switch (Renderer::get_api())
     {
       case Renderer_api::None:
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",

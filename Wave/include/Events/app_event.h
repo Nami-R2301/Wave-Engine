@@ -19,7 +19,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION)
     
-    INTERFACE_PRINT;
+    INTERFACE_PRINT
   };
   
   class On_engine_update : public Event
@@ -31,7 +31,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION)
     
-    INTERFACE_PRINT;
+    INTERFACE_PRINT
   };
   
   class On_engine_render : public Event
@@ -43,7 +43,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION)
     
-    INTERFACE_PRINT;
+    INTERFACE_PRINT
   };
   
   class On_window_close : public Event
@@ -56,7 +56,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_CONTEXT)
     
-    INTERFACE_PRINT;
+    INTERFACE_PRINT
   };
   
   class On_window_resize : public Event

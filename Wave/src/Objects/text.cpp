@@ -58,7 +58,7 @@ namespace Wave
   
   std::shared_ptr<Text> Text::create(const char *font_file_path, const std::string &text_, const Text_format &format_)
   {
-    switch (Gl_renderer::get_api())
+    switch (Renderer::get_api())
     {
       case Renderer_api::None:
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",

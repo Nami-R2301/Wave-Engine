@@ -22,7 +22,7 @@ namespace Wave
     
     void bind_to_context();
     
-    INTERFACE_PRINT;
+    INTERFACE_PRINT
     
     [[nodiscard]] uint32_t get_id() const;
     [[nodiscard]] int get_width() const;

@@ -3,7 +3,7 @@
 //
 
 
-#include <Renderer/renderer.h>
+#include <Renderer/gl_renderer.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -58,26 +58,27 @@ namespace Wave
   void Texture::bind_to_context()
   {
     // Initialize openGL texture buffers.
-    GL_CALL(glGenTextures(1, &this->texture_id));
+    CHECK_GL_CALL(glGenTextures(1, &this->texture_id));
     
     // Initialize flags for texture buffers.
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, this->texture_id));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));  // Min surface to cover.
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));  // Max surface to cover and extend.
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));  // Normalize x-axis of texture.
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));  // Normalize y-axis of texture.
+    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, this->texture_id));
+    CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));  // Min surface to cover.
+    CHECK_GL_CALL(
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));  // Max surface to cover and extend.
+    CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));  // Normalize x-axis of texture.
+    CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));  // Normalize y-axis of texture.
     
     // Assign texture image to texture buffer.
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, this->width, this->height, 0,
-                         GL_RGBA, GL_UNSIGNED_BYTE, this->local_buffer));
+    CHECK_GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, this->width, this->height, 0,
+                               GL_RGBA, GL_UNSIGNED_BYTE, this->local_buffer));
   }
   
   void Texture::bind(uint32_t slot_) const
   {
     if (this->texture_id != 255)
     {
-      GL_CALL(glActiveTexture(GL_TEXTURE0 + slot_));  // Set our active texture slot.
-      GL_CALL(glBindTexture(GL_TEXTURE_2D, this->texture_id));
+      CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + slot_));  // Set our active texture slot.
+      CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, this->texture_id));
     }
   }
   
@@ -85,7 +86,7 @@ namespace Wave
   {
     if (this->texture_id != 255)
     {
-      GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+      CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     }
   }
   
@@ -94,7 +95,7 @@ namespace Wave
     unbind();
     if (this->texture_id != 255)
     {
-      GL_CALL(glDeleteTextures(1, &this->texture_id));
+      CHECK_GL_CALL(glDeleteTextures(1, &this->texture_id));
     }
   }
   

@@ -4,6 +4,12 @@
 
 #pragma once
 
+#if defined (GLFW3_STATIC)
+
+#include <GLFW/glfw3.h>
+
+#endif
+
 #include <Events/event.h>
 #include <Renderer/color.h>
 #include <functional>
@@ -93,7 +99,6 @@ namespace Wave
     
     [[nodiscard]] virtual float get_x_scale() const = 0;
     [[nodiscard]] virtual float get_y_scale() const = 0;
-    [[nodiscard]] virtual Color &get_bg_color() = 0;
     
     virtual bool operator==(const Window &window);
     virtual bool operator!=(const Window &window);

@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include <wave_pch.h>
+#include <Math/vector.h>
+#include <glm/glm/mat4x4.hpp>
 
 namespace Wave
 {
@@ -35,6 +36,8 @@ namespace Wave
     void set_value(int row, int col, float value);
     
     INTERFACE_PRINT
+    
+    static Matrix_4f convert(const glm::mat4 &glm_matrix);
     
     Matrix_4f operator*(const Matrix_4f &other_matrix) const;
     Vector_4f operator*(const Vector_4f &vector_4f) const;

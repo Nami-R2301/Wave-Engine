@@ -1,4 +1,4 @@
-#include <Renderer/renderer.h>
+#include <Renderer/gl_renderer.h>
 
 namespace Wave
 {
@@ -28,7 +28,8 @@ namespace Wave
   
   Gl_vertex_array_buffer::Gl_vertex_array_buffer()
   {
-    LOG_INSTRUCTION("VAO", DEFAULT, "Creating vertex array", GL_CALL(glCreateVertexArrays(1, &this->vertex_array_id)))
+    LOG_INSTRUCTION("VAO", DEFAULT, "Creating vertex array",
+                    CHECK_GL_CALL(glCreateVertexArrays(1, &this->vertex_array_id)))
   }
   
   Gl_vertex_array_buffer::~Gl_vertex_array_buffer()
@@ -38,12 +39,12 @@ namespace Wave
   
   void Gl_vertex_array_buffer::bind() const
   {
-    GL_CALL(glBindVertexArray(this->vertex_array_id));
+    CHECK_GL_CALL(glBindVertexArray(this->vertex_array_id));
   }
   
   void Gl_vertex_array_buffer::unbind() const
   {
-    GL_CALL(glBindVertexArray(0));
+    CHECK_GL_CALL(glBindVertexArray(0));
   }
   
   bool Gl_vertex_array_buffer::is_bound() const
@@ -55,7 +56,8 @@ namespace Wave
   {
     if (Gl_vertex_array_buffer::is_bound())
     {
-      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex array", GL_CALL(glDeleteVertexArrays(1, &this->vertex_array_id)))
+      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex array",
+                      CHECK_GL_CALL(glDeleteVertexArrays(1, &this->vertex_array_id)))
       LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex buffers",
                       for (const auto &vertex_buffer: this->vertex_buffers)
                       {

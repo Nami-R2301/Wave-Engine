@@ -2,15 +2,14 @@
 // Created by nami on 23/04/23.
 //
 
-#include "imgui.h"
 #include <editor_layer.h>
 
 namespace Wave
 {
   
-  static Vector_3f camera_slider_position = Vector_3f(0);
+  Color Editor_layer::framebuffer_color = Color(78.0f, 255.0f, false);  // Defaults to grey.
   
-  Editor_layer::Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
+  Editor_layer::Editor_layer(const std::shared_ptr<Wave::Editor_camera> &demo_perspective_camera_,
                              const std::vector<std::shared_ptr<Wave::Shader>> &shaders_,
                              const std::vector<std::shared_ptr<Wave::Object_3D>> &demo_objects_,
                              const std::shared_ptr<Framebuffer> &viewport_)
@@ -24,8 +23,6 @@ namespace Wave
   
   void Editor_layer::on_attach()
   {
-    Wave::Gl_renderer::set_clear_color(Wave::Color(0.05f, 1.0f, true));
-    
     // Setup object shaders.
     this->objects[0]->add_texture(Texture("../Wave/res/Textures/tiles.png"));
     this->shaders[1]->bind();
@@ -41,7 +38,7 @@ namespace Wave
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag").c_str());
     
     // Setup objects in scene.
-    Wave::Gl_renderer::load_object(this->objects[0].get());
+    Wave::Renderer::load_object(this->objects[0].get());
     this->objects[0]->translate(10, -10, 20);
 //    this->objects[1]->translate(0, 0, -10);
     this->objects[0]->rotate(90, -90, 0);
@@ -52,7 +49,7 @@ namespace Wave
     for (const auto &shader: this->shaders) shader->unbind();
   }
   
-  void Editor_layer::on_update(float time_step)
+  void Editor_layer::on_update([[maybe_unused]] float time_step)
   {
     //  Update objects.
     this->shaders[1]->bind();
@@ -61,24 +58,6 @@ namespace Wave
                                                                          this->camera->get_view_matrix(),
                                                                          this->camera->get_projection_matrix()).get_matrix()[0][0]);
     
-    // Synchronous tasks.
-    float velocity = 10.0f;
-    if (Wave::Input::is_key_held(WAVE_KEY_W))
-    {
-      this->camera->move(this->camera->get_up(), velocity * time_step);
-    }
-    if (Wave::Input::is_key_held(WAVE_KEY_A))
-    {
-      this->camera->move(this->camera->get_left(), velocity * time_step);
-    }
-    if (Wave::Input::is_key_held(WAVE_KEY_S))
-    {
-      this->camera->move(this->camera->get_up(), -velocity * time_step);
-    }
-    if (Wave::Input::is_key_held(WAVE_KEY_D))
-    {
-      this->camera->move(this->camera->get_right(), velocity * time_step);
-    }
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
     {
       Wave::Display_settings::toggle_fullscreen(Wave::Engine::get_main_window());
@@ -116,7 +95,7 @@ namespace Wave
       Wave::Engine::get_main_window()->close();
     }
     
-    Wave::Gl_renderer::draw_loaded_objects(1);
+    Wave::Renderer::draw_loaded_objects(1);
     this->shaders[1]->unbind();
   }
   
@@ -166,12 +145,16 @@ namespace Wave
       ImGuiID dock_main_id = Editor_layer::dockSpace_id;
       Editor_layer::scene_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.15f, nullptr,
                                                                       &dock_main_id);
-      Editor_layer::stats_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.1f, nullptr,
-                                                                      &dock_main_id);
+      Editor_layer::stats_panel_dock_id = ImGui::DockBuilderSplitNode(Editor_layer::scene_panel_dock_id, ImGuiDir_Down,
+                                                                      0.3f, nullptr,
+                                                                      &(Editor_layer::scene_panel_dock_id));
+      Editor_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.1f, nullptr,
+                                                                       &dock_main_id);
       
       ImGui::DockBuilderDockWindow("Viewport", dock_main_id);
       ImGui::DockBuilderDockWindow("Scene", Editor_layer::scene_panel_dock_id);
-      ImGui::DockBuilderDockWindow("Events", Editor_layer::stats_panel_dock_id);
+      ImGui::DockBuilderDockWindow("Events", Editor_layer::events_panel_dock_id);
+      ImGui::DockBuilderDockWindow("Info", Editor_layer::stats_panel_dock_id);
       ImGui::DockBuilderFinish(dock_main_id);
       this->viewport_panel_dock_id = dock_main_id;
     }
@@ -206,34 +189,36 @@ namespace Wave
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 10.0f));
     if (ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_None))
     {
-      if (ImGui::TreeNodeEx("Clear color", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
+      if (ImGui::TreeNodeEx("Background", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
       {
         ImGui::PushFont(bold);
-        ImGui::ColorEdit3("", &Engine::get_main_window()->get_bg_color()[0]);
+        ImGui::ColorEdit3("Color", &Editor_layer::framebuffer_color[0]);
         ImGui::PopFont();
         ImGui::TreePop();
       }
       ImGui::Separator();
-      if (ImGui::TreeNodeEx("Main Camera (Perspective)",
+      if (ImGui::TreeNodeEx("Editor camera",
                             ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
       {
-        float min_x = -10.0f, max_x = 10.0f, min_y = -10.0f, max_y = 10.0f, min_depth = -100.0f, max_depth = 100.0f;
+        float min_x = -100.0f, max_x = 100.0f, min_y = -100.0f, max_y = 100.0f, min_depth = -100.0f, max_depth = 100.0f;
         ImGui::PushFont(bold);
-        ImGui::SliderScalar("X", ImGuiDataType_Float, &camera_slider_position[0], &min_x, &max_x);
-        this->camera->set_position(camera_slider_position[0],
-                                   camera_slider_position[1],
-                                   camera_slider_position[2]);
-        ImGui::SliderScalar("Y", ImGuiDataType_Float, &camera_slider_position[1], &min_y, &max_y);
-        this->camera->set_position(camera_slider_position[0],
-                                   camera_slider_position[1],
-                                   camera_slider_position[2]);
-        ImGui::SliderScalar("Z", ImGuiDataType_Float, &camera_slider_position[2], &min_depth, &max_depth);
-        this->camera->set_position(camera_slider_position[0],
-                                   camera_slider_position[1],
-                                   camera_slider_position[2]);
+        ImGui::SliderScalar("X", ImGuiDataType_Float, &this->camera->get_position()[0], &min_x, &max_x);
+        ImGui::SliderScalar("Y", ImGuiDataType_Float, &this->camera->get_position()[1], &min_y, &max_y);
+        ImGui::SliderScalar("Z", ImGuiDataType_Float, &this->camera->get_position()[2], &min_depth, &max_depth);
+        
+        this->camera->set_position(this->camera->get_position());
         
         ImGui::PopFont();
         ImGui::TreePop();
+        
+        if (ImGui::Begin("Info"))
+        {
+          auto focal_point = this->camera->get_focal_point();
+          ImGui::Text("Camera type : %s", this->camera->get_type());
+          ImGui::Text("Focal point : (x : %.2f, y : %.2f, z :%.2f)",
+                      focal_point.get_x(), focal_point.get_y(), focal_point.get_z());
+        }
+        ImGui::End();
       }
     }
     ImGui::End();  // Scene hierarchy
@@ -284,13 +269,13 @@ namespace Wave
     
     // Remember important last states
     GLint lastProgram = 0, last_vao = 0, last_vbo = 0, last_ibo = 0, depth_blend_function = 0;
-    GL_CALL(glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram));
-    GL_CALL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vao));
-    GL_CALL(glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_vbo));
-    GL_CALL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_ibo));
-    GL_CALL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &depth_blend_function));
+    CHECK_GL_CALL(glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram));
+    CHECK_GL_CALL(glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vao));
+    CHECK_GL_CALL(glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_vbo));
+    CHECK_GL_CALL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_ibo));
+    CHECK_GL_CALL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &depth_blend_function));
     
-    GL_CALL(glEnable(GL_SAMPLE_SHADING));
+    CHECK_GL_CALL(glEnable(GL_SAMPLE_SHADING));
     
     framebuffer_data->framebuffer_viewport_shader->bind();
     
@@ -312,12 +297,12 @@ namespace Wave
 //    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_projection", &viewportProjection[0][0]);
     
     // Bind framebuffer textures
-    GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer_viewport_gl->get_color_attachment()));
-    GL_CALL(glActiveTexture(GL_TEXTURE1));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer_viewport_gl->get_depth_attachment()));
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE1));
+    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer_viewport_gl->get_color_attachment()));
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE2));
+    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer_viewport_gl->get_depth_attachment()));
     
-    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler", 0);
+    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler", 1);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_viewport_width", (int) viewport->Size.x);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_viewport_height", (int) viewport->Size.y);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_max_samples",
@@ -328,26 +313,26 @@ namespace Wave
     framebuffer_viewport_gl->data.vao->get_vertex_buffers().back()->bind();
     framebuffer_viewport_gl->data.vao->get_index_buffer()->bind();
     
-    GL_CALL(glDrawElements(GL_TRIANGLES, framebuffer_viewport_gl->data.vao->get_index_buffer()->get_count(),
-                           GL_UNSIGNED_INT, nullptr));
+    CHECK_GL_CALL(glDrawElements(GL_TRIANGLES, framebuffer_viewport_gl->data.vao->get_index_buffer()->get_count(),
+                                 GL_UNSIGNED_INT, nullptr));
     
     framebuffer_viewport_gl->data.vao->unbind();
     framebuffer_viewport_gl->data.vao->get_vertex_buffers().back()->unbind();
     framebuffer_viewport_gl->data.vao->get_index_buffer()->unbind();
     
-    GL_CALL(glDisable(GL_SAMPLE_SHADING));
+    CHECK_GL_CALL(glDisable(GL_SAMPLE_SHADING));
     
     // Unbind all buffers.
-    GL_CALL(glActiveTexture(GL_TEXTURE0));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
-    GL_CALL(glActiveTexture(GL_TEXTURE1));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE1));
+    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE2));
+    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
     framebuffer_data->framebuffer_viewport_shader->unbind();
     
     // Reset Imgui OpenGL buffers for next draw commands.
-    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_ibo));
-    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, last_vbo));
-    GL_CALL(glBindVertexArray(last_vao));
-    GL_CALL(glUseProgram(lastProgram));
+    CHECK_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_ibo));
+    CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, last_vbo));
+    CHECK_GL_CALL(glBindVertexArray(last_vao));
+    CHECK_GL_CALL(glUseProgram(lastProgram));
   }
 }

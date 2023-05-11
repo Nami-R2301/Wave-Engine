@@ -16,7 +16,7 @@ Example_scene_3D::Example_scene_3D(const std::shared_ptr<Wave::Camera> &demo_cam
 
 void Example_scene_3D::on_attach()
 {
-  Wave::Gl_renderer::set_clear_color(Wave::Color(0.15f, 1.0f, true));
+  Wave::Renderer::set_clear_color(Wave::Color(0.15f, 1.0f, true));
   
   
   // Setup objects in scene.

@@ -6,6 +6,8 @@
 
 #include <Window/window.h>
 
+#if defined (GLFW3_STATIC)
+
 namespace Wave
 {
   
@@ -48,7 +50,6 @@ namespace Wave
     [[nodiscard]] bool is_hovered() const override;
     [[nodiscard]] float get_x_scale() const override;
     [[nodiscard]] float get_y_scale() const override;
-    [[nodiscard]] Color &get_bg_color() override;
     [[nodiscard]] const Vector_2f &get_window_pos() const override;
     
     static void glfw_error_callback(int error_code, const char *description);
@@ -87,9 +88,14 @@ namespace Wave
     float y_scale = 1.0f;
     Vector_2f aspect_ratio = {16.0f,
                               9.0f};
-    Color bg_color = Color(0.25f, 1.0f, true);  // Default background color (gray).
     bool fullscreen = false;
     bool request_closing = false;
     Api_info api_info{};
   };
 } // Wave
+
+#else
+
+#error "Cannot include GLFW context API, since it is not included! Did you forget to add GLFW_STATIC to your compile definitions?"
+
+#endif

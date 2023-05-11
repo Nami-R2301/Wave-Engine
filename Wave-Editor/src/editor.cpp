@@ -13,9 +13,9 @@ namespace Wave
   Editor::Editor() : Engine(Renderer_api::Opengl, Context_api::Glfw)
   {
     // Add Cameras
-    this->demo_perspective_camera = create_shared_pointer<Editor_camera>(Engine::get_main_window()->get_width(),
-                                                                         Engine::get_main_window()->get_height(),
-                                                                         90.0f, 0.1f, 1000.0f);
+    this->editor_camera = create_shared_pointer<Editor_camera>(Engine::get_main_window()->get_width(),
+                                                               Engine::get_main_window()->get_height(),
+                                                               90.0f, 0.1f, 1000.0f);
     
     // Add shaders
     this->demo_shaders.emplace_back(Wave::Shader::create("Text",
@@ -30,7 +30,7 @@ namespace Wave
                                                      "../Wave/res/Shaders/default.frag").c_str()));
     
     GLint max_samples = 0;
-    GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    CHECK_GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
     // Setup default viewport framebuffer specs.
     Framebuffer_options fbSpec;
     fbSpec.width = 1920.0f;  // Fullscreen size.
@@ -59,7 +59,7 @@ namespace Wave
                                                format));
     
     push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution));
-    push_layer(new Editor_layer(this->demo_perspective_camera,
+    push_layer(new Editor_layer(this->editor_camera,
                                 this->demo_shaders,
                                 this->demo_objects,
                                 this->viewport_framebuffer));
@@ -68,6 +68,7 @@ namespace Wave
   
   void Editor::init()
   {
+    Renderer::set_clear_color(Editor_layer::framebuffer_color);
   }
   
   void Editor::on_update(float time_step)
@@ -94,7 +95,9 @@ namespace Wave
     }
     
     this->viewport_framebuffer->bind();
-    Gl_renderer::clear_bg();
+    Renderer::set_clear_color(Editor_layer::framebuffer_color);
+    Renderer::clear_bg();
+    this->editor_camera->on_update(time_step);
     Engine::on_update(time_step);
     this->viewport_framebuffer->unbind();
     
@@ -107,7 +110,7 @@ namespace Wave
   void Editor::on_event(Event &event)
   {
     Engine::on_event(event);
-    this->demo_perspective_camera->on_event(event);
+    this->editor_camera->on_event(event);
   }
   
   bool Editor::window_closed_callback(On_window_close &window_closed_event)
@@ -120,7 +123,7 @@ namespace Wave
   bool Editor::window_resize_callback(On_window_resize &window_resized_event)
   {
     Engine::window_resize_callback(window_resized_event);
-    this->demo_perspective_camera->on_window_resize(window_resized_event);
+    this->editor_camera->on_window_resize(window_resized_event);
     return true;
   }
   

@@ -10,7 +10,7 @@
 namespace Wave
 {
   
-  typedef struct Framebuffer_viewport_data
+  typedef struct Gl_framebuffer_viewport_data
   {
     std::shared_ptr<Vertex_array_buffer> vao;
     uint32_t *ibo_data;

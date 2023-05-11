@@ -216,6 +216,20 @@ namespace Wave
     this->matrix.get()[2][0] = direction.get_x(), this->matrix.get()[2][1] = direction.get_y(), this->matrix.get()[2][2] = direction.get_z();
   }
   
+  Matrix_4f Matrix_4f::convert(const glm::mat4 &glm_matrix)
+  {
+    Matrix_4f conversion;
+    conversion.init_identity();
+    for (int i = 0; i < 4; i++)
+    {
+      for (int j = 0; j < 4; j++)
+      {
+        conversion.set_value(i, j, glm_matrix[i][j]);
+      }
+    }
+    return conversion;
+  }
+  
   Vector_4f Matrix_4f::operator*(const Vector_4f &vector_4f) const
   {
     Vector_4f result(vector_4f);

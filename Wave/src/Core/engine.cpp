@@ -27,14 +27,15 @@ namespace Wave
     LOG_TASK("ENGINE", RED, 1, "--------- Launching Wave Engine ---------",
              {
                this->current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
-               Gl_renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+               Renderer::create(Renderer_api::Opengl);  // Default to OpenGL implementation.
+               Renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
                
-               // Setup render api settings.
+               // Setup context api settings.
                Engine::main_window = Window::create(Context_api::Glfw);  // Default to OpenGL implementation.
                // Set default callbacks.
                Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
                Engine::main_window->bind_api_callbacks();
-               Gl_renderer::init();  // Default to OpenGL implementation.
+               Renderer::init();
              },
              "Engine launched")
   }
@@ -53,11 +54,13 @@ namespace Wave
     LOG_TASK("ENGINE", RED, 1, "--------- Launching Wave Engine ---------",
              {
                this->current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
-               Gl_renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+               Renderer::create(Renderer_api::Opengl);  // Default to OpenGL implementation.
+               Renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+               
                switch (choice)
                {
                  case Renderer_api::Opengl:
-                   // Setup render api settings.
+                   // Setup context api settings.
                    Engine::main_window = Window::create(api_choice);
                    // Set default callbacks.
                    Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
@@ -86,7 +89,7 @@ namespace Wave
                    Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
                    Engine::main_window->bind_api_callbacks();
                }
-               Gl_renderer::init();  // Default to OpenGL implementation.
+               Renderer::init();
              },
              "Engine launched")
   }
@@ -188,15 +191,15 @@ namespace Wave
     init_time.start();
     
     // Default dark mode-like background.
-    Gl_renderer::set_clear_color(Wave::Color(0.03f, 1.0f, true));
+    Renderer::set_clear_color(Wave::Color(0.03f, 1.0f, true));
     
     auto cube = std::make_unique<Cube>(Res_loader_3D("cube.obj").load_3D_mesh());
-    Gl_renderer::load_object(cube.get());
+    Renderer::load_object(cube.get());
     
     init_time.stop();
     alert(WAVE_INFO, "Time spent for initialization : %.3f ms", init_time.get_time_in_mili());
     Engine::current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
-    Engine::set_exit_status(static_cast<int32_t>(Gl_renderer::get_state().code));
+    Engine::set_exit_status(static_cast<int32_t>(Renderer::get_state().code));
   }
   
   void Engine::run()
@@ -207,7 +210,7 @@ namespace Wave
     float time_step;  // Avoid tying game speed to framerate.
     Timer draw_time;
     draw_time.start();
-    while (!Engine::main_window->is_closing() && Gl_renderer::is_running())
+    while (!Engine::main_window->is_closing() && Renderer::is_running())
     {
       Engine::current_time.update_engine_run_time();
       float current_run_time = Engine::current_time.get_up_time();
@@ -229,7 +232,7 @@ namespace Wave
       }
     }
     // In case we call shutdown directly and the renderer is shutdown already.
-    if (Engine::running_state && !Gl_renderer::is_running())
+    if (Engine::running_state && !Renderer::is_running())
     {
       Engine::set_exit_status(WAVE_ENGINE_RENDERER_CRASH);
       return;
@@ -304,7 +307,7 @@ namespace Wave
     Engine::set_running_state(false);
     
     Engine::main_window->close();
-    Gl_renderer::shutdown();
+    Renderer::shutdown();
     
     if ((Engine::get_exit_status() >> 4) &
         (WAVE_ENGINE_CONTEXT_CRASH >> 4))  // Shift 4 bits to the right to mask error.
@@ -325,7 +328,7 @@ namespace Wave
   
   /******************* CALLBACKS ******************/
   
-  bool Engine::any_key_callback(On_any_key_event &any_key)
+  bool Engine::any_key_callback([[maybe_unused]] On_any_key_event &any_key)
   {
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
     {
@@ -438,9 +441,7 @@ namespace Wave
     resize_event.print(Print_type::Warn);
     if (resize_event.get_width() <= 0.0f || resize_event.get_height() <= 0.0f) return false;
     Engine::main_window->resize(resize_event.get_width(), resize_event.get_height());
-    Gl_renderer::on_window_resize(Engine::main_window.get(),
-                                  resize_event.get_width(),
-                                  resize_event.get_height());
+    Renderer::on_event(resize_event);
     return true;
   }
 }

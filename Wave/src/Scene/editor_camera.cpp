@@ -2,10 +2,8 @@
 // Created by nami on 22/04/23.
 //
 
-#include <Events/mouse_event.h>
-#include <Renderer/editor_camera.h>
+#include <Scene/editor_camera.h>
 #include <Input/input.h>
-#include <glm/glm/gtx/quaternion.hpp>
 
 namespace Wave
 {
@@ -15,21 +13,41 @@ namespace Wave
   {
   }
   
-  void Editor_camera::on_update([[maybe_unused]] float time_step)
+  void Editor_camera::update_editor_view()
   {
-    if (Input::is_key_pressed(WAVE_KEY_LEFT_ALT))
+    this->position = calculate_position();
+    calculate_orientation();
+  }
+  
+  void Editor_camera::on_update(float time_step)
+  {
+    if (Input::is_key_held(WAVE_KEY_LEFT_CONTROL))
     {
-      const Vector_2f &mouse{Input::get_mouse_cursor_position().get_x(),
-                             Input::get_mouse_cursor_position().get_y()};
-      Vector_2f delta = (mouse - this->initial_mouse_position) * 0.003f;
-      this->initial_mouse_position = mouse;
+      Vector_2f delta = (Input::get_mouse_cursor_position() - this->initial_mouse_position) * 0.05f;
+      this->initial_mouse_position = Input::get_mouse_cursor_position();
       
-      if (Input::is_mouse_button_pressed(WAVE_MOUSE_BUTTON_MIDDLE))
-        mouse_pan(delta);
-      else if (Input::is_mouse_button_pressed(WAVE_MOUSE_BUTTON_LEFT))
-        mouse_rotate(delta);
-      else if (Input::is_mouse_button_pressed(WAVE_MOUSE_BUTTON_RIGHT))
-        mouse_zoom(delta.get_y());
+      if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_LEFT)) mouse_rotate(delta);
+      else if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_MIDDLE)) mouse_zoom(delta.get_y());
+      else if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_RIGHT)) mouse_pan(delta);
+      update_editor_view();
+    }
+    // Synchronous tasks.
+    float velocity = 10.0f;
+    if (Input::is_key_held(WAVE_KEY_W))
+    {
+      this->move(this->get_up(), velocity * time_step);
+    }
+    if (Input::is_key_held(WAVE_KEY_A))
+    {
+      this->move(this->get_left(), velocity * time_step);
+    }
+    if (Input::is_key_held(WAVE_KEY_S))
+    {
+      this->move(this->get_up(), -velocity * time_step);
+    }
+    if (Input::is_key_held(WAVE_KEY_D))
+    {
+      this->move(this->get_right(), velocity * time_step);
     }
     Perspective_camera::update_view_matrix();
   }
@@ -48,8 +66,23 @@ namespace Wave
         on_mouse_scroll(dynamic_cast<On_mouse_wheel_scroll &>(e));
         break;
       }
-      default:break;
+      default:return;
     }
+  }
+  
+  Vector_3f Editor_camera::get_focal_point() const
+  {
+    return this->focal_point;
+  }
+  
+  void Editor_camera::set_focal_point(float x, float y, float z)
+  {
+    this->focal_point = Vector_3f(x, y, z);
+  }
+  
+  void Editor_camera::set_focal_point(const Vector_3f focal_point_)
+  {
+    this->focal_point = focal_point_;
   }
   
   float Editor_camera::get_distance() const
@@ -72,6 +105,11 @@ namespace Wave
     this->orientation = Vector_4f(Vector_3f(-this->pitch, -this->yaw, 0.0f));
   }
   
+  Vector_3f Editor_camera::calculate_position() const
+  {
+    return this->focal_point - get_forward() * this->distance;
+  }
+  
   float Editor_camera::get_pitch() const
   {
     return this->pitch;
@@ -84,20 +122,9 @@ namespace Wave
   
   bool Editor_camera::on_mouse_scroll(On_mouse_wheel_scroll &event)
   {
-    float delta = event.get_mouse_wheel_offset().get_y() * 0.1f;
+    float delta = event.get_mouse_wheel_offset().get_y();
     this->mouse_zoom(delta);
-    this->position = this->calculate_position();
-    this->calculate_orientation();
-    Vector_4f orientation = this->get_orientation();
-    glm::quat quat = {orientation.get_x(),
-                      orientation.get_y(),
-                      orientation.get_z(),
-                      orientation.get_w()};
-    glm::vec3 pos = {this->position.get_x(),
-                     this->position.get_y(),
-                     this->position.get_z()};
-    auto view = glm::translate(glm::mat4(1.0f), pos) * glm::toMat4(quat);
-    auto test = glm::inverse(view);
+    update_editor_view();
     Perspective_camera::update_view_matrix();
     return false;
   }
@@ -107,7 +134,7 @@ namespace Wave
     Vector_2f speed = pan_speed();
     Vector_3f inverse_right = {-get_right().get_x(), -get_right().get_y(), -get_right().get_z()};
     this->focal_point += inverse_right * delta.get_x() * speed.get_x() * this->distance;
-    this->focal_point += get_right() * delta.get_y() * speed.get_y() * this->distance;
+    this->focal_point += get_up() * delta.get_y() * speed.get_y() * this->distance;
   }
   
   void Editor_camera::mouse_rotate(const Vector_2f &delta)
@@ -127,17 +154,12 @@ namespace Wave
     }
   }
   
-  Vector_3f Editor_camera::calculate_position() const
-  {
-    return this->focal_point - get_forward() * this->distance;
-  }
-  
   Vector_2f Editor_camera::pan_speed() const
   {
-    float x = std::min(this->width / 1000.0f, 2.4f); // max = 2.4f
+    float x = std::min(this->width / 1000.0f, 2.6f); // max = 2.4f
     float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
     
-    float y = std::min(this->height / 1000.0f, 2.4f); // max = 2.4f
+    float y = std::min(this->height / 1000.0f, 2.6f); // max = 2.4f
     float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
     
     return {xFactor, yFactor};
@@ -145,12 +167,12 @@ namespace Wave
   
   float Editor_camera::rotation_speed() const
   {
-    return 0.8f;
+    return 2.0f;
   }
   
   float Editor_camera::zoom_speed() const
   {
-    float distance_ = this->distance * 0.2f;
+    float distance_ = this->distance * 0.1f;
     distance_ = std::max(distance_, 0.0f);
     float speed = distance_ * distance_;
     speed = std::min(speed, 100.0f); // max speed = 100

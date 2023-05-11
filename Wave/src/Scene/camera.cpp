@@ -2,7 +2,7 @@
 // Created by nami on 5/25/22.
 //
 
-#include <Renderer/camera.h>
+#include <Scene/camera.h>
 
 namespace Wave
 {
@@ -23,6 +23,11 @@ namespace Wave
     this->up = Vector_3f(0, 1, 0);
     this->center_position = Vector_2f(static_cast<float>(this->width) / 2.0f, static_cast<float>(this->height) / 2.0f);
     Perspective_camera::update_projection_matrix();
+  }
+  
+  const char *Perspective_camera::get_type()
+  {
+    return "Perspective";
   }
   
   std::string Perspective_camera::to_string() const
@@ -61,14 +66,12 @@ namespace Wave
   void Perspective_camera::move(const Vector_3f &direction_, const float amount)
   {
     this->position += (direction_.normalize() * amount);
-    update_view_matrix();
   }
   
   void Perspective_camera::move(float x, float y, float z, float amount)
   {
     Vector_3f direction(x, y, z);
     this->position += (direction.normalize() * amount);
-    update_view_matrix();
   }
   
   void Perspective_camera::rotate_x(float angle)
@@ -127,6 +130,11 @@ namespace Wave
     this->z_near = z_near_;
     this->z_far = z_far_;
     Orthographic_camera::update_projection_matrix();
+  }
+  
+  const char *Orthographic_camera::get_type()
+  {
+    return "Orthographic";
   }
   
   std::string Orthographic_camera::to_string() const

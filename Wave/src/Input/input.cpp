@@ -3,6 +3,7 @@
 //
 
 #include <Input/input.h>
+#include <Core/engine.h>
 
 namespace Wave
 {

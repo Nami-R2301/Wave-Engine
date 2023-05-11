@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Renderer/camera.h>
+#include "Scene/camera.h"
 #include <wave_pch.h>
 
 namespace Wave
@@ -30,7 +30,7 @@ namespace Wave
     void set_scale(const Vector_3f &scale_);
     void set_scale(float x, float y, float z);
     
-    INTERFACE_PRINT;
+    INTERFACE_PRINT
     
     Transform operator+(const Transform &transform) const;
     Transform operator-(const Transform &transform) const;

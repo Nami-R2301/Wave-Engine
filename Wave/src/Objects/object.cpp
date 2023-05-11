@@ -3,7 +3,7 @@
 //
 
 #include "Renderer/vertex.h"
-#include <Objects/object.h>
+#include <Objects/objects.h>
 
 namespace Wave
 {

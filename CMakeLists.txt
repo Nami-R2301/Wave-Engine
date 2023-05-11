@@ -3,13 +3,20 @@ project(Wave-Engine)
 
 set(CMAKE_CXX_STANDARD 20)
 
-if (CMAKE_BUILD_TYPE STREQUAL "")
-    set(CMAKE_BUILD_TYPE "RELEASE" FORCE)
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "RELEASE")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CMAKE_BUILD_TYPE "DEBUG")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    set(CMAKE_BUILD_TYPE "RELEASE")
 endif ()
 
 add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
-target_compile_definitions(ImGUI PUBLIC $<$<CONFIG:Debug>:IMGUI_IMPL_OPENGL_DEBUG>)
+
+target_compile_definitions(ImGUI PUBLIC $<$<CONFIG:DEBUG>:IMGUI_IMPL_OPENGL_DEBUG>)
+
 target_link_libraries(ImGUI PUBLIC OpenGL::GL)
+
 target_include_directories(ImGUI PUBLIC
         ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/
         ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/GL/)
@@ -27,7 +34,7 @@ add_library(Wave STATIC
         Wave/src/Utilities/logger.cpp
         Wave/src/Math/transform.cpp
         Wave/src/Utilities/res_loader.cpp
-        Wave/src/Renderer/camera.cpp
+        Wave/src/Scene/camera.cpp
         Wave/src/Renderer/texture.cpp
         Wave/src/Renderer/gl_vertex_array_buffer.cpp
         Wave/src/Window/display_settings.cpp
@@ -50,8 +57,13 @@ add_library(Wave STATIC
         Wave/src/Renderer/vertex_array_buffer.cpp
         Wave/src/Events/renderer_event.cpp
         Wave/src/ImGUI/imGUI_layer.cpp
-        Wave/src/Renderer/editor_camera.cpp
-        Wave/src/Window/glfw/glfw_window.cpp)
+        Wave/src/Scene/editor_camera.cpp
+        Wave/src/Window/glfw/glfw_window.cpp
+        Wave/src/Renderer/gl_renderer.cpp
+        Wave/src/Scene/scene.cpp
+        Wave/src/Scene/entity.cpp
+        Wave/src/Scene/scene_camera.cpp
+        Wave/src/Renderer/gl_shader.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -60,19 +72,28 @@ message("Freetype LIB DETECTED\n")
 if (UNIX)
     set(CMAKE_INSTALL_PREFIX "/opt/Wave-Engine")
     message("Unix-like system detected. Setting up configuration for GNU...\n")
+
     find_package(GLEW REQUIRED)
-    message("GLEW LIB DETECTED -->  ${GLEW_LIB}")
+    message("GLEW LIB DETECTED")
     find_package(glfw3 REQUIRED)
-    message("GLFW LIB DETECTED -->  ${GLFW3_LIB} \n")
+    message("GLFW LIB DETECTED\n")
     find_package(OpenGL REQUIRED)
     find_package(X11 REQUIRED)
+
+    if (${CMAKE_BUILD_TYPE} STREQUAL "DEBUG")
+        target_compile_options(Wave PUBLIC
+                -Wall
+                -Wextra
+                -Wpedantic
+                -O1)
+    elseif (${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
+        target_compile_options(Wave PUBLIC -O2)
+    endif ()
 
     target_compile_definitions(Wave PUBLIC
             WAVE_STATIC
             GLFW3_STATIC
             GLEW_STATIC
-            $<$<CONFIG:Release>:RELEASE>
-            $<$<CONFIG:Debug>:DEBUG>
             ${CMAKE_BUILD_TYPE})
 
     target_precompile_headers(Wave PUBLIC Wave/include/wave_pch.h)
@@ -87,22 +108,11 @@ if (UNIX)
             Wave/include
             Wave/include/Dependencies
             Wave/include/Dependencies/GL/glfw/include
-            Wave/include/Dependencies/freetype/include
-            Wave/include/Dependencies/imGUI
-            Wave/include/Dependencies/imGUI/backends)
+            Wave/include/Dependencies/freetype/include)
 
     add_executable(App
             Example_app/src/example_app.cpp
             Example_app/src/example_layer.cpp)
-
-    target_compile_options(App PUBLIC
-            -Wall
-            -Wextra
-            $<$<CONFIG:Release>:-O2>)
-
-    target_compile_definitions(App PUBLIC
-            GLEW_STATIC
-            GLFW3_STATIC)
 
     target_link_libraries(App PUBLIC Wave)
 
@@ -122,10 +132,14 @@ if (UNIX)
 
     target_link_libraries(Editor PUBLIC Wave)
 
-    target_compile_options(Editor PUBLIC
-            -Wall
-            -Wextra
-            $<$<CONFIG:Release>:-O2>)
+    if (${CMAKE_BUILD_TYPE} STREQUAL "DEBUG")
+        target_compile_options(Editor PUBLIC
+                -Wall
+                -Wextra
+                -O1)
+    elseif (${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
+        target_compile_options(Editor PUBLIC -O2)
+    endif ()
 
     target_precompile_headers(Editor PUBLIC Wave/include/wave_pch.h)
 
@@ -171,23 +185,23 @@ elseif (WIN32)
             GLEW_STATIC
             _CRT_SECURE_NO_WARNINGS
             ${CMAKE_BUILD_TYPE})
+
     target_precompile_headers(Wave PUBLIC Wave/include/wave_pch.h)
+
     target_link_libraries(Wave PUBLIC
+            imGUI
             user32
             gdi32
             shell32
             freetype
             ${GLEW_LIB}
-            ${GLFW3_LIB}
-            OpenGL::GL
-            ${CMAKE_DL_LIBS})
+            ${GLFW3_LIB})
+
     target_include_directories(Wave PUBLIC
             Wave/include
             Wave/include/Dependencies
             Wave/include/Dependencies/GL/glfw/include
-            Wave/include/Dependencies/freetype/include
-            Wave/include/Dependencies/imGUI
-            Wave/include/Dependencies/imGUI/backends)
+            Wave/include/Dependencies/freetype/include)
 
     # WinMain (SUBSYSTEM:WINDOWS or SUBSYSTEM:CONSOLE).
     if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
@@ -206,6 +220,7 @@ endif ()
 
 # ------------------------------ COMMON STEPS FOR BOTH WIN32 AND UNIX -------------------------------
 target_link_libraries(App PUBLIC Wave)
+
 target_include_directories(App PUBLIC
         Wave/include
         Wave/include/Dependencies
@@ -222,6 +237,7 @@ message("GoogleTest LIB DETECTED\n")
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # -------------------------------------------------------------------------
 enable_testing()
+
 add_executable(Tests
         Example_app/src/example_app.cpp
         Example_app/src/example_layer.cpp
@@ -238,11 +254,14 @@ if (WIN32)
             TESTING
             _CRT_SECURE_NO_WARNINGS
             ${CMAKE_BUILD_TYPE})
+
     target_precompile_headers(Tests PUBLIC Wave/include/wave_pch.h)
+
     target_link_libraries(Tests PUBLIC
             Wave
             ${GTEST}
             ${GTEST_MAIN})
+
     target_include_directories(Tests PUBLIC
             Wave/include
             Wave/include/Dependencies
@@ -251,17 +270,22 @@ if (WIN32)
             Wave/include/Dependencies/googleTest/googletest/include
             Wave/include/Dependencies/googleTest/googlemock/include
             Example_app/include)
-elseif (UNIX)
-    target_compile_options(Tests PUBLIC)
+
+elseif (UNIX AND (${CMAKE_BUILD_TYPE} STREQUAL DEBUG))
+    target_compile_options(Tests PUBLIC -O1)
+
     target_compile_definitions(Tests PUBLIC
             GLEW_STATIC
             GLFW3_STATIC
             TESTING
-            ${CMAKE_BUILD_TYPE})
+            DEBUG)
+
     target_precompile_headers(Tests PUBLIC Wave/include/wave_pch.h)
+
     target_link_libraries(Tests PUBLIC
             Wave
             GTest::gtest_main)
+
     target_include_directories(Tests PUBLIC
             Wave/include
             Wave/include/Dependencies

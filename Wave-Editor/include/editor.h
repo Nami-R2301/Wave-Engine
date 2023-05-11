@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "editor_layer.h"
 #include <wave.h>
 #include <imGUI/imgui_internal.h>
 
@@ -24,10 +25,11 @@ namespace Wave
     bool window_resize_callback([[maybe_unused]] Wave::On_window_resize &window_resized_event) override;
     
     std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;
-    std::shared_ptr<Wave::Editor_camera> demo_perspective_camera;
+    std::shared_ptr<Wave::Editor_camera> editor_camera;
     std::vector<std::shared_ptr<Wave::Object_3D>> demo_objects;
     std::vector<std::shared_ptr<Text>> demo_texts;
     std::shared_ptr<Framebuffer> viewport_framebuffer;
+    Color background_clear_color = Color(78.0f, 255.0f, false);  // Light gray.
     Vector_2f viewport_resolution = {0, 0};
     Vector_4f viewport_framebuffer_boundaries;
   };

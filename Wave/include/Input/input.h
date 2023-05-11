@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include <Core/engine.h>
+#include <Math/vector.h>
+#include <Input/key_codes.h>
+#include <Input/mouse_codes.h>
 
 namespace Wave
 {
@@ -32,7 +34,6 @@ namespace Wave
     
     // MOUSE MOVEMENT STATIC FUNCTIONS.
     static Vector_2f get_mouse_cursor_position();
-    static bool is_mouse_cursor_within(const Object_3D &object, const Transform &transform);
     static int get_mouse_cursor_attribute();
     static void set_mouse_cursor_attribute(int value);
     static void set_mouse_cursor_position(const Vector_2f &position);

@@ -1,5 +1,9 @@
 #pragma once
 
+/************************* Renderer ********************************/
+#include <Renderer/gl_renderer.h>
+#include <Renderer/gl_shader.h>
+
 /************************* Core ********************************/
 #include <Core/core.h>
 #include <Core/interfaces.h>
@@ -12,13 +16,6 @@
 /************************* Imgui ********************************/
 #include <imgui.h>
 #include <imgui_internal.h>
-
-/************************* Events ********************************/
-#include <Events/app_event.h>
-#include <Events/key_event.h>
-#include <Events/mouse_event.h>
-#include <Events/renderer_event.h>
-#include <Events/event_dispatcher.h>
 
 /************************* Utilities ********************************/
 #include <Utilities/logger.h>
@@ -33,14 +30,21 @@
 #include <Math/matrix_4f.h>
 #include <Math/transform.h>
 
-/************************* Renderer ********************************/
-#include <Renderer/shader.h>
-#include <Renderer/renderer.h>
-#include <Renderer/editor_camera.h>
-#include <Renderer/gl_framebuffer.h>
+/************************* Events ********************************/
+#include <Events/app_event.h>
+#include <Events/key_event.h>
+#include <Events/mouse_event.h>
+#include <Events/renderer_event.h>
+#include <Events/event_dispatcher.h>
 
-/************************* Objects ********************************/
-#include <Objects/object.h>
+/************************* Scene ********************************/
+#include <Scene/entity.h>
+#include <Scene/components.h>
+#include <Scene/scene.h>
+#include <Scene/scene_camera.h>
+
+/************************* Entities ********************************/
+#include <Objects/objects.h>
 #include <Objects/gl_text.h>
 
 /************************* Window ********************************/

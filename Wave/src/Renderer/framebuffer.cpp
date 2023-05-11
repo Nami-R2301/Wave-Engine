@@ -2,15 +2,14 @@
 // Created by nami on 23/04/23.
 //
 
-#include <Renderer/gl_framebuffer.h>
-#include <Renderer/renderer.h>
+#include <Renderer/gl_renderer.h>
 
 namespace Wave
 {
   
   std::shared_ptr<Framebuffer> Framebuffer::create(const Framebuffer_options &opt)
   {
-    switch (Gl_renderer::get_api())
+    switch (Renderer::get_api())
     {
       case Renderer_api::None:
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",

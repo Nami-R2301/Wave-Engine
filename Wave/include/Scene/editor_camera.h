@@ -2,8 +2,8 @@
 // Created by nami on 22/04/23.
 //
 
-#include <Events/mouse_event.h>
-#include <Renderer/camera.h>
+#include "Events/mouse_event.h"
+#include "Scene/camera.h"
 
 namespace Wave
 {
@@ -18,9 +18,13 @@ namespace Wave
     void on_event(Event &e) override;
     
     void set_distance(float distance_);
+    void set_focal_point(float x, float y, float z);
+    void set_focal_point(const Vector_3f focal_point_);
     void calculate_orientation();
+    void update_editor_view();
     
     [[nodiscard]] float get_distance() const;
+    [[nodiscard]] Vector_3f get_focal_point() const;
     [[nodiscard]] Matrix_4f get_view_projection() const;
     [[nodiscard]] float get_pitch() const;
     [[nodiscard]] float get_yaw() const;

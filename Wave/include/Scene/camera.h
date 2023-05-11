@@ -6,6 +6,8 @@
 
 #include <Events/app_event.h>
 #include <Math/matrix_4f.h>
+#include <glm/glm/glm.hpp>
+#include <glm/glm/ext/matrix_transform.hpp>
 
 namespace Wave
 {
@@ -31,7 +33,12 @@ namespace Wave
       return this->center_position;
     };
     
-    [[nodiscard]] Vector_3f get_position() const
+    [[nodiscard]] const Vector_3f &get_position() const
+    {
+      return this->position;
+    };
+    
+    [[nodiscard]] Vector_3f &get_position()
     {
       return this->position;
     };
@@ -64,6 +71,11 @@ namespace Wave
     [[nodiscard]] const Matrix_4f &get_view_matrix() const
     {
       return this->view_matrix;
+    };
+    
+    [[nodiscard]] const glm::mat4 &get_view_glm_matrix() const
+    {
+      return this->view_matrix_glm;
     };
     
     [[nodiscard]] const Matrix_4f &get_projection_matrix() const
@@ -108,7 +120,8 @@ namespace Wave
     
     void set_position(const Vector_3f &position_)
     {
-      this->position = position_.normalize();
+      this->position = position_;
+      update_view_matrix();
     };
     
     void set_orientation(float x, float y, float z, float w)
@@ -142,6 +155,7 @@ namespace Wave
       this->up = up_.normalize();
     };
     
+    [[nodiscard]] virtual const char *get_type() = 0;
     virtual void on_event(Event &event) = 0;
     virtual void move(const Vector_3f &direction, float amount) = 0;
     virtual void move(float x, float y, float z, float amount) = 0;
@@ -157,6 +171,7 @@ namespace Wave
     Vector_3f up = Vector_3f(0);
     Vector_4f orientation = Vector_4f(0);
     Matrix_4f view_matrix{};
+    glm::mat4 view_matrix_glm = glm::mat4(1.0f);
     Matrix_4f projection_matrix{};
     
     virtual void update_view_matrix() = 0;
@@ -178,6 +193,7 @@ namespace Wave
     
     INTERFACE_PRINT
     
+    const char *get_type() override;
     void on_event(Event &event) override;
     void move(const Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
@@ -203,6 +219,7 @@ namespace Wave
     
     INTERFACE_PRINT
     
+    const char *get_type() override;
     void move(const Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;

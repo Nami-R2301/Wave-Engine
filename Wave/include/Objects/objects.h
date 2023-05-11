@@ -35,7 +35,7 @@ namespace Wave
     [[nodiscard]] Object_2D clone() const;
     void normalize();
     
-    INTERFACE_PRINT;
+    INTERFACE_PRINT
     
     void move(const Vector_3f &vector) override;
     

@@ -59,7 +59,7 @@ void Example_app::init()
 
 void Example_app::on_update(float time_step)
 {
-  Wave::Gl_renderer::clear_bg();
+  Wave::Renderer::clear_bg();
   Engine::on_update(time_step);
 }
 

@@ -2,8 +2,8 @@
 // Created by nami on 05/05/23.
 //
 
+#include <Renderer/gl_renderer.h>
 #include <Window/glfw/glfw_window.h>
-#include <Renderer/renderer.h>
 #include <Events/key_event.h>
 #include <Events/mouse_event.h>
 #include <Events/app_event.h>
@@ -108,7 +108,7 @@ namespace Wave
     glfwPollEvents();
   }
   
-  void Glfw_window::on_update(float time_step)
+  void Glfw_window::on_update([[maybe_unused]] float time_step)
   {
     if (this->is_closing())
     {
@@ -116,7 +116,6 @@ namespace Wave
       Window::get_event_callback_function()(window_closed);
       return;
     }
-    Gl_renderer::set_clear_color(this->bg_color);
     // Refresh framebuffer.
     glfwSwapBuffers(static_cast<GLFWwindow *>(this->get_native_window()));
     glfwSwapInterval(this->vsync);  // Disable/enable Vertical synchronisation (Vsync).
@@ -125,7 +124,7 @@ namespace Wave
   void Glfw_window::bind_api_callbacks()
   {
     glfwSetFramebufferSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()),
-                                   [](GLFWwindow *window_, int32_t width, int32_t height)
+                                   []([[maybe_unused]] GLFWwindow *window_, int32_t width, int32_t height)
                                    {
                                      On_window_resize window_resized(static_cast<float>(width),
                                                                      static_cast<float>(height));
@@ -150,7 +149,7 @@ namespace Wave
                                  });
     
     glfwSetKeyCallback(static_cast<GLFWwindow *>(this->get_native_window()),
-                       [](GLFWwindow *window_, int32_t key, [[maybe_unused]] int32_t scancode,
+                       []([[maybe_unused]] GLFWwindow *window_, int32_t key, [[maybe_unused]] int32_t scancode,
                           int32_t action, [[maybe_unused]] int32_t mods)
                        {
                          On_any_key_event any_key;
@@ -186,7 +185,7 @@ namespace Wave
                          }
                        });
     glfwSetMouseButtonCallback(static_cast<GLFWwindow *>(this->get_native_window()),
-                               [](GLFWwindow *window_, int32_t button, int32_t action,
+                               []([[maybe_unused]] GLFWwindow *window_, int32_t button, int32_t action,
                                   [[maybe_unused]] int32_t mods)
                                {
                                  switch (action)
@@ -225,14 +224,14 @@ namespace Wave
 //                                         this_window_instance.get_event_callback_function()(mouse_movement_event);
 //                                       }));
     glfwSetWindowSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()),
-                              [](GLFWwindow *window_, int32_t width_, int32_t height_)
+                              []([[maybe_unused]] GLFWwindow *window_, int32_t width_, int32_t height_)
                               {
                                 On_window_resize window_resized(static_cast<float>(width_),
                                                                 static_cast<float>(height_));
                                 Window::get_event_callback_function()(window_resized);
                               });
     glfwSetScrollCallback(static_cast<GLFWwindow *>(this->get_native_window()),
-                          [](GLFWwindow *window_, double x_offset, double y_offset)
+                          []([[maybe_unused]] GLFWwindow *window_, double x_offset, double y_offset)
                           {
                             On_mouse_wheel_scroll wheel_input(
                               Vector_2f(static_cast<float>(x_offset),
@@ -331,8 +330,8 @@ namespace Wave
       this->set_width(static_cast<float>(width_));
       this->set_height(static_cast<float>(height_));
     }
-    Gl_renderer::on_window_resize(this, static_cast<float>(this->get_width()),
-                                  static_cast<float>(this->get_height()));
+    Gl_renderer::set_viewport(static_cast<float>(this->get_width()),
+                              static_cast<float>(this->get_height()));
   }
   
   // Signal that the window is closing.
@@ -421,11 +420,6 @@ namespace Wave
     return this->y_scale;
   }
   
-  Color &Glfw_window::get_bg_color()
-  {
-    return this->bg_color;
-  }
-  
   int32_t Glfw_window::get_max_refresh_rate() const
   {
     return this->max_refresh_rate;
@@ -503,7 +497,7 @@ namespace Wave
     Glfw_window::set_height(height_);
     Glfw_window::set_aspect_ratio({width_,
                                    height_});
-    Gl_renderer::on_window_resize(this, width_, height_);
+    Gl_renderer::set_viewport(width_, height_);
   }
   
   void Glfw_window::set_fullscreen(bool fullscreen_state)

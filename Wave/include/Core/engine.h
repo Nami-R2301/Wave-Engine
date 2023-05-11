@@ -1,11 +1,12 @@
 #pragma once
 
+#include <Renderer/renderer.h>
+
 #include <ImGUI/imGUI_layer.h>
 #include <Core/settings.h>
 #include <Core/layer_stack.h>
 
 #include <Window/window.h>
-#include <Renderer/renderer.h>
 #include <Input/input.h>
 
 #include <Events/key_event.h>
