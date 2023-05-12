@@ -73,7 +73,7 @@ namespace Wave
 #endif
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_FLOATING, GLFW_FALSE);
-    glfwWindowHint(GLFW_SAMPLES, 8);
+    glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_RED_BITS, this->monitor_properties.red_bits);
     glfwWindowHint(GLFW_GREEN_BITS, this->monitor_properties.green_bits);
     glfwWindowHint(GLFW_BLUE_BITS, this->monitor_properties.blue_bits);

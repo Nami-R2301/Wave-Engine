@@ -13,9 +13,9 @@ namespace Wave
   Editor::Editor() : Engine(Renderer_api::Opengl, Context_api::Glfw)
   {
     // Add Cameras
-    this->editor_camera = create_shared_pointer<Editor_camera>(Engine::get_main_window()->get_width(),
-                                                               Engine::get_main_window()->get_height(),
-                                                               90.0f, 0.1f, 1000.0f);
+    this->editor_camera = std::make_shared<Editor_camera>(Engine::get_main_window()->get_width(),
+                                                          Engine::get_main_window()->get_height(),
+                                                          90.0f, 0.1f, 1000.0f);
     
     // Add shaders
     this->demo_shaders.emplace_back(Wave::Shader::create("Text",
@@ -25,12 +25,13 @@ namespace Wave
                                                            "../Wave/res/Shaders/text-glyph.frag").c_str()));
     this->demo_shaders.emplace_back(Shader::create("Default",
                                                    Res_loader_3D::load_shader_source(
-                                                     "../Wave/res/Shaders/default.vert").c_str(),
+                                                     "../Wave/res/Shaders/default_3D.vert").c_str(),
                                                    Res_loader_3D::load_shader_source(
-                                                     "../Wave/res/Shaders/default.frag").c_str()));
+                                                     "../Wave/res/Shaders/default_3D.frag").c_str()));
     
     GLint max_samples = 0;
     CHECK_GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+    
     // Setup default viewport framebuffer specs.
     Framebuffer_options fbSpec;
     fbSpec.width = 1920.0f;  // Fullscreen size.
@@ -43,9 +44,9 @@ namespace Wave
     
     // Add objects
     this->demo_objects.emplace_back(
-      create_shared_pointer<Object_3D>(Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
+      std::make_shared<Object_3D>(Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
     this->demo_objects.emplace_back(
-      create_shared_pointer<Object_3D>(Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
+      std::make_shared<Object_3D>(Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
     
     // Add text strings
     Wave::Text_format format = {25.0f,
@@ -58,17 +59,12 @@ namespace Wave
                                                "Wave Engine ~",
                                                format));
     
-    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution));
     push_layer(new Editor_layer(this->editor_camera,
                                 this->demo_shaders,
                                 this->demo_objects,
                                 this->viewport_framebuffer));
+    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution));
     push_overlay(new ImGui_layer());
-  }
-  
-  void Editor::init()
-  {
-    Renderer::set_clear_color(Editor_layer::framebuffer_color);
   }
   
   void Editor::on_update(float time_step)
@@ -95,9 +91,7 @@ namespace Wave
     }
     
     this->viewport_framebuffer->bind();
-    Renderer::set_clear_color(Editor_layer::framebuffer_color);
     Renderer::clear_bg();
-    this->editor_camera->on_update(time_step);
     Engine::on_update(time_step);
     this->viewport_framebuffer->unbind();
     
@@ -107,24 +101,9 @@ namespace Wave
     }
   }
   
-  void Editor::on_event(Event &event)
+  void Editor::init()
   {
-    Engine::on_event(event);
-    this->editor_camera->on_event(event);
-  }
-  
-  bool Editor::window_closed_callback(On_window_close &window_closed_event)
-  {
-    window_closed_event.print(Print_type::Warn);
-    Engine::get_main_window()->close();
-    return true;
-  }
-  
-  bool Editor::window_resize_callback(On_window_resize &window_resized_event)
-  {
-    Engine::window_resize_callback(window_resized_event);
-    this->editor_camera->on_window_resize(window_resized_event);
-    return true;
+    Renderer::set_clear_color(Editor_layer::framebuffer_color);
   }
   
   Engine *create_app()

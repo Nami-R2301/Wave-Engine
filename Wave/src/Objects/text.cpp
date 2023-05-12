@@ -64,7 +64,7 @@ namespace Wave
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::Opengl:return create_shared_pointer<Gl_text>(font_file_path, text_, format_);
+      case Renderer_api::Opengl:return std::make_shared<Gl_text>(font_file_path, text_, format_);
       case Renderer_api::Vulkan:
         alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);

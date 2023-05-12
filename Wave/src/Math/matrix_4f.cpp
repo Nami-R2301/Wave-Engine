@@ -28,7 +28,6 @@ namespace Wave
         set_value(i, j, other_matrix.get_value(i, j));
       }
     }
-    init_identity();
   }
   
   const std::shared_ptr<float[4][4]> &Matrix_4f::get_matrix() const
@@ -58,7 +57,7 @@ namespace Wave
   
   std::string Matrix_4f::to_string() const
   {
-    std::string output("[Matrix] :\n");
+    std::string output("\n");
     char buffer_c[FILENAME_MAX] = {'\0'};
     for (int i = 0; i < get_num_rows(); ++i)
     {
@@ -67,11 +66,11 @@ namespace Wave
         // Last column to print.
         if ((i + 1) * (j + 1) == length())
         {
-          if (snprintf(buffer_c, FILENAME_MAX, "%.2f", get_value(i, j)) >= 0)
+          if (snprintf(buffer_c, FILENAME_MAX, "\t%.2f", get_value(i, j)) >= 0)
           {
             output += buffer_c;
           }
-        } else if (snprintf(buffer_c, FILENAME_MAX, "%.2f,\t", get_value(i, j)) >= 0)
+        } else if (snprintf(buffer_c, FILENAME_MAX, "\t%.2f,\t", get_value(i, j)) >= 0)
         {
           output += buffer_c;
         }
@@ -214,6 +213,18 @@ namespace Wave
     this->matrix.get()[0][0] = right.get_x(), this->matrix.get()[0][1] = right.get_y(), this->matrix.get()[0][2] = right.get_z(),
     this->matrix.get()[1][0] = up.get_x(), this->matrix.get()[1][1] = up.get_y(), this->matrix.get()[1][2] = up.get_z();
     this->matrix.get()[2][0] = direction.get_x(), this->matrix.get()[2][1] = direction.get_y(), this->matrix.get()[2][2] = direction.get_z();
+  }
+  
+  void Matrix_4f::transpose()
+  {
+    Matrix_4f original = *this;
+    for (int i = 0; i < 4; i++)
+    {
+      for (int j = 0; j < 4; j++)
+      {
+        set_value(j, i, original.get_value(i, j));
+      }
+    }
   }
   
   Matrix_4f Matrix_4f::convert(const glm::mat4 &glm_matrix)

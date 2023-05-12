@@ -63,7 +63,9 @@ add_library(Wave STATIC
         Wave/src/Scene/scene.cpp
         Wave/src/Scene/entity.cpp
         Wave/src/Scene/scene_camera.cpp
-        Wave/src/Renderer/gl_shader.cpp)
+        Wave/src/Renderer/gl_shader.cpp
+        Wave/src/Renderer/uniform_buffer.cpp
+        Wave/src/Renderer/gl_uniform_buffer.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -129,6 +131,8 @@ if (UNIX)
             Wave/include/Dependencies
             Wave/include/Dependencies/GL/glfw/include
             Wave/include/Dependencies/imGUI/)
+
+    target_compile_definitions(Editor PUBLIC EDITOR)
 
     target_link_libraries(Editor PUBLIC Wave)
 

@@ -13,6 +13,21 @@ namespace Wave
   {
   }
   
+  std::string Editor_camera::to_string() const
+  {
+    std::string output("[Editor camera] :\n");
+    
+    output += "Camera type --> " + std::string(get_type());
+    output += "Position --> " + this->position.to_string();
+    output += "Focal point --> " + this->focal_point.to_string();
+    output += "Forward --> " + this->forward.to_string();
+    output += "Up --> " + this->up.to_string();
+    output += "View matrix --> " + this->view_matrix.to_string();
+    output += "Projection matrix --> " + this->projection_matrix.to_string();
+    
+    return output;
+  }
+  
   void Editor_camera::update_editor_view()
   {
     this->position = calculate_position();
@@ -23,32 +38,20 @@ namespace Wave
   {
     if (Input::is_key_held(WAVE_KEY_LEFT_CONTROL))
     {
-      Vector_2f delta = (Input::get_mouse_cursor_position() - this->initial_mouse_position) * 0.05f;
+      Vector_2f delta = (Input::get_mouse_cursor_position() - this->initial_mouse_position) * 0.04587f;
       this->initial_mouse_position = Input::get_mouse_cursor_position();
       
       if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_LEFT)) mouse_rotate(delta);
-      else if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_MIDDLE)) mouse_zoom(delta.get_y());
-      else if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_RIGHT)) mouse_pan(delta);
+      if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_MIDDLE)) mouse_pan(delta);
+      if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_RIGHT)) mouse_zoom(delta.get_y());
       update_editor_view();
     }
     // Synchronous tasks.
-    float velocity = 10.0f;
-    if (Input::is_key_held(WAVE_KEY_W))
-    {
-      this->move(this->get_up(), velocity * time_step);
-    }
-    if (Input::is_key_held(WAVE_KEY_A))
-    {
-      this->move(this->get_left(), velocity * time_step);
-    }
-    if (Input::is_key_held(WAVE_KEY_S))
-    {
-      this->move(this->get_up(), -velocity * time_step);
-    }
-    if (Input::is_key_held(WAVE_KEY_D))
-    {
-      this->move(this->get_right(), velocity * time_step);
-    }
+    float velocity = 15.0f;
+    if (Input::is_key_held(WAVE_KEY_W)) this->move(this->get_up(), velocity * time_step);
+    if (Input::is_key_held(WAVE_KEY_A)) this->move(this->get_left(), velocity * time_step);
+    if (Input::is_key_held(WAVE_KEY_S)) this->move(this->get_up(), -velocity * time_step);
+    if (Input::is_key_held(WAVE_KEY_D)) this->move(this->get_right(), velocity * time_step);
     Perspective_camera::update_view_matrix();
   }
   
@@ -80,7 +83,7 @@ namespace Wave
     this->focal_point = Vector_3f(x, y, z);
   }
   
-  void Editor_camera::set_focal_point(const Vector_3f focal_point_)
+  void Editor_camera::set_focal_point(const Vector_3f &focal_point_)
   {
     this->focal_point = focal_point_;
   }
@@ -122,7 +125,7 @@ namespace Wave
   
   bool Editor_camera::on_mouse_scroll(On_mouse_wheel_scroll &event)
   {
-    float delta = event.get_mouse_wheel_offset().get_y();
+    float delta = event.get_mouse_wheel_offset().get_y() * 0.1f;
     this->mouse_zoom(delta);
     update_editor_view();
     Perspective_camera::update_view_matrix();
@@ -133,6 +136,7 @@ namespace Wave
   {
     Vector_2f speed = pan_speed();
     Vector_3f inverse_right = {-get_right().get_x(), -get_right().get_y(), -get_right().get_z()};
+    
     this->focal_point += inverse_right * delta.get_x() * speed.get_x() * this->distance;
     this->focal_point += get_up() * delta.get_y() * speed.get_y() * this->distance;
   }
@@ -141,7 +145,7 @@ namespace Wave
   {
     float yaw_sign = get_up().get_y() < 0 ? -1.0f : 1.0f;
     this->yaw += yaw_sign * delta.get_x() * rotation_speed();
-    this->pitch += delta.get_y() * rotation_speed();
+    this->pitch += delta.get_y() * (rotation_speed() * this->aspect_ratio);
   }
   
   void Editor_camera::mouse_zoom(float delta)
@@ -156,18 +160,18 @@ namespace Wave
   
   Vector_2f Editor_camera::pan_speed() const
   {
-    float x = std::min(this->width / 1000.0f, 2.6f); // max = 2.4f
+    float x = std::min(this->width / 1000.0f, 2.7f);
     float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
     
-    float y = std::min(this->height / 1000.0f, 2.6f); // max = 2.4f
+    float y = std::min(this->height / 1000.0f, 2.7f);
     float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
     
     return {xFactor, yFactor};
   }
   
-  float Editor_camera::rotation_speed() const
+  float Editor_camera::rotation_speed()
   {
-    return 2.0f;
+    return 0.65f;
   }
   
   float Editor_camera::zoom_speed() const

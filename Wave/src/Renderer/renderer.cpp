@@ -2,6 +2,7 @@
 #include <Renderer/gl_renderer.h>
 
 
+
 namespace Wave
 {
   
@@ -289,9 +290,7 @@ namespace Wave
     {
       case Renderer_api::Opengl:
       {
-        Gl_renderer::send(dynamic_cast<Gl_shader &>(*shader),
-                          dynamic_cast<Gl_vertex_array_buffer &>(*vertexArray),
-                          transform);
+        Gl_renderer::send(shader, vertexArray, transform);
         break;
       }
       default:break;

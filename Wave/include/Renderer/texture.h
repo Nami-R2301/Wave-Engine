@@ -18,7 +18,7 @@ namespace Wave
     Texture() = default;
     explicit Texture(const char *file_path);
     Texture(const char *file_path, FT_Face face);
-    ~Texture() override = default;
+    ~Texture() override;
     
     void bind_to_context();
     

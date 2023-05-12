@@ -12,13 +12,13 @@ namespace Wave
   {
     switch (Renderer::get_api())
     {
-      case Renderer_api::Opengl:return create_shared_pointer<Gl_shader>(name, vertex_source, fragment_source);
+      case Renderer_api::Opengl:return std::make_shared<Gl_shader>(name, vertex_source, fragment_source);
       default:
         Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
                                                    "Api not supported at the moment! Please select OpenGL instead.",
                                                    "Shader::create(const std::string &name, const char *vertex_source, "
                                                    "const char *fragment_source)", "shader.cpp", __LINE__ - 9);
     }
-    return create_shared_pointer<Gl_shader>(name, vertex_source, fragment_source);
+    return std::make_shared<Gl_shader>(name, vertex_source, fragment_source);
   }
 }

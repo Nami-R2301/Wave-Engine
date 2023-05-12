@@ -135,9 +135,11 @@ namespace Wave
                     uniform_location = glGetUniformLocation(this->program_id, uniform_name));
     if (uniform_location == -1)
     {
+      char buffer[FILENAME_MAX * 4]{0};
+      snprintf(buffer, sizeof(buffer), "%s not found in current active program or program is not active",
+               uniform_name);
       Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_INVALID_UNIFORM,
-                                                 "Uniform not found in current active program or program is"
-                                                 " not active!",
+                                                 buffer,
                                                  "get_uniform_location(const char *uniform_name)",
                                                  "shader.cpp", __LINE__ - 7);
     }

@@ -22,11 +22,11 @@ namespace Wave
     {
       // Code here will be called immediately after the constructor (right
       // before each test).
-      this->dummy_camera = Wave::create_shared_pointer<Wave::Perspective_camera>(1920.0f,
-                                                                                 1080.0f,
-                                                                                 90.0f,
-                                                                                 0.1f,
-                                                                                 1000.0f).get();
+      this->dummy_camera = std::make_shared<Wave::Perspective_camera>(1920.0f,
+                                                                      1080.0f,
+                                                                      90.0f,
+                                                                      0.1f,
+                                                                      1000.0f).get();
     }
     
     void TearDown() override

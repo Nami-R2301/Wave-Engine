@@ -73,6 +73,11 @@ namespace Wave
       return this->view_matrix;
     };
     
+    [[nodiscard]] Matrix_4f &get_view_matrix()
+    {
+      return this->view_matrix;
+    };
+    
     [[nodiscard]] const glm::mat4 &get_view_glm_matrix() const
     {
       return this->view_matrix_glm;
@@ -83,7 +88,10 @@ namespace Wave
       return this->projection_matrix;
     };
     
-    virtual void on_window_resize(On_window_resize &resize_event) = 0;
+    [[nodiscard]] Matrix_4f &get_projection_matrix()
+    {
+      return this->projection_matrix;
+    };
     
     void set_width(float width_)
     {
@@ -155,16 +163,19 @@ namespace Wave
       this->up = up_.normalize();
     };
     
-    [[nodiscard]] virtual const char *get_type() = 0;
+    [[nodiscard]] virtual const char *get_type() const = 0;
+    virtual void on_window_resize(On_window_resize &resize_event) = 0;
     virtual void on_event(Event &event) = 0;
     virtual void move(const Vector_3f &direction, float amount) = 0;
     virtual void move(float x, float y, float z, float amount) = 0;
     virtual void rotate_x(float angle) = 0;
     virtual void rotate_y(float angle) = 0;
+    virtual void update_view_matrix() = 0;
+    virtual void update_projection_matrix() = 0;
     protected:
     float width = 640;
     float height = 480;
-    float aspect_ratio = 0.33f;
+    float aspect_ratio = 640.0f / 480.0f;
     Vector_2f center_position = Vector_2f(0);
     Vector_3f position = Vector_3f(0, 0, -1);
     Vector_3f forward = Vector_3f(0);
@@ -173,9 +184,6 @@ namespace Wave
     Matrix_4f view_matrix{};
     glm::mat4 view_matrix_glm = glm::mat4(1.0f);
     Matrix_4f projection_matrix{};
-    
-    virtual void update_view_matrix() = 0;
-    virtual void update_projection_matrix() = 0;
   };
   
   class Perspective_camera : public Camera
@@ -193,7 +201,7 @@ namespace Wave
     
     INTERFACE_PRINT
     
-    const char *get_type() override;
+    const char *get_type() const override;
     void on_event(Event &event) override;
     void move(const Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
@@ -219,7 +227,7 @@ namespace Wave
     
     INTERFACE_PRINT
     
-    const char *get_type() override;
+    const char *get_type() const override;
     void move(const Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;

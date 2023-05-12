@@ -20,6 +20,7 @@
 #include <Renderer/vertex_array_buffer.h>
 #include <Window/window.h>
 #include <Renderer/framebuffer.h>
+#include <Renderer/uniform_buffer.h>
 
 #ifndef DEBUG
 
@@ -45,11 +46,22 @@
     Wave::alert(WAVE_INSTRUCTION_DONE);
 #endif  // Debug
 
+constexpr int max_draw_commands = 1000;
+
 namespace Wave
 {
   
   class Renderer
   {
+    public:
+    typedef struct Draw_commands_list
+    {
+      std::vector<std::string> names;
+      std::vector<std::shared_ptr<Texture>> textures;
+      std::vector<std::shared_ptr<Vertex_array_buffer>> vertex_array_buffers;
+      std::vector<std::shared_ptr<Uniform_buffer>> uniform_buffers;
+    } Draw_commands_list;
+    
     public:
     static void create(Renderer_api api);
     static void init();
@@ -69,7 +81,14 @@ namespace Wave
     // Events
     static void on_event(Event &event);
     
+    // Scene setup
     static void begin_scene(Camera &camera);
+    
+    template<typename T>
+    static void add(T objects)
+    {
+    }
+    
     static void end_scene();
     
     // Load assets

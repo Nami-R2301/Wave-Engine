@@ -24,10 +24,21 @@ namespace Wave
   void Editor_layer::on_attach()
   {
     // Setup object shaders.
-    this->objects[0]->add_texture(Texture("../Wave/res/Textures/tiles.png"));
+    this->objects[0]->add_texture(std::make_shared<Texture>("../Wave/res/Textures/tiles.png"));
     this->shaders[1]->bind();
+    
+    unsigned int u_camera_block = glGetUniformBlockIndex(this->shaders[1]->get_id(), "u_camera");
+    CHECK_GL_CALL(glUniformBlockBinding(this->shaders[1]->get_id(), u_camera_block, 3));
+    
     this->shaders[1]->set_uniform("u_has_texture", true);
     this->shaders[1]->set_uniform("u_sampler", 0);
+    
+    // Setup objects in scene.
+    Wave::Renderer::load_object(this->objects[0].get());
+    this->objects[0]->translate(10, -10, 20);
+    this->objects[0]->rotate(90, -90, 0);
+    
+    this->shaders[1]->set_uniform("u_model", &this->objects[0]->get_model_matrix().get_matrix()[0][0]);
     this->shaders[1]->unbind();
     
     // Setup framebuffer shader.
@@ -36,28 +47,18 @@ namespace Wave
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert").c_str(),
                                                                                  Res_loader_3D::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag").c_str());
-    
-    // Setup objects in scene.
-    Wave::Renderer::load_object(this->objects[0].get());
-    this->objects[0]->translate(10, -10, 20);
-//    this->objects[1]->translate(0, 0, -10);
-    this->objects[0]->rotate(90, -90, 0);
   }
   
   void Editor_layer::on_detach()
   {
-    for (const auto &shader: this->shaders) shader->unbind();
+    for (const auto &shader: this->shaders) shader->unbind();  // Unbind before destruction.
   }
   
-  void Editor_layer::on_update([[maybe_unused]] float time_step)
+  void Editor_layer::on_update(float time_step)
   {
-    //  Update objects.
-    this->shaders[1]->bind();
-    this->shaders[1]->set_uniform("u_transform",
-                                  &Wave::Transform::get_transform_matrix(this->objects[0]->get_model_matrix(),
-                                                                         this->camera->get_view_matrix(),
-                                                                         this->camera->get_projection_matrix()).get_matrix()[0][0]);
+    this->camera->on_update(time_step);  // Update camera.
     
+    // Update window.
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
     {
       Wave::Display_settings::toggle_fullscreen(Wave::Engine::get_main_window());
@@ -95,12 +96,16 @@ namespace Wave
       Wave::Engine::get_main_window()->close();
     }
     
-    Wave::Renderer::draw_loaded_objects(1);
+    //  Update objects.
+    this->shaders[1]->bind();
+    Renderer::begin_scene(*this->camera);
+    Renderer::draw_loaded_objects(1);
     this->shaders[1]->unbind();
   }
   
   void Editor_layer::on_event([[maybe_unused]] Event &event)
   {
+    this->camera->on_event(event);
   }
   
   void Editor_layer::on_ui_render(float time_step)
@@ -143,18 +148,18 @@ namespace Wave
                                                                        Engine::get_main_window()->get_height()));
       
       ImGuiID dock_main_id = Editor_layer::dockSpace_id;
-      Editor_layer::scene_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.15f, nullptr,
+      Editor_layer::scene_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr,
                                                                       &dock_main_id);
       Editor_layer::stats_panel_dock_id = ImGui::DockBuilderSplitNode(Editor_layer::scene_panel_dock_id, ImGuiDir_Down,
-                                                                      0.3f, nullptr,
+                                                                      0.4f, nullptr,
                                                                       &(Editor_layer::scene_panel_dock_id));
       Editor_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.1f, nullptr,
                                                                        &dock_main_id);
       
       ImGui::DockBuilderDockWindow("Viewport", dock_main_id);
       ImGui::DockBuilderDockWindow("Scene", Editor_layer::scene_panel_dock_id);
-      ImGui::DockBuilderDockWindow("Events", Editor_layer::events_panel_dock_id);
-      ImGui::DockBuilderDockWindow("Info", Editor_layer::stats_panel_dock_id);
+      ImGui::DockBuilderDockWindow("System Info", Editor_layer::events_panel_dock_id);
+      ImGui::DockBuilderDockWindow("Entity Info", Editor_layer::stats_panel_dock_id);
       ImGui::DockBuilderFinish(dock_main_id);
       this->viewport_panel_dock_id = dock_main_id;
     }
@@ -187,13 +192,12 @@ namespace Wave
     ImGui::EndMenuBar();
     
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 10.0f));
-    if (ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_None))
+    if (ImGui::Begin("Scene", &(Editor_layer::dockSpace_open), ImGuiWindowFlags_None))
     {
+      ImGui::PushFont(bold);
       if (ImGui::TreeNodeEx("Background", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
       {
-        ImGui::PushFont(bold);
         ImGui::ColorEdit3("Color", &Editor_layer::framebuffer_color[0]);
-        ImGui::PopFont();
         ImGui::TreePop();
       }
       ImGui::Separator();
@@ -201,30 +205,30 @@ namespace Wave
                             ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
       {
         float min_x = -100.0f, max_x = 100.0f, min_y = -100.0f, max_y = 100.0f, min_depth = -100.0f, max_depth = 100.0f;
-        ImGui::PushFont(bold);
         ImGui::SliderScalar("X", ImGuiDataType_Float, &this->camera->get_position()[0], &min_x, &max_x);
         ImGui::SliderScalar("Y", ImGuiDataType_Float, &this->camera->get_position()[1], &min_y, &max_y);
         ImGui::SliderScalar("Z", ImGuiDataType_Float, &this->camera->get_position()[2], &min_depth, &max_depth);
         
         this->camera->set_position(this->camera->get_position());
         
-        ImGui::PopFont();
         ImGui::TreePop();
         
-        if (ImGui::Begin("Info"))
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 20.0f));
+        ImGui::PushFont(io.FontDefault);
+        if (ImGui::Begin("Entity Info", &(Editor_layer::dockSpace_open), ImGuiWindowFlags_None))
         {
-          auto focal_point = this->camera->get_focal_point();
-          ImGui::Text("Camera type : %s", this->camera->get_type());
-          ImGui::Text("Focal point : (x : %.2f, y : %.2f, z :%.2f)",
-                      focal_point.get_x(), focal_point.get_y(), focal_point.get_z());
+          ImGui::Text("Properties : %s", this->camera->to_string().c_str());
         }
+        ImGui::PopFont();
+        ImGui::PopStyleVar();
         ImGui::End();
       }
+      ImGui::PopFont();
     }
     ImGui::End();  // Scene hierarchy
     ImGui::PopStyleVar();  // Window padding
     
-    if (ImGui::Begin("Events"))
+    if (ImGui::Begin("System Info", &(Editor_layer::dockSpace_open), ImGuiWindowFlags_None))
     {
       ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)", 1000.0f * time_step,
                   static_cast<int>(Engine::get_engine_framerate()));

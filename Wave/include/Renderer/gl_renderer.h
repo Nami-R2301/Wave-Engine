@@ -48,6 +48,7 @@ namespace Wave
   class Gl_renderer
   {
     public:
+    public:
     Gl_renderer() = default;
     ~Gl_renderer() = default;
     
@@ -64,8 +65,8 @@ namespace Wave
     static void begin_scene(Camera &camera);
     static void end_scene();
     static void flush();
-    static void send(const Gl_shader &shader,
-                     const Gl_vertex_array_buffer &vertexArray,
+    static void send(const std::shared_ptr<Shader> &shader,
+                     const std::shared_ptr<Vertex_array_buffer> &vertexArray,
                      const Matrix_4f &transform = Matrix_4f());
     static void on_event(Event &event);
     [[maybe_unused]] static const char *get_gl_version();
@@ -96,14 +97,12 @@ namespace Wave
     GL_ASYNC_ERROR_CALLBACK
     
     // Cleanup.
-    static void delete_gl_buffers();
     static void shutdown();
     [[nodiscard]] static bool has_crashed();
     private:
     static Renderer_state state;
     static Renderer_api api;
-    static std::shared_ptr<Vertex_array_buffer> vertex_array_buffers;
-    static std::vector<Texture> textures;
+    static Renderer::Draw_commands_list draw_commands;
     static std::function<void(Event &event)> event_callback_function;
     
     static void draw_object();

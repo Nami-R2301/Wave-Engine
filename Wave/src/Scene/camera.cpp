@@ -25,17 +25,18 @@ namespace Wave
     Perspective_camera::update_projection_matrix();
   }
   
-  const char *Perspective_camera::get_type()
+  const char *Perspective_camera::get_type() const
   {
-    return "Perspective";
+    return "Perspective\n";
   }
   
   std::string Perspective_camera::to_string() const
   {
     std::string output("[Perspective camera] :\n");
     
+    output += "Camera type --> " + std::string(get_type());
     output += "Y-axis --> " + y_axis.to_string();
-    output += "Position on screen --> " + this->position.to_string();
+    output += "Position --> " + this->position.to_string();
     output += "Target --> " + this->forward.to_string();
     output += "Up --> " + this->up.to_string();
     output += "View matrix --> " + this->view_matrix.to_string();
@@ -111,6 +112,7 @@ namespace Wave
                                            -get_position().get_y(),
                                            -get_position().get_z()));
     this->view_matrix = orientation * rotation * translation;
+    this->view_matrix.transpose();
   }
   
   void Perspective_camera::update_projection_matrix()
@@ -118,6 +120,7 @@ namespace Wave
     this->projection_matrix.init_perspective_projection(this->fov,
                                                         this->z_near,
                                                         this->z_far);
+    this->projection_matrix.transpose();
   }
   
   /******************************************** ORTHOGRAPHIC CAMERA ******************************************/
@@ -132,18 +135,18 @@ namespace Wave
     Orthographic_camera::update_projection_matrix();
   }
   
-  const char *Orthographic_camera::get_type()
+  const char *Orthographic_camera::get_type() const
   {
-    return "Orthographic";
+    return "Orthographic\n";
   }
   
   std::string Orthographic_camera::to_string() const
   {
     std::string output("[Orthographic camera] :\n");
     
-    output += "Y-axis --> " + y_axis.to_string();
-    output += "Position on screen --> " + this->position.to_string();
-    output += "Target --> " + this->forward.to_string();
+    output += "Camera type --> " + std::string(get_type());
+    output += "Position --> " + this->position.to_string();
+    output += "Forward --> " + this->forward.to_string();
     output += "Up --> " + this->up.to_string();
     output += "View matrix --> " + this->view_matrix.to_string();
     output += "Projection matrix --> " + this->projection_matrix.to_string();

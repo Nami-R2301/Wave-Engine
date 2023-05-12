@@ -37,6 +37,7 @@ namespace Wave
     
     INTERFACE_PRINT
     
+    void transpose();
     static Matrix_4f convert(const glm::mat4 &glm_matrix);
     
     Matrix_4f operator*(const Matrix_4f &other_matrix) const;

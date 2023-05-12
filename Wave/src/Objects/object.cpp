@@ -19,13 +19,13 @@ namespace Wave
     this->vertices = vertices_;
   }
   
-  Object_2D::Object_2D(const std::vector<Vertex_2D> &vertices_, const std::vector<Texture> &textures_)
+  Object_2D::Object_2D(const std::vector<Vertex_2D> &vertices_, const std::vector<std::shared_ptr<Texture>> &textures_)
   {
     this->vertices = vertices_;
     this->textures = textures_;
   }
   
-  Object_2D::Object_2D(const std::vector<Vertex_2D> &vertices_, const std::vector<Texture> &textures_,
+  Object_2D::Object_2D(const std::vector<Vertex_2D> &vertices_, const std::vector<std::shared_ptr<Texture>> &textures_,
                        const Matrix_4f &model_matrix_)
   {
     this->vertices = vertices_;
@@ -34,7 +34,7 @@ namespace Wave
   }
   
   Object_2D::Object_2D(const Vector_2f &position_on_screen_, const std::vector<Vertex_2D> &vertices_,
-                       const std::vector<Texture> &textures_, const Matrix_4f &model_matrix_)
+                       const std::vector<std::shared_ptr<Texture>> &textures_, const Matrix_4f &model_matrix_)
   {
     this->position = Vector_3f(position_on_screen_.get_x(), position_on_screen_.get_y(), 0);
     this->vertices = vertices_;
@@ -103,7 +103,7 @@ namespace Wave
     return this->tex_coords;
   }
   
-  const std::vector<Texture> &Object_2D::get_textures() const
+  const std::vector<std::shared_ptr<Texture>> &Object_2D::get_textures() const
   {
     return this->textures;
   }
@@ -171,18 +171,18 @@ namespace Wave
     this->faces = faces_;
   }
   
-  void Object_2D::add_texture(const Texture &texture_)
+  void Object_2D::add_texture(const std::shared_ptr<Texture> &texture_)
   {
     this->textures.emplace_back(texture_);
   }
   
-  void Object_2D::replace_texture(uint64_t index, const Wave::Texture &texture_)
+  void Object_2D::replace_texture(uint64_t index, const std::shared_ptr<Texture> &texture_)
   {
     if (index >= this->textures.size()) return;
     this->textures[index] = texture_;
   }
   
-  void Object_2D::set_textures(const std::vector<Texture> &textures_)
+  void Object_2D::set_textures(const std::vector<std::shared_ptr<Texture>> &textures_)
   {
     this->textures = textures_;
   }
@@ -278,7 +278,7 @@ namespace Wave
     for (unsigned int i = 0; i < this->textures.size(); ++i)
     {
       if (snprintf(big_buffer, this->vertices.size() + this->textures.size(), "%50s[%d] = %s", DEFAULT, i,
-                   this->textures[i].to_string().c_str()) < 0)
+                   this->textures[i]->to_string().c_str()) < 0)
       {
         output += "ERROR : Snprintf error when trying to display [Object_2D]!";
         continue;
@@ -317,7 +317,7 @@ namespace Wave
   }
   
   Object_3D::Object_3D(const std::vector<Vertex_3D> &vertices_, const std::vector<uint32_t> &faces_,
-                       const std::vector<Texture> &textures_)
+                       const std::vector<std::shared_ptr<Texture>> &textures_)
   {
     this->vertices = vertices_;
     this->faces = faces_;
@@ -408,7 +408,7 @@ namespace Wave
     return this->tex_coords;
   }
   
-  const std::vector<Texture> &Object_3D::get_textures() const
+  const std::vector<std::shared_ptr<Texture>> &Object_3D::get_textures() const
   {
     return this->textures;
   }
@@ -475,18 +475,18 @@ namespace Wave
     this->faces = faces_;
   }
   
-  void Object_3D::add_texture(const Texture &texture_)
+  void Object_3D::add_texture(const std::shared_ptr<Texture> &texture_)
   {
     this->textures.emplace_back(texture_);
   }
   
-  void Object_3D::replace_texture(uint64_t index, const Wave::Texture &texture_)
+  void Object_3D::replace_texture(uint64_t index, const std::shared_ptr<Texture> &texture_)
   {
     if (index >= this->textures.size()) return;
     this->textures[index] = texture_;
   }
   
-  void Object_3D::set_textures(const std::vector<Texture> &textures_)
+  void Object_3D::set_textures(const std::vector<std::shared_ptr<Texture>> &textures_)
   {
     this->textures = textures_;
   }
@@ -634,10 +634,10 @@ namespace Wave
       index++;
     }
     
-    for (const Texture &texture: this->textures)
+    for (const auto &texture: this->textures)
     {
       if (snprintf(big_buffer, max_size * UINT16_MAX, "%50s[%ld] = %s", DEFAULT, index,
-                   texture.to_string().c_str()) < 0)
+                   texture->to_string().c_str()) < 0)
       {
         output += "ERROR : Snprintf error when trying to display [Object_3D]!";
         index++;

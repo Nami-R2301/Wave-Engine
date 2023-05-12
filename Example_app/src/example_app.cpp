@@ -10,30 +10,30 @@
 Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl, Wave::Context_api::Glfw)
 {
   // Add Cameras
-  this->demo_perspective_camera = Wave::create_shared_pointer<Wave::Editor_camera>(
-      Engine::get_main_window()->get_width(),
-      Engine::get_main_window()->get_height(),
-      90.0f, 0.1f, 1000.0f);
+  this->demo_perspective_camera = std::make_shared<Wave::Editor_camera>(
+    Engine::get_main_window()->get_width(),
+    Engine::get_main_window()->get_height(),
+    90.0f, 0.1f, 1000.0f);
   
   
   // Add shaders
   this->demo_object_shaders.emplace_back(Wave::Shader::create("Default",
                                                               Wave::Res_loader_3D::load_shader_source(
-                                                                  "../Wave/res/Shaders/default.vert").c_str(),
+                                                                "../Wave/res/Shaders/default_3D.vert").c_str(),
                                                               Wave::Res_loader_3D::load_shader_source(
-                                                                  "../Wave/res/Shaders/default.frag").c_str()));
+                                                                "../Wave/res/Shaders/default_3D.frag").c_str()));
   this->demo_text_shaders.emplace_back(Wave::Shader::create("Text",
                                                             Wave::Res_loader_3D::load_shader_source(
-                                                                "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                              "../Wave/res/Shaders/text-glyph.vert").c_str(),
                                                             Wave::Res_loader_3D::load_shader_source(
-                                                                "../Wave/res/Shaders/text-glyph.frag").c_str()));
+                                                              "../Wave/res/Shaders/text-glyph.frag").c_str()));
   
   
   // Add objects
   this->demo_objects.emplace_back(
-      Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
+    std::make_shared<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
   this->demo_objects.emplace_back(
-      Wave::create_shared_pointer<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
+    std::make_shared<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
   
   // Add text strings
   Wave::Text_format format = {25.0f,
@@ -54,12 +54,12 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl, Wave::Cont
 
 void Example_app::init()
 {
-  
+  Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
 }
 
 void Example_app::on_update(float time_step)
 {
-  Wave::Renderer::clear_bg();
+  Wave::Gl_renderer::clear_bg();
   Engine::on_update(time_step);
 }
 

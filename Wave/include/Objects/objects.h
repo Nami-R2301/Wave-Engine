@@ -23,11 +23,11 @@ namespace Wave
     Object_2D(const Vector_2f &position_on_screen_, const std::vector<Vertex_2D> &vertices_);
     explicit Object_2D(const std::vector<Vertex_2D> &vertices_);
     Object_2D(const std::vector<Vertex_2D> &vertices_,
-              const std::vector<Texture> &textures_);
+              const std::vector<std::shared_ptr<Texture>> &textures_);
     Object_2D(const std::vector<Vertex_2D> &vertices_,
-              const std::vector<Texture> &textures_, const Matrix_4f &model_matrix_);
+              const std::vector<std::shared_ptr<Texture>> &textures_, const Matrix_4f &model_matrix_);
     Object_2D(const Vector_2f &position_on_screen_, const std::vector<Vertex_2D> &vertices_,
-              const std::vector<Texture> &textures_, const Matrix_4f &model_matrix_);
+              const std::vector<std::shared_ptr<Texture>> &textures_, const Matrix_4f &model_matrix_);
     Object_2D(const Object_2D &obj);
     explicit Object_2D(const Mesh_2D &mesh);
     ~Object_2D() override = default;
@@ -46,7 +46,7 @@ namespace Wave
     [[nodiscard]] static uint64_t get_vertex_size();
     [[nodiscard]] const std::vector<uint32_t> &get_faces() const;
     [[nodiscard]] const std::vector<Vector_2f> &get_tex_coords() const;
-    [[nodiscard]] const std::vector<Texture> &get_textures() const;
+    [[nodiscard]] const std::vector<std::shared_ptr<Texture>> &get_textures() const;
     [[nodiscard]] const Matrix_4f &get_model_matrix() const;
     [[nodiscard]] const Transform &get_model_transform() const;
     
@@ -62,9 +62,9 @@ namespace Wave
     void replace_vertex(uint64_t index, const Vertex_2D &new_vertex);
     void set_vertices(const std::vector<Vertex_2D> &vertices_);
     
-    void add_texture(const Texture &texture_);
-    void replace_texture(uint64_t index, const Texture &texture_);
-    void set_textures(const std::vector<Texture> &textures_);
+    void add_texture(const std::shared_ptr<Texture> &texture_);
+    void replace_texture(uint64_t index, const std::shared_ptr<Texture> &texture_);
+    void set_textures(const std::vector<std::shared_ptr<Texture>> &textures_);
     
     void set_texture_coord(uint64_t index, const Vector_2f &tex_coords_);
     void set_texture_coords(const std::vector<Vector_2f> &tex_coords_);
@@ -87,7 +87,7 @@ namespace Wave
     std::vector<Vertex_2D> vertices;
     std::vector<uint32_t> faces;
     std::vector<Vector_2f> tex_coords;
-    std::vector<Texture> textures;
+    std::vector<std::shared_ptr<Texture>> textures;
     Matrix_4f model_matrix{};
     Transform model_transform{};
   };
@@ -153,7 +153,7 @@ namespace Wave
     Object_3D() = default;
     Object_3D(const std::vector<Vertex_3D> &vertices_, const std::vector<uint32_t> &faces_);
     Object_3D(const std::vector<Vertex_3D> &vertices_, const std::vector<uint32_t> &faces_,
-              const std::vector<Texture> &textures_);
+              const std::vector<std::shared_ptr<Texture>> &textures_);
     Object_3D(const std::vector<Vertex_3D> &vertices_, const std::vector<uint32_t> &faces_,
               const std::vector<Vector_3f> &normals_);
     explicit Object_3D(const Mesh_3D &mesh);
@@ -174,7 +174,7 @@ namespace Wave
     [[nodiscard]] static uint64_t get_vertex_size();
     [[nodiscard]] const std::vector<uint32_t> &get_faces() const;
     [[nodiscard]] const std::vector<Vector_2f> &get_tex_coords() const;
-    [[nodiscard]] const std::vector<Texture> &get_textures() const;
+    [[nodiscard]] const std::vector<std::shared_ptr<Texture>> &get_textures() const;
     [[nodiscard]] const Matrix_4f &get_model_matrix() const;
     [[nodiscard]] const Transform &get_model_transform() const;
     
@@ -190,9 +190,9 @@ namespace Wave
     void replace_face(uint64_t index, uint32_t face_);
     void set_faces(const std::vector<uint32_t> &faces_);
     
-    void add_texture(const Texture &texture_);
-    void replace_texture(uint64_t index, const Texture &texture_);
-    void set_textures(const std::vector<Texture> &textures_);
+    void add_texture(const std::shared_ptr<Texture> &texture_);
+    void replace_texture(uint64_t index, const std::shared_ptr<Texture> &texture_);
+    void set_textures(const std::vector<std::shared_ptr<Texture>> &textures_);
     
     void set_normal(uint64_t index, const Vector_3f &normal);
     void set_normals(const std::vector<Vector_3f> &normals);
@@ -221,7 +221,7 @@ namespace Wave
     std::vector<Vector_3f> normals;
     std::vector<uint32_t> faces;
     std::vector<Vector_2f> tex_coords;
-    std::vector<Texture> textures;
+    std::vector<std::shared_ptr<Texture>> textures;
     Matrix_4f model_matrix{};
     Transform model_transform{};
   };

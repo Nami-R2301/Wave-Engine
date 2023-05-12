@@ -425,7 +425,7 @@ namespace Wave
   bool Engine::window_closed_callback([[maybe_unused]] On_window_close &window_closed_event)
   {
     window_closed_event.print(Print_type::Warn);
-    Engine::shutdown();
+    Engine::main_window->close();
     return true;
   }
   

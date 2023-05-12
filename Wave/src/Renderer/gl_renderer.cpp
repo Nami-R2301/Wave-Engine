@@ -3,6 +3,7 @@
 //
 
 #include <Renderer/gl_renderer.h>
+#include <Scene/editor_camera.h>
 
 
 namespace Wave
@@ -12,8 +13,7 @@ namespace Wave
                                        nullptr,
                                        nullptr,
                                        WAVE_RENDERER_INIT};
-  std::shared_ptr<Vertex_array_buffer> Gl_renderer::vertex_array_buffers;
-  std::vector<Texture> Gl_renderer::textures;
+  Renderer::Draw_commands_list Gl_renderer::draw_commands;
   std::function<void(Event &)> Gl_renderer::event_callback_function;
   
   bool Gl_renderer::is_running()
@@ -36,21 +36,27 @@ namespace Wave
     return Gl_renderer::event_callback_function;
   }
   
-  void Gl_renderer::begin_scene([[maybe_unused]] Camera &camera)
+  void Gl_renderer::begin_scene(Camera &camera)
   {
+    float *view = &(camera.get_view_matrix().get_matrix()[0][0]);
+    float *projection = &(camera.get_projection_matrix().get_matrix()[0][0]);
+    
+    Gl_renderer::draw_commands.uniform_buffers.back()->set_data(0, 64, view);
+    Gl_renderer::draw_commands.uniform_buffers.back()->set_data(64, 64, projection);
   }
   
   void Gl_renderer::end_scene()
   {
+    Gl_renderer::draw_commands.uniform_buffers.clear();
   }
   
   void Gl_renderer::flush()
   {
   }
   
-  void Gl_renderer::send([[maybe_unused]] const Gl_shader &shader,
-                         [[maybe_unused]] const Gl_vertex_array_buffer &vertexArray,
-                         [[maybe_unused]] const Matrix_4f &transform)
+  void Gl_renderer::send(const std::shared_ptr<Shader> &shader,
+                         const std::shared_ptr<Vertex_array_buffer> &vertexArray,
+                         const Matrix_4f &transform)
   {
   }
   
@@ -199,23 +205,24 @@ namespace Wave
     b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
     
+    Gl_renderer::draw_commands.names.emplace_back("3D Object");
+    Gl_renderer::draw_commands.vertex_array_buffers.emplace_back(Vertex_array_buffer::create());
+    Gl_renderer::draw_commands.vertex_array_buffers.back()->set_index_buffer(
+      Index_buffer::create(object->get_faces().data(),
+                           static_cast<uint32_t>(object->get_faces().size())));
+    Gl_renderer::draw_commands.uniform_buffers.emplace_back(
+      Uniform_buffer::create(64 * 2, 3));
+    
     auto vbo_ = Vertex_buffer::create(object->get_vertices(),
                                       Object_3D::get_vertex_size() *
                                       object->get_vertex_count(),
                                       STATIC_DRAW);
-    if (!Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers = Vertex_array_buffer::create();
-    Gl_renderer::vertex_array_buffers->set_index_buffer(
-      Index_buffer::create(object->get_faces().data(),
-                           static_cast<uint32_t>(object->get_faces().size())));
     Buffer_layout vbo_layout(b_elements);
     vbo_->set_layout(vbo_layout);
-    Gl_renderer::vertex_array_buffers->add_vertex_buffer(vbo_);
     
-    if (!object->get_textures().empty() && object->get_textures()[0].get_id() != 255)
-    {
-      Gl_renderer::textures.emplace_back(object->get_textures()[0]);
-    }
-    Gl_renderer::vertex_array_buffers->unbind();
+    Gl_renderer::draw_commands.vertex_array_buffers.back()->add_vertex_buffer(vbo_);
+    Gl_renderer::draw_commands.textures.emplace_back(object->get_textures()[0]);
+    Gl_renderer::draw_commands.vertex_array_buffers.back()->unbind();
   }
   
   std::shared_ptr<Vertex_array_buffer> Gl_renderer::load_text()
@@ -236,7 +243,8 @@ namespace Wave
   [[maybe_unused]] void Gl_renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index)
   {
     if (!vertices || size == 0) return;
-    Gl_renderer::vertex_array_buffers->get_vertex_buffers()[vbo_index]->set_data(vertices, size, 0);
+    Gl_renderer::draw_commands.vertex_array_buffers.back()->get_vertex_buffers()[vbo_index]->set_data(vertices, size,
+                                                                                                      0);
   }
   
   void Gl_renderer::draw_object(const Object_3D *object)
@@ -260,12 +268,13 @@ namespace Wave
   
   void Gl_renderer::draw_object()
   {
-    Gl_renderer::vertex_array_buffers->bind();
-    if (!Gl_renderer::textures.empty()) Gl_renderer::textures.back().bind(0);
-    CHECK_GL_CALL(glDrawElements(GL_TRIANGLES, Gl_renderer::vertex_array_buffers->get_index_buffer()->get_count(),
+    Gl_renderer::draw_commands.vertex_array_buffers.back()->bind();
+    if (!Gl_renderer::draw_commands.textures.empty()) Gl_renderer::draw_commands.textures.back()->bind(0);
+    CHECK_GL_CALL(glDrawElements(GL_TRIANGLES,
+                                 Gl_renderer::draw_commands.vertex_array_buffers.back()->get_index_buffer()->get_count(),
                                  GL_UNSIGNED_INT, nullptr));
-    Gl_renderer::vertex_array_buffers->unbind();
-    if (!Gl_renderer::textures.empty()) Gl_renderer::textures[0].unbind();
+    Gl_renderer::draw_commands.vertex_array_buffers.back()->unbind();
+    if (!Gl_renderer::draw_commands.textures.empty()) Gl_renderer::draw_commands.textures[0]->unbind();
   }
   
   void Gl_renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao)
@@ -315,21 +324,8 @@ namespace Wave
     CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
   }
   
-  void Gl_renderer::delete_gl_buffers()
-  {
-    if (Gl_renderer::is_running())
-    {
-      for (const auto &texture: Gl_renderer::textures) texture.remove();
-      if (Gl_renderer::vertex_array_buffers) Gl_renderer::vertex_array_buffers->remove();
-    }
-  }
-  
   void Gl_renderer::shutdown()
   {
-    if (Gl_renderer::is_running())
-    {
-      LOG_INSTRUCTION("RENDERER 3D", DEFAULT, "Deleting buffers", Gl_renderer::delete_gl_buffers())
-    }
     Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN});
   }
   

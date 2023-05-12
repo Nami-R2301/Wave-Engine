@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "editor_layer.h"
 #include <wave.h>
 #include <imGUI/imgui_internal.h>
 
@@ -19,10 +18,6 @@ namespace Wave
     
     void init() override;
     void on_update(float time_step) override;
-    void on_event(Wave::Event &event) override;
-    
-    bool window_closed_callback([[maybe_unused]] Wave::On_window_close &window_closed_event) override;
-    bool window_resize_callback([[maybe_unused]] Wave::On_window_resize &window_resized_event) override;
     
     std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;
     std::shared_ptr<Wave::Editor_camera> editor_camera;

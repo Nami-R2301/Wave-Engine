@@ -8,6 +8,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 
 #include <Dependencies/Stb/stb_image.h>
+#include "Renderer/texture.h"
+
 
 namespace Wave
 {
@@ -55,6 +57,11 @@ namespace Wave
     }
   }
   
+  Texture::~Texture()
+  {
+    remove();
+  }
+  
   void Texture::bind_to_context()
   {
     // Initialize openGL texture buffers.
@@ -93,10 +100,7 @@ namespace Wave
   void Texture::remove() const
   {
     unbind();
-    if (this->texture_id != 255)
-    {
-      CHECK_GL_CALL(glDeleteTextures(1, &this->texture_id));
-    }
+    glDeleteTextures(1, &this->texture_id);
   }
   
   uint32_t Texture::get_id() const
