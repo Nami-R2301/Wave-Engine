@@ -5,6 +5,7 @@
 #pragma once
 
 #include <wave.h>
+#include <api_OpenGL.h>
 
 namespace Wave
 {
@@ -18,9 +19,9 @@ namespace Wave
   class Editor_layer : public Layer
   {
     public:
-    Editor_layer(const std::shared_ptr<Wave::Editor_camera> &demo_perspective_camera_,
+    Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
                  const std::vector<std::shared_ptr<Wave::Shader>> &shaders_,
-                 const std::vector<std::shared_ptr<Wave::Object_3D>> &objects_,
+                 const std::vector<std::shared_ptr<Wave::Object>> &objects_,
                  const std::shared_ptr<Framebuffer> &viewport_);
     ~Editor_layer() override = default;
     
@@ -29,17 +30,15 @@ namespace Wave
     
     void on_update(float time_step) override;
     void on_event(Wave::Event &e) override;
-    void on_ui_render(float time_step) override;
+    void on_render() override;
     private:
-    std::shared_ptr<Wave::Editor_camera> camera;
+    static bool system_panel_dock_open;
+    Scene_ui_panel scene_panel = {nullptr, {}};
+    std::vector<std::shared_ptr<Renderer::Draw_command>> pre_rendered_shaders;
+    std::shared_ptr<Wave::Camera> camera;
     std::vector<std::shared_ptr<Wave::Shader>> shaders;
-    std::vector<std::shared_ptr<Wave::Object_3D>> objects;
-    static Color framebuffer_color;
-    bool dockSpace_open = true;
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    std::vector<std::shared_ptr<Wave::Object>> objects;
     Framebuffer_draw_data framebuffer_viewport_data;
-    ImGuiID dockSpace_id = 0, viewport_panel_dock_id = 0, scene_panel_dock_id = 0, events_panel_dock_id = 0, stats_panel_dock_id = 0;
-    
     private:
     static void draw_viewport_quad(const ImDrawList *parentList, const ImDrawCmd *cmd);
     

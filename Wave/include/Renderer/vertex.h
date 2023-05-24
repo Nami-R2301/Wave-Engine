@@ -18,6 +18,7 @@ namespace Wave
     Vertex_2D(const Vector_2f &position, const Color &color_);
     Vertex_2D(const Vector_2f &position, const Vector_2f &tex_coord_);
     Vertex_2D(const Vector_2f &position, const Color &color, const Vector_2f &tex_coord_);
+    Vertex_2D(const Vector_2f &position_, const Vector_2f &normal_, const Color &color_, const Vector_2f &tex_coord_);
     Vertex_2D(const Vertex_2D &other_vertex);
     ~Vertex_2D() = default;
     
@@ -26,11 +27,14 @@ namespace Wave
     void print() const;
     
     [[nodiscard]] Vector_2f get_position() const;
+    [[nodiscard]] Vector_2f get_normal() const;
     [[nodiscard]] const Color &get_color() const;
     [[nodiscard]] const Vector_2f &get_tex_coord() const;
     
     void set_position(const Vector_2f &position_);
     void set_position(float x, float y);
+    void set_normal(const Vector_2f &normal_);
+    void set_normal(float x, float y);
     void set_color(const Color &color_);
     void set_color(float r, float g, float b, float a);
     void set_tex_coord(const Vector_2f &tex_coord_);
@@ -39,9 +43,10 @@ namespace Wave
     bool operator==(const Vertex_2D &other_vertex);
     Vertex_2D &operator=(const Vertex_2D &other_vertex);
     private:
-    Vector_2f position = Vector_2f(0);
+    Vector_2f position = Vector_2f(0.0f);
+    Vector_2f normal = Vector_2f(0.0f);
     Color color;
-    Vector_2f tex_coord = Vector_2f(0);
+    Vector_2f tex_coord = Vector_2f(0.0f);
   };
   
   // Manipulation of vertices to pass on to our opengl vertex_source shaders.

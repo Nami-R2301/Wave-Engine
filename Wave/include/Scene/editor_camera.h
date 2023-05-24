@@ -14,7 +14,7 @@ namespace Wave
     Editor_camera() = default;
     Editor_camera(float width_, float height_, float fov_, float near_clip_, float far_clip_);
     
-    void on_update(float ts);
+    void on_update(float ts) override;
     void on_event(Event &e) override;
     
     void set_distance(float distance_);

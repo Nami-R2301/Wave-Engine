@@ -6,7 +6,7 @@
 
 #if defined (GLEW_STATIC)
 
-#ifdef OPENGL_VERSION_4_3_PLUS  // Opengl 4.3 and above required for async debug polling.
+#ifdef OPENGL_VERSION_4_3_PLUS  // OpenGL 4.3 and above required for async debug polling.
 
 #define GL_ASYNC_ERROR_CALLBACK \
   static void gl_asynchronous_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, \
@@ -41,6 +41,7 @@
 #include <Renderer/gl_framebuffer.h>
 #include <Renderer/gl_vertex_array_buffer.h>
 #include <Renderer/gl_shader.h>
+#include <Renderer/gl_texture.h>
 
 namespace Wave
 {
@@ -53,8 +54,10 @@ namespace Wave
     ~Gl_renderer() = default;
     
     [[nodiscard]] static const Renderer_state &get_state();
-    [[maybe_unused]] [[nodiscard]] static const Renderer_api &get_api();
-    [[maybe_unused]] [[nodiscard]] static const std::function<void(Event &event)> &get_event_callback_function();
+    [[nodiscard]] static const Renderer_api &get_api();
+    [[nodiscard]] static const char *get_api_version();
+    [[nodiscard]] static const char *get_api_shader_version();
+    [[nodiscard]] static const std::function<void(Event &event)> &get_event_callback_function();
     
     static void set_state(Renderer_state new_state);
     static void set_event_callback_function(const std::function<void(Event &event)> &event_callback_function_);
@@ -62,15 +65,13 @@ namespace Wave
     // Initial setup.
     static void init();
     [[nodiscard]] static bool is_running();
-    static void begin_scene(Camera &camera);
-    static void end_scene();
+    static void begin(std::shared_ptr<Camera> &camera);
+    static void end();
     static void flush();
-    static void send(const std::shared_ptr<Shader> &shader,
-                     const std::shared_ptr<Vertex_array_buffer> &vertexArray,
-                     const Matrix_4f &transform = Matrix_4f());
+    static void send(const std::vector<std::shared_ptr<Object>> &objects);
     static void on_event(Event &event);
-    [[maybe_unused]] static const char *get_gl_version();
     static void show_renderer_info();
+    static int32_t get_max_texture_units();
     
     // Frame changes.
     static void clear_bg();
@@ -78,15 +79,13 @@ namespace Wave
     static void set_clear_color(const Color &color);
     
     // Loading objects.
-    [[maybe_unused]] static void load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index = 0);
-    static void load_object(const Object_3D *object);
-    [[nodiscard]] static std::shared_ptr<Vertex_array_buffer> load_text();
+    static void load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index = 0);
+    static void init_object_buffers();
+    static void init_text_buffers();
     
     // Rendering objects.
-    static void draw_object(const Object_3D *object);
-    [[maybe_unused]] static void draw_objects(const std::vector<Object_3D> *objects);
-    static void draw_loaded_objects(uint32_t object_count);
-    static void draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao);
+    static void draw_object(const std::shared_ptr<Object> &object);
+    static void draw_text(const std::shared_ptr<Text> &text);
     
     // Error handling.
     static bool renderer_error_callback([[maybe_unused]] On_renderer_error &renderer_error);
@@ -102,10 +101,12 @@ namespace Wave
     private:
     static Renderer_state state;
     static Renderer_api api;
-    static Renderer::Draw_commands_list draw_commands;
+    static std::shared_ptr<Camera> scene_camera;
+    static std::vector<std::shared_ptr<Texture>> textures;
+    // Map the draw commands to enable querying and overwriting with the name identifier.
+    static std::vector<Renderer::Draw_command *> draw_commands;
+    static std::vector<std::shared_ptr<Uniform_buffer>> uniform_buffers;
     static std::function<void(Event &event)> event_callback_function;
-    
-    static void draw_object();
   };
 }
 

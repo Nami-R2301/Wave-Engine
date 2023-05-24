@@ -1,6 +1,6 @@
 
 #include <Renderer/gl_renderer.h>
-
+#include <Renderer/renderer.h>
 
 
 namespace Wave
@@ -13,11 +13,27 @@ namespace Wave
     return Renderer::api_in_use;
   }
   
+  int32_t Renderer::get_max_texture_units()
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL: return Gl_renderer::get_max_texture_units();
+      default:
+      {
+        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
+                                                   "Api not supported at the moment! Auto selecting OpenGL instead.",
+                                                   "Renderer::init(Renderer_api api)",
+                                                   "renderer.cpp", __LINE__ - 2);
+        return Gl_renderer::get_max_texture_units();
+      }
+    }
+  }
+  
   void Renderer::set_event_callback_function(const std::function<void(Event &)> &callback)
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::set_event_callback_function(callback);
         break;
@@ -37,7 +53,7 @@ namespace Wave
   {
     switch (api)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Renderer::api_in_use = Gl_renderer::get_api();
         break;
@@ -56,7 +72,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::init();
         break;
@@ -68,7 +84,7 @@ namespace Wave
                                                    "Renderer::init(Renderer_api api)",
                                                    "renderer.cpp", __LINE__ - 2);
         Gl_renderer::init();
-        Renderer::api_in_use = Renderer_api::Opengl;
+        Renderer::api_in_use = Renderer_api::OpenGL;
       }
     }
   }
@@ -77,8 +93,30 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:return Gl_renderer::is_running();
+      case Renderer_api::OpenGL:return Gl_renderer::is_running();
       default:return false;
+    }
+  }
+  
+  const char *Renderer::get_api_version()
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL: return Gl_renderer::get_api_version();
+      default:
+        return "Api version undefined! This is likely due to an incorrect renderer API being set as active. "
+               "Refer to the documentation to see if the current API is supported or not.";
+    }
+  }
+  
+  const char *Renderer::get_api_shader_version()
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL: return Gl_renderer::get_api_shader_version();
+      default:
+        return "Api version undefined! This is likely due to an incorrect renderer API being set as active. "
+               "Refer to the documentation to see if the current API is supported or not.";
     }
   }
   
@@ -86,7 +124,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:return Gl_renderer::get_state();
+      case Renderer_api::OpenGL:return Gl_renderer::get_state();
       default:return {nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN};
     }
   }
@@ -95,7 +133,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::gl_clear_errors();
         break;
@@ -108,7 +146,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::clear_bg();
         break;
@@ -121,7 +159,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::set_clear_color(bg_color);
         break;
@@ -134,7 +172,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::set_viewport(viewport.get_x(), viewport.get_y());
         break;
@@ -147,7 +185,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::on_event(event);
         break;
@@ -156,46 +194,66 @@ namespace Wave
     }
   }
   
-  std::shared_ptr<Vertex_array_buffer> Renderer::load_text()
+  void Renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index)
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:return Gl_renderer::load_text();
-      default:return nullptr;
-    }
-  }
-  
-  [[maybe_unused]] void Renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
-        Gl_renderer::load_dynamic_data(vertices, size, vbo_index);
+        Gl_renderer::load_dynamic_data(vertices, size, command_index, vbo_index);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::load_object(const Object_3D *object)
+  void Renderer::prerender_text()
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
-        Gl_renderer::load_object(object);
+        Gl_renderer::init_text_buffers();
         break;
       }
-      default:break;
+      default:
+      {
+        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
+                                                   "[Renderer] --> API currently not supported or active, auto selecting OpenGL API renderer...",
+                                                   __FUNCTION__,
+                                                   "renderer.cpp",
+                                                   __LINE__ - 6);
+        Gl_renderer::init_text_buffers();
+      }
     }
   }
   
-  void Renderer::draw_object(const Object_3D *object)
+  void Renderer::init_object_buffers()
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::init_object_buffers();
+        break;
+      }
+      default:
+      {
+        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
+                                                   "[Renderer] --> API currently not supported or active, auto selecting OpenGL API renderer...",
+                                                   __FUNCTION__,
+                                                   "renderer.cpp",
+                                                   __LINE__ - 6);
+        Gl_renderer::init_object_buffers();
+      }
+    }
+  }
+  
+  void Renderer::draw_object(const std::shared_ptr<Object> &object)
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::draw_object(object);
         break;
@@ -204,65 +262,39 @@ namespace Wave
     }
   }
   
-  void Renderer::draw_objects(const std::vector<Object_3D> *objects)
+  void Renderer::draw_text(const std::shared_ptr<Text> &text)
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
-        Gl_renderer::draw_objects(objects);
+        Gl_renderer::draw_text(text);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::draw_loaded_objects(uint32_t object_count)
+  void Renderer::begin(std::shared_ptr<Camera> &camera)
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
-        Gl_renderer::draw_loaded_objects(object_count);
+        Gl_renderer::begin(camera);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao)
+  void Renderer::end()
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
-        Gl_renderer::draw_text(text, vao);
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::begin_scene(Camera &camera)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::Opengl:
-      {
-        Gl_renderer::begin_scene(camera);
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::end_scene()
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::Opengl:
-      {
-        Gl_renderer::end_scene();
+        Gl_renderer::end();
         break;
       }
       default:break;
@@ -273,7 +305,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::flush();
         break;
@@ -282,15 +314,13 @@ namespace Wave
     }
   }
   
-  void Renderer::send(const std::shared_ptr<Shader> &shader,
-                      const std::shared_ptr<Vertex_array_buffer> &vertexArray,
-                      const Matrix_4f &transform)
+  void Renderer::send(const std::vector<std::shared_ptr<Object>> &objects)
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
-        Gl_renderer::send(shader, vertexArray, transform);
+        Gl_renderer::send(objects);
         break;
       }
       default:break;
@@ -301,7 +331,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         Gl_renderer::shutdown();
         break;
@@ -314,7 +344,7 @@ namespace Wave
   {
     switch (Renderer::api_in_use)
     {
-      case Renderer_api::Opengl:return Gl_renderer::has_crashed();
+      case Renderer_api::OpenGL:return Gl_renderer::has_crashed();
       default:return true;
     }
   }

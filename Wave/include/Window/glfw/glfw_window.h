@@ -14,15 +14,14 @@ namespace Wave
   class Glfw_window : public Window
   {
     public:
-    Glfw_window();
-    explicit Glfw_window(Context_api api_chosen);
+    explicit Glfw_window(Window_properties_s options);
     ~Glfw_window() override;
     
     void setup_api() const override;
     void setup_monitor() override;
     void create_window() override;
     void poll_api_events() override;
-    void on_update(float time_step) override;
+    void on_render() override;
     void bind_api_callbacks() override;
     void unbind_api_callback(const Event &event) override;
     void toggle_fullscreen() override;
@@ -34,7 +33,8 @@ namespace Wave
     
     // Return a glfwWindow instance in case there's a need to manipulate the window directly.
     [[nodiscard]] bool glfw_is_init() const;
-    [[nodiscard]] Context_api get_context() const override;
+    [[nodiscard]] Context_api_e get_context() const override;
+    [[nodiscard]] std::string get_context_version() const override;
     [[nodiscard]] void *get_native_window() const override;
     [[nodiscard]] void *get_native_monitor() const override;
     [[nodiscard]] const char *get_title() const override;
@@ -44,6 +44,7 @@ namespace Wave
     [[nodiscard]] const Vector_2f &get_aspect_ratio() const override;
     [[nodiscard]] int32_t get_refresh_rate() const override;
     [[nodiscard]] int32_t get_max_refresh_rate() const override;
+    [[nodiscard]] int32_t get_samples() const override;
     [[nodiscard]] bool is_vsync() const override;
     [[nodiscard]] bool is_minimized() const override;
     [[nodiscard]] bool is_focused() const override;
@@ -53,6 +54,9 @@ namespace Wave
     [[nodiscard]] const Vector_2f &get_window_pos() const override;
     
     static void glfw_error_callback(int error_code, const char *description);
+    
+    [[nodiscard]] static const std::function<void(Event &event)> &get_event_callback_function();
+    static void set_event_callback_function(const std::function<void(Event &)> &callback_function);
     
     void set_glfw_init_status(bool status);
     void set_title(const char *title_) override;
@@ -74,12 +78,12 @@ namespace Wave
     bool operator==(const Glfw_window &window_);
     private:
     bool glfw_init = false;  // Flag to check glfw prepare_mesh status.
-    Context_api context_api = Context_api::Glfw;
+    Context_api_e context_api = Context_api_e::Glfw;
     void *window = nullptr;
     void *monitor = nullptr;
-    Monitor_properties monitor_properties{nullptr};
-    bool vsync = false;
+    Window_properties_s window_properties{nullptr};
     int32_t max_refresh_rate = -1;  // Set max possible fps value for primary display, useful for frame limiting.
+    int32_t samples = 4;  // Framebuffer multisampling.
     
     // Default Window attributes (Center).
     Vector_2f position_on_screen;
@@ -91,6 +95,8 @@ namespace Wave
     bool fullscreen = false;
     bool request_closing = false;
     Api_info api_info{};
+    
+    static std::function<void(Event &event)> event_callback_function;
   };
 } // Wave
 

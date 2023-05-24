@@ -45,20 +45,20 @@ namespace Wave
     Entity GetPrimaryCameraEntity();
     
     bool IsRunning() const
-    { return m_IsRunning; }
+    { return is_running; }
     
     bool IsPaused() const
-    { return m_IsPaused; }
+    { return is_paused; }
     
     void SetPaused(bool paused)
-    { m_IsPaused = paused; }
+    { is_paused = paused; }
     
     void Step(int frames = 1);
     
     template<typename... Components>
     auto GetAllEntitiesWith()
     {
-      return m_Registry.view<Components...>();
+      return registry.view<Components...>();
     }
     
     private:
@@ -70,18 +70,18 @@ namespace Wave
     
     void RenderScene(Editor_camera &camera);
     private:
-    entt::registry m_Registry;
-    std::unordered_map<uint64_t, entt::entity> m_EntityMap;
-    uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
-    bool m_IsRunning = false;
-    bool m_IsPaused = false;
-    int m_StepFrames = 0;
+    entt::registry registry;
+    std::unordered_map<uint64_t, entt::entity> entity_map;
+    Vector_2f viewport_dimensions = Vector_2f(0.0f);
+    bool is_running = false;
+    bool is_paused = false;
+    int step_frames = 0;
     
     friend class Entity;
     
     friend class SceneSerializer;
     
-    friend class SceneHierarchyPanel;
+    friend class Scene_ui_panel;
   };
 }
 

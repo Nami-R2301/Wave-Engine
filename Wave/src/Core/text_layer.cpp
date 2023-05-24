@@ -9,12 +9,13 @@ namespace Wave
 {
   
   static Orthographic_camera custom_projection;
-  static ImGuiID scene_node_id;
   
   Text_layer::Text_layer(const std::vector<std::shared_ptr<Text>> &strings_,
                          const std::vector<std::shared_ptr<Shader>> &text_shaders_,
-                         const Vector_2f &viewport_size_)
+                         const Vector_2f &viewport_size_,
+                         bool imgui_render)
   {
+    this->imgui_enabled = imgui_render;
     this->strings = strings_;
     this->text_shaders = text_shaders_;
     this->viewport_size = viewport_size_;
@@ -29,27 +30,15 @@ namespace Wave
   
   void Text_layer::on_attach()
   {
-    Renderer::set_clear_color(Color(0.05f, 1.0f, true));
-    this->vao_list.emplace_back(Renderer::load_text());
     this->text_shaders[0]->bind();
-    this->text_shaders[0]->set_uniform("u_sampler", 1);
+    this->text_shaders[0]->set_uniform("u_projection", this->projection);
+    this->text_shaders[0]->set_uniform("u_text_color", this->strings[0]->get_format().color);
     this->text_shaders[0]->unbind();
   }
   
   void Text_layer::on_detach()
   {
     for (const std::shared_ptr<Shader> &shader: this->text_shaders) shader->unbind();
-  }
-  
-  void Text_layer::on_update([[maybe_unused]] float time_step)
-  {
-    //  Update uniforms.
-    this->text_shaders[0]->bind();
-    this->text_shaders[0]->set_uniform("u_projection", this->projection);
-    this->text_shaders[0]->set_uniform("u_text_color", this->strings[0]->get_format().color);
-    
-    Renderer::draw_text(this->strings[0], this->vao_list.back());
-    this->text_shaders[0]->unbind();
   }
   
   void Text_layer::on_event(Event &event)
@@ -68,37 +57,55 @@ namespace Wave
     }
   }
   
-  void Text_layer::on_ui_render([[maybe_unused]] float time_step)
+  void Text_layer::on_update([[maybe_unused]] float time_step)
   {
-#ifdef EDITOR
-    auto &io = ImGui::GetIO();
-    ImFont *bold = io.Fonts->Fonts[1];
-    ImFont *regular = io.FontDefault;
-    if (ImGui::Begin("Scene"))
+    this->text_shaders[0]->bind();
+    this->text_shaders[0]->set_uniform("u_projection", this->projection);
+    this->text_shaders[0]->set_uniform("u_text_color", this->strings[0]->get_format().color);
+    this->text_shaders[0]->unbind();
+  }
+  
+  void Text_layer::on_render()
+  {
+    this->text_shaders[0]->bind();
+    Renderer::draw_text(this->strings[0]);
+    this->text_shaders[0]->unbind();
+    
+    on_imgui_render();
+  }
+  
+  void Text_layer::on_imgui_render()
+  {
+    if (this->imgui_enabled)
     {
-      ImGui::PushFont(bold);
-      ImGui::Separator();
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 20.0f));
-      if (ImGui::TreeNodeEx("Text", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
+      auto &io = ImGui::GetIO();
+      ImFont *bold = io.Fonts->Fonts[1];
+      ImFont *regular = io.FontDefault;
+      if (ImGui::Begin("Scene"))
       {
-        ImGui::Text("String : %s", this->strings.back()->get_string().c_str());
-        if (ImGui::TreeNodeEx("Projection", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
+        ImGui::PushFont(bold);
+        ImGui::Separator();
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 20.0f));
+        if (ImGui::TreeNodeEx("Text", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
         {
-          ImGui::PushFont(regular);
-          if (ImGui::Begin("Entity Info"))
+          ImGui::Text("String : %s", this->strings.back()->get_string().c_str());
+          if (ImGui::TreeNodeEx("Projection", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
           {
-            ImGui::Text("Projection matrix :\n%s", custom_projection.get_projection_matrix().to_string().c_str());
+            ImGui::PushFont(regular);
+            if (ImGui::Begin("Entity Info"))
+            {
+              ImGui::Text("Projection matrix :\n%s", custom_projection.get_projection_matrix().to_string().c_str());
+            }
+            ImGui::End();  // Entity Info.
+            ImGui::PopFont();
+            ImGui::TreePop();
           }
-          ImGui::End();  // Entity Info.
-          ImGui::PopFont();
-          ImGui::TreePop();
+          ImGui::TreePop();  // Text.
         }
-        ImGui::TreePop();  // Text.
+        ImGui::PopFont();
+        ImGui::PopStyleVar();  // Window padding.
       }
-      ImGui::PopFont();
-      ImGui::PopStyleVar();  // Window padding.
+      ImGui::End();  // Scene.
     }
-    ImGui::End();  // Scene.
-#endif
   }
 }

@@ -44,6 +44,11 @@ namespace Wave
     return std::sqrt((this->x * this->x) + (this->y * this->y));
   }
   
+  float Vector_2f::size() const
+  {
+    return sizeof(this->x) + sizeof(this->y);
+  }
+  
   float Vector_2f::dot(const Vector_2f &vector_) const
   {
     return (this->x * vector_.get_x()) + (this->y * vector_.get_y());

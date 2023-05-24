@@ -3,6 +3,8 @@
 //
 
 #include <Renderer/gl_renderer.h>
+#include <Renderer/gl_shader.h>
+
 
 namespace Wave
 {
@@ -32,7 +34,7 @@ namespace Wave
   Gl_shader::~Gl_shader()
   {
     this->detach();
-    LOG_INSTRUCTION("SHADER", DEFAULT, "Deleting shader program", CHECK_GL_CALL(glDeleteProgram(this->program_id)))
+    WAVE_LOG_INSTRUCTION("Shader", DEFAULT, "Deleting shader program", CHECK_GL_CALL(glDeleteProgram(this->program_id)))
     this->uniform_cache.clear();
   }
   
@@ -147,9 +149,9 @@ namespace Wave
     return this->uniform_cache[uniform_name];
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, const float *matrix) const
+  void Gl_shader::set_uniform(const char *uniform_name, const float *matrix, bool transpose) const
   {
-    CHECK_GL_CALL(glUniformMatrix4fv(get_uniform_location(uniform_name), 1, GL_TRUE, matrix));
+    CHECK_GL_CALL(glUniformMatrix4fv(get_uniform_location(uniform_name), 1, transpose, matrix));
   }
   
   void Gl_shader::set_uniform(const char *uniform_name, bool bool_value) const
@@ -157,9 +159,14 @@ namespace Wave
     CHECK_GL_CALL(glUniform1i(get_uniform_location(uniform_name), bool_value));
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, int int_value) const
+  void Gl_shader::set_uniform(const char *uniform_name, int32_t int_value) const
   {
     CHECK_GL_CALL(glUniform1i(get_uniform_location(uniform_name), int_value));
+  }
+  
+  void Gl_shader::set_uniform(const char *uniform_name, uint32_t unsigned_value) const
+  {
+    CHECK_GL_CALL(glUniform1ui(get_uniform_location(uniform_name), unsigned_value));
   }
   
   void Gl_shader::set_uniform(const char *uniform_name, float float_value) const
@@ -187,6 +194,7 @@ namespace Wave
   
   void Gl_shader::detach() const
   {
+    Gl_shader::unbind();
     CHECK_GL_CALL(glDetachShader(this->program_id, this->vertex_shader_id));
     CHECK_GL_CALL(glDetachShader(this->program_id, this->fragment_shader_id));
   }

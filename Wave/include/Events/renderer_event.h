@@ -13,7 +13,7 @@ namespace Wave
   enum class Renderer_api
   {
     None = 0,
-    Opengl = 1,
+    OpenGL = 1,
     Vulkan = 2,
     Directx = 3
   };

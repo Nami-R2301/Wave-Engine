@@ -29,7 +29,7 @@ namespace Wave
       return duration<float>(end_time - start_time).count();
     }
     
-    [[nodiscard]] float get_time_in_mili()
+    [[nodiscard]] float get_time_in_milli()
     {
       return duration<float>(end_time - start_time).count() * 1000.0f;
     }

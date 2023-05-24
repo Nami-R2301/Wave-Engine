@@ -80,22 +80,18 @@ namespace Wave
     float height = 0.0f;
   };
   
-  class On_viewport_resize : public Event
-  {
-  };
-  
-  typedef struct Context_state
+  typedef struct Context_state_s
   {
     const char *type;
     const char *severity;
     const char *description;
     int32_t error_code;
-  } Context_state;
+  } Context_state_s;
   
   class On_context_error : public Event
   {
     public:
-    On_context_error(Context_state state, Context_api api);
+    On_context_error(Context_state_s state, Context_api_e api);
     ~On_context_error() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_window_error);
@@ -104,14 +100,14 @@ namespace Wave
     
     INTERFACE_PRINT
     
-    [[nodiscard]] Context_state get_context_state() const;
-    [[nodiscard]] Context_api get_context_api() const;
+    [[nodiscard]] Context_state_s get_context_state() const;
+    [[nodiscard]] Context_api_e get_context_api() const;
     private:
-    Context_state state{nullptr,
-                        nullptr,
-                        nullptr,
-                        0};
-    Context_api api;
+    Context_state_s state{nullptr,
+                          nullptr,
+                          nullptr,
+                          0};
+    Context_api_e api;
   };
 
 //

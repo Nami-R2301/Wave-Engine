@@ -33,7 +33,7 @@ namespace Wave
     {
       // Code here will be called immediately after each test (right
       // before the destructor).
-      this->app->shutdown();
+      Example_app::shutdown();
     }
     
     // shared user data

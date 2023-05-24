@@ -101,7 +101,7 @@ namespace Wave
     
     char *string;
     size_t chars_written;
-    char current_time[sizeof(args) + (FILENAME_MAX * 4)];
+    char current_time[sizeof(args) + (LINE_MAX)];
     if (vasprintf(&string, format, args) < 0)
     {
       std::cerr << "ERROR : " << ERROR_VASPRINTF << std::endl;
@@ -117,13 +117,13 @@ namespace Wave
       free(string);
       return;
     }
-    chars_written = strftime(current_time, FILENAME_MAX, "%c", &time_info);
+    chars_written = strftime(current_time, LINE_MAX, "%c", &time_info);
 #elif defined(__unix__)  // Non POSIX UNIX systems.
     struct tm *time_info_non_posix = localtime(&time);
     strftime(current_time, FILENAME_MAX, "%c", time_info_non_posix);
 #endif
     
-    int64_t max_size = FILENAME_MAX;
+    int64_t max_size = LINE_MAX;
     auto data_size = static_cast<int64_t>(strlen(string) + chars_written);
     // Avoid allocating a huge amount of memory to account for large inputs by adjusting to the right size.
     if (max_size < data_size) max_size = data_size;
@@ -170,6 +170,12 @@ namespace Wave
                                                             : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
                                    DEFAULT);
         break;
+      case WAVE_DEBUG:
+        snprintf_result = snprintf(buffer, max_size, "%s[DEBUG]%3s [%s] :%10s", CYAN, " ",
+                                   strlen(current_time) > 1 ? current_time
+                                                            : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
+                                   DEFAULT);
+        break;
       default:
         snprintf_result = snprintf(buffer, max_size,
                                    "\n%s[ERROR]%-3s [%s] :\t\t UNEXPECTED ERROR OCCURRED...\tSEE LOGS FOR MORE INFO",
@@ -198,6 +204,7 @@ namespace Wave
       std::cout << std::endl << output;
       log_stream << std::endl << output;  // Save to log file.
     }
+    fflush(stdout);
     
     va_end(args);
     free(string);

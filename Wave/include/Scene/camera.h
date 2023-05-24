@@ -165,6 +165,7 @@ namespace Wave
     
     [[nodiscard]] virtual const char *get_type() const = 0;
     virtual void on_window_resize(On_window_resize &resize_event) = 0;
+    virtual void on_update(float time_step) = 0;
     virtual void on_event(Event &event) = 0;
     virtual void move(const Vector_3f &direction, float amount) = 0;
     virtual void move(float x, float y, float z, float amount) = 0;
@@ -201,7 +202,8 @@ namespace Wave
     
     INTERFACE_PRINT
     
-    const char *get_type() const override;
+    [[nodiscard]] const char *get_type() const override;
+    void on_update(float time_step) override;
     void on_event(Event &event) override;
     void move(const Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
@@ -227,7 +229,8 @@ namespace Wave
     
     INTERFACE_PRINT
     
-    const char *get_type() const override;
+    [[nodiscard]] const char *get_type() const override;
+    void on_update(float time_step) override;
     void move(const Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;

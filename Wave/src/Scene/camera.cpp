@@ -45,6 +45,10 @@ namespace Wave
     return output;
   }
   
+  void Perspective_camera::on_update([[maybe_unused]] float time_step)
+  {
+  }
+  
   void Perspective_camera::on_event(Event &event)
   {
     switch (event.get_event_type())
@@ -154,11 +158,15 @@ namespace Wave
     return output;
   }
   
-  void Orthographic_camera::on_event(Event &event)
+  void Orthographic_camera::on_update([[maybe_unused]] float time_step)
   {
   }
   
-  void Orthographic_camera::on_window_resize(On_window_resize &resize_event)
+  void Orthographic_camera::on_event([[maybe_unused]] Event &event)
+  {
+  }
+  
+  void Orthographic_camera::on_window_resize([[maybe_unused]] On_window_resize &resize_event)
   {
   }
   

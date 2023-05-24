@@ -33,6 +33,15 @@ namespace Wave
     this->tex_coord = tex_coord_;
   }
   
+  Vertex_2D::Vertex_2D(const Vector_2f &position_, const Vector_2f &normal_, const Color &color_,
+                       const Vector_2f &tex_coord_)
+  {
+    this->position = position_;
+    this->normal = normal_;
+    this->color = color_;
+    this->tex_coord = tex_coord_;
+  }
+  
   Vertex_2D::Vertex_2D(const Vertex_2D &other_vertex)
   {
     if (this == &other_vertex) return;
@@ -49,6 +58,11 @@ namespace Wave
   Vector_2f Vertex_2D::get_position() const
   {
     return this->position;
+  }
+  
+  Vector_2f Vertex_2D::get_normal() const
+  {
+    return this->normal;
   }
   
   const Color &Vertex_2D::get_color() const
@@ -69,6 +83,16 @@ namespace Wave
   void Vertex_2D::set_position(float x, float y)
   {
     this->position = Vector_2f(x, y);
+  }
+  
+  void Vertex_2D::set_normal(const Vector_2f &normal_)
+  {
+    this->normal = normal_;
+  }
+  
+  void Vertex_2D::set_normal(float x, float y)
+  {
+    this->normal = Vector_2f(x, y);
   }
   
   void Vertex_2D::set_color(const Color &color_)

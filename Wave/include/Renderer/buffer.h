@@ -154,13 +154,17 @@ namespace Wave
     virtual void remove() = 0;
     
     virtual void set_data(const void *data, uint64_t size, uint64_t offset) = 0;
+    virtual void set_count(uint32_t count_) = 0;
     
+    [[nodiscard]] virtual uint32_t get_count() const = 0;
+    [[nodiscard]] virtual uint32_t get_size() const = 0;
     [[nodiscard]] virtual uint32_t get_id() const = 0;
     [[nodiscard]] virtual const Buffer_layout &get_layout() const = 0;
     virtual void set_layout(const Buffer_layout &layout) = 0;
     
-    static std::shared_ptr<Vertex_buffer> create(uint64_t size);
-    static std::shared_ptr<Vertex_buffer> create(const void *vertices, uint64_t size, Buffer_type buffer_type);
+    static std::shared_ptr<Vertex_buffer> create(uint64_t size, uint64_t count);
+    static std::shared_ptr<Vertex_buffer>
+    create(const void *vertices, uint64_t size, uint64_t count, Buffer_type buffer_type);
     protected:
     bool bound = false;
   };
@@ -175,6 +179,9 @@ namespace Wave
     virtual void bind() = 0;
     virtual void unbind() const = 0;
     virtual void remove() = 0;
+    
+    virtual void set_data(const void *data, uint64_t size, uint64_t offset) = 0;
+    virtual void set_count(uint32_t count_) = 0;
     
     [[nodiscard]] virtual uint32_t get_count() const = 0;
     

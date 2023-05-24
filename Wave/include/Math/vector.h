@@ -26,6 +26,7 @@ namespace Wave
     void set_y(float y);
     
     [[nodiscard]] float length() const;
+    [[nodiscard]] float size() const;
     [[nodiscard]] float dot(const Vector_2f &vector_) const;
     [[nodiscard]] Vector_2f normalize() const;
     [[nodiscard]] Vector_2f absolute() const;
@@ -78,6 +79,7 @@ namespace Wave
     void set_z(float z_);
     
     [[nodiscard]] float length() const;
+    [[nodiscard]] float size() const;
     [[nodiscard]] float dot(const Vector_3f &other_vector) const;
     [[nodiscard]] Vector_3f normalize(float max_dx = 1.0f, float max_dy = 1.0f, float max_dz = 1.0f) const;
     [[nodiscard]] Vector_3f cross(const Vector_3f &other_vector) const;
@@ -86,6 +88,7 @@ namespace Wave
     [[nodiscard]] std::string to_string() const;
     
     float &operator[](unsigned int index);
+    explicit operator Vector_2f() const;
     
     Vector_3f operator+(const Vector_3f &other_vector) const;
     Vector_3f operator+(float coord) const;

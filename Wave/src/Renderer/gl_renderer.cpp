@@ -3,18 +3,23 @@
 //
 
 #include <Renderer/gl_renderer.h>
-#include <Scene/editor_camera.h>
 
 
 namespace Wave
 {
-  Renderer_api Gl_renderer::api = Renderer_api::Opengl;
+  Renderer_api Gl_renderer::api = Renderer_api::OpenGL;
   Renderer_state Gl_renderer::state = {nullptr,
                                        nullptr,
                                        nullptr,
                                        WAVE_RENDERER_INIT};
-  Renderer::Draw_commands_list Gl_renderer::draw_commands;
+  std::vector<Renderer::Draw_command *> Gl_renderer::draw_commands;
+  std::shared_ptr<Camera> Gl_renderer::scene_camera;
+  std::vector<std::shared_ptr<Texture>> Gl_renderer::textures;
+  std::vector<std::shared_ptr<Uniform_buffer>> Gl_renderer::uniform_buffers;
   std::function<void(Event &)> Gl_renderer::event_callback_function;
+  
+  static uint64_t draw_cmd_count = 0;
+  static char *glsl_version = nullptr;
   
   bool Gl_renderer::is_running()
   {
@@ -31,33 +36,170 @@ namespace Wave
     return Gl_renderer::api;
   }
   
-  [[maybe_unused]] const std::function<void(Event &event)> &Gl_renderer::get_event_callback_function()
+  int32_t Gl_renderer::get_max_texture_units()
+  {
+    GLint result;
+    CHECK_GL_CALL(glGetIntegerv(GL_MAX_TEXTURE_UNITS, &result));
+    return result;
+  }
+  
+  const std::function<void(Event &event)> &Gl_renderer::get_event_callback_function()
   {
     return Gl_renderer::event_callback_function;
   }
   
-  void Gl_renderer::begin_scene(Camera &camera)
+  void Gl_renderer::init_text_buffers()
   {
-    float *view = &(camera.get_view_matrix().get_matrix()[0][0]);
-    float *projection = &(camera.get_projection_matrix().get_matrix()[0][0]);
-    
-    Gl_renderer::draw_commands.uniform_buffers.back()->set_data(0, 64, view);
-    Gl_renderer::draw_commands.uniform_buffers.back()->set_data(64, 64, projection);
+    WAVE_PROFILE_INSTRUCTIONS("Pre-rendering text", RED, 5,
+                              {
+                                // Add draw command for batch rendering.
+                                Renderer::Draw_command current_command;
+                                std::vector<Buffer_element> b_elements;  // Vbo layout.
+                                
+                                // Set default shader if none specified
+                                current_command.associated_shader = Wave::Shader::create("Text",
+                                                                                         Wave::Resource_loader::load_shader_source(
+                                                                                           "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                                                         Wave::Resource_loader::load_shader_source(
+                                                                                           "../Wave/res/Shaders/text-glyph.frag").c_str());
+                                current_command.associated_shader->bind();
+                                
+                                b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", true);
+                                b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
+                                
+                                current_command.associated_shader->set_uniform("u_sampler", 0);
+                                current_command.associated_shader->set_uniform("u_text_color", Color(1.0f, 1.0f, true));
+                                
+                                Buffer_layout vbo_layout(b_elements);
+                                auto vbo_ = Vertex_buffer::create(sizeof(float) * 4, 6);
+                                vbo_->set_layout(vbo_layout);
+                                
+                                current_command.vertex_array_buffer = Vertex_array_buffer::create();
+                                current_command.vertex_array_buffer->add_vertex_buffer(vbo_);
+                                
+                                Gl_renderer::draw_commands.emplace_back(new Renderer::Draw_command(current_command));
+                                draw_cmd_count++;
+                              })
   }
   
-  void Gl_renderer::end_scene()
+  void Gl_renderer::init_object_buffers()
   {
-    Gl_renderer::draw_commands.uniform_buffers.clear();
+    WAVE_PROFILE_INSTRUCTIONS("Pre-rendering objects", YELLOW, 4,
+                              {
+                                Gl_renderer::uniform_buffers.emplace_back(
+                                  Uniform_buffer::create(Buffer_data_type_size(Buffer_data_type::Matrix_4f) * 2,
+                                                         3));
+                                
+                                // Add draw command for batch rendering.
+                                Renderer::Draw_command initial_command;
+                                std::vector<Buffer_element> b_elements;  // Vbo layout.
+                                
+                                // Set default shader if none specified
+                                initial_command.associated_shader = Wave::Shader::create("Object 3D",
+                                                                                         Wave::Resource_loader::load_shader_source(
+                                                                                           "../Wave/res/Shaders/default_3D.vert").c_str(),
+                                                                                         Wave::Resource_loader::load_shader_source(
+                                                                                           "../Wave/res/Shaders/default_3D.frag").c_str());
+                                
+                                initial_command.associated_shader->bind();
+                                unsigned int u_camera_block = glGetUniformBlockIndex(
+                                  initial_command.associated_shader->get_id(), "u_camera");
+                                CHECK_GL_CALL(glUniformBlockBinding(initial_command.associated_shader->get_id(),
+                                                                    u_camera_block,
+                                                                    3));
+                                
+                                initial_command.associated_shader->set_uniform("u_has_texture", true);
+                                initial_command.associated_shader->set_uniform("u_sampler", 1);
+                                
+                                // Set default shader layout for an 3D object.
+                                b_elements.emplace_back(Buffer_data_type::Vector_3f, "Position", true);
+                                b_elements.emplace_back(Buffer_data_type::Vector_3f, "Normal", true);
+                                b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
+                                b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
+                                
+                                initial_command.vertex_array_buffer = Vertex_array_buffer::create();
+                                initial_command.vertex_array_buffer->set_index_buffer(
+                                  Index_buffer::create(nullptr, max_indices));
+                                
+                                auto vbo_ = Vertex_buffer::create(sizeof(Vertex_3D), max_vertices);
+                                Buffer_layout vbo_layout(b_elements);
+                                vbo_->set_layout(vbo_layout);
+                                initial_command.vertex_array_buffer->add_vertex_buffer(vbo_);
+                                
+                                Gl_renderer::draw_commands.emplace_back(new Renderer::Draw_command(initial_command));
+                              })
+  }
+  
+  void Gl_renderer::begin(std::shared_ptr<Camera> &camera)
+  {
+    Gl_renderer::scene_camera = camera;
+    
+    // View and projection for objects.
+    Gl_renderer::uniform_buffers[0]->set_data(0, Buffer_data_type_size(Buffer_data_type::Matrix_4f),
+                                              &(Gl_renderer::scene_camera->get_view_matrix().get_matrix()[0][0]));
+    Gl_renderer::uniform_buffers[0]->set_data(Buffer_data_type_size(Buffer_data_type::Matrix_4f),
+                                              Buffer_data_type_size(Buffer_data_type::Matrix_4f),
+                                              &(Gl_renderer::scene_camera->get_projection_matrix().get_matrix()[0][0]));
+  }
+  
+  void Gl_renderer::end()
+  {
+    Gl_renderer::flush();
   }
   
   void Gl_renderer::flush()
   {
+    for (uint64_t i = 0; i < draw_cmd_count; ++i)
+    {
+      Gl_renderer::draw_commands[i]->associated_shader->bind();
+      for (const auto &texture: Gl_renderer::textures)
+      {
+        if (texture) texture->bind(texture->get_texture_slot());
+      }
+      
+      Gl_renderer::draw_commands[i]->vertex_array_buffer->bind();
+      if (Gl_renderer::draw_commands[i]->vertex_array_buffer->get_index_buffer())  // Has an index_buffer
+      {
+        Gl_renderer::draw_commands[i]->vertex_array_buffer->get_index_buffer()->bind();
+        CHECK_GL_CALL(glDrawRangeElementsBaseVertex(GL_TRIANGLES, 0, max_indices,
+                                                    Gl_renderer::draw_commands[i]->vertex_array_buffer->get_index_buffer()->get_count(),
+                                                    GL_UNSIGNED_INT,
+                                                    (const void *) Gl_renderer::draw_commands[i]->ibo_offset,
+                                                    Gl_renderer::draw_commands[i]->ibo_offset));
+      }
+      Gl_renderer::draw_commands[i]->vbo_offset = 0;
+      Gl_renderer::draw_commands[i]->ibo_offset = 0;
+    }
   }
   
-  void Gl_renderer::send(const std::shared_ptr<Shader> &shader,
-                         const std::shared_ptr<Vertex_array_buffer> &vertexArray,
-                         const Matrix_4f &transform)
+  void Gl_renderer::send(const std::vector<std::shared_ptr<Object>> &objects)
   {
+    if (objects.empty()) return;
+    for (const auto &object: objects)
+    {
+      // If we reached the max batch memory limit (5 MB).
+      if (Gl_renderer::draw_commands[draw_cmd_count]->vbo_offset > 5'000'000) flush();
+      // Set data in vbo with offset.
+      Gl_renderer::draw_commands[draw_cmd_count]->vertex_array_buffer->get_vertex_buffers()[0]->set_data(
+        object->get_vertices(),
+        object->get_vertex_count() * object->get_vertex_size(),
+        Gl_renderer::draw_commands[draw_cmd_count]->vbo_offset);
+      
+      Gl_renderer::draw_commands[draw_cmd_count]->vertex_array_buffer->get_index_buffer()->set_count(
+        object->get_face_count());
+      Gl_renderer::draw_commands[draw_cmd_count]->vertex_array_buffer->get_index_buffer()->set_data(
+        object->get_faces(),
+        static_cast<uint32_t>(object->get_face_count()),
+        Gl_renderer::draw_commands[draw_cmd_count]->ibo_offset
+      );
+      
+      draw_cmd_count++;
+      
+      // Set offsets
+      Gl_renderer::draw_commands[draw_cmd_count]->vbo_offset = object->get_vertex_size() * object->get_vertex_count();
+      Gl_renderer::draw_commands[draw_cmd_count]->ibo_offset = static_cast<uint32_t>(object->get_face_count() *
+                                                                                     sizeof(uint32_t));
+    }
   }
   
   void Gl_renderer::on_event(Event &event)
@@ -112,57 +254,71 @@ namespace Wave
   
   void Gl_renderer::init()
   {
-    LOG_TASK("RENDERER 3D", CYAN, 1, "Loading 3D renderer ...",
-             {
-               LOG_INSTRUCTION("RENDERER 3D", DEFAULT, "Loading GLEW", CHECK_GL_CALL(glewInit()))
-               Gl_renderer::set_state(Gl_renderer::get_state());
-               
-               /****** Enable OpenGL error handling. ********/
-               // Check if we successfully initialized a debug context
-               int flags;
-               glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-               if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-               {
-                 glEnable(GL_DEBUG_OUTPUT);  // Enable debug output.
-                 glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);  // Call the callback as soon as there's an error.
-               }
-               
-               Color background_color;  // Default dark-mode-like color for background.
-               CHECK_GL_CALL(glClearColor(background_color.get_red(), background_color.get_green(),
-                                          background_color.get_blue(), background_color.get_alpha()));
-               
-               CHECK_GL_CALL(
-                 glFrontFace(GL_CW)); // Every shape drawn in clock-wise manner will be considered the FRONT face.
-               CHECK_GL_CALL(glCullFace(GL_FRONT_AND_BACK)); // The back side of shapes will NOT be drawn.
-               CHECK_GL_CALL(
-                 glDisable(GL_CULL_FACE)); // Don't update the back face of shapes since the camera won't see it.
-               
-               // Let OpenGL keep track of depth for shapes and auto determine if some shapes closer or further away from
-               // the camera should take priority (drawn on top of other ones).
-               CHECK_GL_CALL(glEnable(GL_DEPTH_TEST));
-               CHECK_GL_CALL(glEnable(GL_MULTISAMPLE));
-               CHECK_GL_CALL(glEnable(GL_BLEND));
-               CHECK_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-               
-               // Let OpenGL do the exponential gamma correction for us so textures and colors don't appear as dark.
-//               CHECK_GL_CALL(glEnable(GL_FRAMEBUFFER_SRGB));
-      }, "Renderer 3D loaded")
+    glsl_version = (char *) calloc(1, LINE_MAX);
+    WAVE_LOG_TASK("GL renderer", CYAN, 1, "Loading openGL renderer ...",
+                  {
+                    WAVE_LOG_INSTRUCTION("GL renderer", DEFAULT, "Loading GLEW", CHECK_GL_CALL(glewInit()))
+                    Gl_renderer::set_state(Gl_renderer::get_state());
+                    
+                    /****** Enable OpenGL error handling. ********/
+                    // Check if we successfully initialized a debug context
+                    int flags;
+                    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+                    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+                    {
+                      glEnable(GL_DEBUG_OUTPUT);  // Enable debug output.
+                      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);  // Call the callback as soon as there's an error.
+                    }
+                    
+                    Color background_color;  // Default dark-mode-like color for background.
+                    CHECK_GL_CALL(glClearColor(background_color.get_red(), background_color.get_green(),
+                                               background_color.get_blue(), background_color.get_alpha()));
+                    
+                    // Every shape drawn in clock-wise manner will be considered the FRONT face.
+                    CHECK_GL_CALL(glFrontFace(GL_CW));
+                    CHECK_GL_CALL(glCullFace(GL_FRONT_AND_BACK)); // The back side of shapes will NOT be drawn.
+                    CHECK_GL_CALL(
+                      glDisable(GL_CULL_FACE)); // Don't update the back face of shapes since the camera won't see it.
+                    
+                    // Let OpenGL keep track of depth for shapes and auto determine if some shapes closer or further away from
+                    // the camera should take priority (drawn on top of other ones).
+                    CHECK_GL_CALL(glEnable(GL_DEPTH_TEST));
+                    CHECK_GL_CALL(glEnable(GL_MULTISAMPLE));
+                    CHECK_GL_CALL(glEnable(GL_BLEND));
+                    CHECK_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+                  }, "GL renderer loaded")
     Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_RUNNING});
 
 #if defined(OPENGL_VERSION_4_3_PLUS) && defined(DEBUG)
     glDebugMessageCallback(gl_asynchronous_error_callback, nullptr);
-          // Filter the messages we want to debug or not with the last param 'enabled'.
-          glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, 0, nullptr, GL_FALSE);
+    // Filter the messages we want to debug or not with the last param 'enabled'.
+    glDebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, 0, nullptr, GL_FALSE);
 #endif
     
-    LOG_TASK("RENDERER 3D", YELLOW, 1, "Fetching renderer info on client system ...",
-             Gl_renderer::show_renderer_info(),
-             "Renderer info fetched")
+    WAVE_LOG_TASK("GL renderer", YELLOW, 1, "Fetching renderer info on client system ...",
+                  Gl_renderer::show_renderer_info(),
+                  "GL renderer info fetched")
+    
+    Gl_renderer::init_text_buffers();
+    Gl_renderer::init_object_buffers();
   }
   
-  const char *Gl_renderer::get_gl_version()
+  const char *Gl_renderer::get_api_version()
   {
     return (const char *) (glGetString(GL_VERSION));
+  }
+  
+  const char *Gl_renderer::get_api_shader_version()
+  {
+    std::string version_and_name = Renderer::get_api_version();
+    if (snprintf(glsl_version, LINE_MAX, "#version %c%c%c",
+                 glGetString(GL_SHADING_LANGUAGE_VERSION)[0],
+                 glGetString(GL_SHADING_LANGUAGE_VERSION)[2],
+                 glGetString(GL_SHADING_LANGUAGE_VERSION)[3]) < 0)
+    {
+      return "#version 330";  // Default version.
+    }
+    return glsl_version;
   }
   
   void Gl_renderer::show_renderer_info()
@@ -170,13 +326,13 @@ namespace Wave
     // Get GLFW and OpenGL version.
     int32_t num_ext;
     CHECK_GL_CALL(glGetIntegerv(GL_NUM_EXTENSIONS, &num_ext));
-    Wave::alert(WAVE_INFO, "[RENDERER] --> Api (Glew) version : %d.%d.%d", GLEW_VERSION_MAJOR, GLEW_VERSION_MINOR,
-                GLEW_VERSION_MICRO);
-    Wave::alert(WAVE_INFO, "[RENDERER] --> Graphics renderer : %s", glGetString(GL_RENDERER));
-    Wave::alert(WAVE_INFO, "[RENDERER] --> Extensions available : %d", num_ext);
-    Wave::alert(WAVE_INFO, "[RENDERER] --> Opengl Vendor : %s", glGetString(GL_VENDOR));
-    Wave::alert(WAVE_INFO, "[RENDERER] --> Opengl version : %s", get_gl_version());
-    Wave::alert(WAVE_INFO, "[RENDERER] --> Shading language version : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    Wave::alert(WAVE_INFO, "[GL renderer] --> Api (Glew) version : %d.%d.%d",
+                GLEW_VERSION_MAJOR, GLEW_VERSION_MINOR, GLEW_VERSION_MICRO);
+    Wave::alert(WAVE_INFO, "[GL renderer] --> Graphics renderer : %s", glGetString(GL_RENDERER));
+    Wave::alert(WAVE_INFO, "[GL renderer] --> Extensions available : %d", num_ext);
+    Wave::alert(WAVE_INFO, "[GL renderer] --> OpenGL Vendor : %s", glGetString(GL_VENDOR));
+    Wave::alert(WAVE_INFO, "[GL renderer] --> OpenGL version : %s", get_api_version());
+    Wave::alert(WAVE_INFO, "[GL renderer] --> Shading language version : %s", get_api_shader_version());
   }
   
   void Gl_renderer::set_event_callback_function(const std::function<void(Event &)> &event_callback_function_)
@@ -197,90 +353,63 @@ namespace Wave
     CHECK_GL_CALL(glViewport(0, 0, width, height));
   }
   
-  void Gl_renderer::load_object(const Object_3D *object)
-  {
-    std::vector<Buffer_element> b_elements;
-    b_elements.emplace_back(Buffer_data_type::Vector_3f, "Position", true);
-    b_elements.emplace_back(Buffer_data_type::Vector_3f, "Normal", true);
-    b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
-    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
-    
-    Gl_renderer::draw_commands.names.emplace_back("3D Object");
-    Gl_renderer::draw_commands.vertex_array_buffers.emplace_back(Vertex_array_buffer::create());
-    Gl_renderer::draw_commands.vertex_array_buffers.back()->set_index_buffer(
-      Index_buffer::create(object->get_faces().data(),
-                           static_cast<uint32_t>(object->get_faces().size())));
-    Gl_renderer::draw_commands.uniform_buffers.emplace_back(
-      Uniform_buffer::create(64 * 2, 3));
-    
-    auto vbo_ = Vertex_buffer::create(object->get_vertices(),
-                                      Object_3D::get_vertex_size() *
-                                      object->get_vertex_count(),
-                                      STATIC_DRAW);
-    Buffer_layout vbo_layout(b_elements);
-    vbo_->set_layout(vbo_layout);
-    
-    Gl_renderer::draw_commands.vertex_array_buffers.back()->add_vertex_buffer(vbo_);
-    Gl_renderer::draw_commands.textures.emplace_back(object->get_textures()[0]);
-    Gl_renderer::draw_commands.vertex_array_buffers.back()->unbind();
-  }
-  
-  std::shared_ptr<Vertex_array_buffer> Gl_renderer::load_text()
-  {
-    std::vector<Buffer_element> b_elements;
-    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", true);
-    b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
-    
-    Buffer_layout vbo_layout(b_elements);
-    auto vbo_ = Vertex_buffer::create(sizeof(float) * 6 * 4);
-    vbo_->set_layout(vbo_layout);
-    
-    auto vao = Vertex_array_buffer::create();
-    vao->add_vertex_buffer(vbo_);
-    return vao;
-  }
-  
-  [[maybe_unused]] void Gl_renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t vbo_index)
+  void Gl_renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index)
   {
     if (!vertices || size == 0) return;
-    Gl_renderer::draw_commands.vertex_array_buffers.back()->get_vertex_buffers()[vbo_index]->set_data(vertices, size,
-                                                                                                      0);
+    Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[vbo_index]->set_data(vertices,
+                                                                                                              size,
+                                                                                                              0);
   }
   
-  void Gl_renderer::draw_object(const Object_3D *object)
+  void Gl_renderer::draw_object(const std::shared_ptr<Object> &object)
   {
-    load_object(object);
-    draw_loaded_objects(1);
-  }
-  
-  [[maybe_unused]] void Gl_renderer::draw_objects(const std::vector<Object_3D> *objects)
-  {
-    for (const Object_3D &object: *objects) draw_object(&object);
-  }
-  
-  void Gl_renderer::draw_loaded_objects(uint32_t object_count)
-  {
-    for (size_t i = 0; i < object_count; i++)
+    Gl_renderer::draw_commands[1]->associated_shader->bind();
+    uint64_t object_vbo_data_size, object_ibo_data_size, object_vbo_data_count, object_ibo_data_count;
+    // If we reached the max batch memory limit (2 MB).
+    object_vbo_data_count = object->get_vertex_count();
+    object_ibo_data_count = object->get_face_count();
+    object_vbo_data_size = object_vbo_data_count * object->get_vertex_size();
+    object_ibo_data_size = object_ibo_data_count * sizeof(uint32_t);
+    
+    if (Gl_renderer::draw_commands[1]->vbo_offset + object_vbo_data_size >= 2'000'000) flush();
+    
+    // Set data in vbo with offset.
+    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_vertex_buffers()[0]->set_data(
+      object->get_vertices(),
+      object_vbo_data_size,
+      Gl_renderer::draw_commands[1]->vbo_offset);
+    
+    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_index_buffer()->set_data(
+      object->get_faces(),
+      object_ibo_data_size,
+      Gl_renderer::draw_commands[1]->ibo_offset);
+    
+    // Set number of elements for current object.
+    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_vertex_buffers()[0]->set_count(
+      object_vbo_data_count);
+    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_index_buffer()->set_count(
+      object_ibo_data_count);
+    
+    auto object_textures = object->get_textures();
+    if (!object_textures.empty())
     {
-      draw_object();
+      if (*object_textures[0]) Gl_renderer::textures = object_textures;
     }
+    
+    // Set Model transformations.
+    Gl_renderer::draw_commands[1]->associated_shader->set_uniform("u_model",
+                                                                  &object->get_model_matrix().get_matrix()[0][0],
+                                                                  true);
+    
+    Gl_renderer::draw_commands[1]->vbo_offset += object_vbo_data_size;
+    Gl_renderer::draw_commands[1]->ibo_offset += object_ibo_data_size;
+    draw_cmd_count++;
   }
   
-  void Gl_renderer::draw_object()
+  void Gl_renderer::draw_text(const std::shared_ptr<Text> &text)
   {
-    Gl_renderer::draw_commands.vertex_array_buffers.back()->bind();
-    if (!Gl_renderer::draw_commands.textures.empty()) Gl_renderer::draw_commands.textures.back()->bind(0);
-    CHECK_GL_CALL(glDrawElements(GL_TRIANGLES,
-                                 Gl_renderer::draw_commands.vertex_array_buffers.back()->get_index_buffer()->get_count(),
-                                 GL_UNSIGNED_INT, nullptr));
-    Gl_renderer::draw_commands.vertex_array_buffers.back()->unbind();
-    if (!Gl_renderer::draw_commands.textures.empty()) Gl_renderer::draw_commands.textures[0]->unbind();
-  }
-  
-  void Gl_renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Vertex_array_buffer> &vao)
-  {
-    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE1));
-    CHECK_GL_CALL(glBindVertexArray(vao->get_id()));
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0));
+    Gl_renderer::draw_commands[0]->vertex_array_buffer->bind();
     
     float x = text->get_offset_x(), y = text->get_offset_y(), scale = text->get_scale();
     
@@ -308,11 +437,8 @@ namespace Wave
       CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, ch.texture_id));
       
       // Update content of VBO memory
-      CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, vao->get_vertex_buffers().back()->get_id()));
-      
-      // Use glBufferSubData and not glBufferData
-      CHECK_GL_CALL(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
-      CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+      Gl_renderer::draw_commands[0]->vertex_array_buffer->get_vertex_buffers().back()->set_data(vertices,
+                                                                                                sizeof(vertices), 0);
       
       // Draw
       CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
@@ -320,13 +446,17 @@ namespace Wave
       x += static_cast<float>((ch.advance >> 6)) *
            scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }
-    CHECK_GL_CALL(glBindVertexArray(0));
+    Gl_renderer::draw_commands[0]->vertex_array_buffer->unbind();
     CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
   }
   
   void Gl_renderer::shutdown()
   {
     Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN});
+    
+    for (const auto draw_command: Gl_renderer::draw_commands) delete draw_command;
+    
+    free(glsl_version);
   }
   
   bool Gl_renderer::has_crashed()
@@ -502,7 +632,7 @@ namespace Wave
       } else
       {
         temp.description = output;
-        On_renderer_error gl_error(temp, Renderer_api::Opengl);
+        On_renderer_error gl_error(temp, Renderer_api::OpenGL);
         Gl_renderer::renderer_error_callback(gl_error);
       }
     }
@@ -511,149 +641,151 @@ namespace Wave
 #ifdef OPENGL_VERSION_4_3_PLUS
   
   void Gl_renderer::gl_asynchronous_error_callback(GLenum error_code, GLenum type, [[maybe_unused]] GLuint id,
-                                    GLenum severity, GLsizei length, const GLchar *error_message,
-                                    [[maybe_unused]] const void *userParam)
-{
-  if (!Gl_renderer::is_running()) return;
-  
-  Renderer_state temp{};
-  char output[length * 4];
-  if (error_code != GL_NO_ERROR)
+                                                   GLenum severity, [[maybe_unused]] GLsizei length,
+                                                   const GLchar *error_message,
+                                                   [[maybe_unused]] const void *userParam)
   {
+    if (!Gl_renderer::is_running()) return;
     
-    switch (type)
+    Renderer_state temp{};
+    char output[LINE_MAX];
+    if (error_code != GL_NO_ERROR)
     {
-      case GL_DEBUG_TYPE_ERROR: temp.type = "Error";
-        break;
-      case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: temp.type = "Deprecated Behaviour";
-        break;
-      case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: temp.type = "Undefined Behaviour";
-        break;
-      case GL_DEBUG_TYPE_PORTABILITY: temp.type = "Portability";
-        break;
-      case GL_DEBUG_TYPE_PERFORMANCE: temp.type = "Performance";
-        break;
-      case GL_DEBUG_TYPE_MARKER: temp.type = "Marker";
-        break;
-      case GL_DEBUG_TYPE_PUSH_GROUP: temp.type = "Push Group";
-        break;
-      case GL_DEBUG_TYPE_POP_GROUP: temp.type = "Pop Group";
-        break;
-      case GL_DEBUG_TYPE_OTHER: temp.type = "Other";
-        break;
-      default: temp.type = "Unknown";
-        break;
-    }
-    //TODO Replace return statements for both low and notification severity levels for thorough debugging.
-    switch (severity)
-    {
-      case GL_DEBUG_SEVERITY_HIGH: temp.severity = "Fatal (High)";
-        break;
-      case GL_DEBUG_SEVERITY_MEDIUM: temp.severity = "Fatal (Medium)";
-        break;
-      case GL_DEBUG_SEVERITY_LOW: temp.severity = "Warn (low)";
-        break;  // Silence low warnings for now due to clutter in terminal when this is logged.
-      case GL_DEBUG_SEVERITY_NOTIFICATION: temp.severity = "Warn (info)";
-        return;  // Silence info for now due to clutter in terminal when this is logged.
-      default: temp.severity = "Warn (Unknown)";
-        break;
-    }
-    
-    switch (error_code)
-    {
-      case GL_DEBUG_SOURCE_API:
+      
+      switch (type)
       {
-        temp.code = GL_DEBUG_SOURCE_API;
-        break;
+        case GL_DEBUG_TYPE_ERROR: temp.type = "Error";
+          break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: temp.type = "Deprecated Behaviour";
+          break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: temp.type = "Undefined Behaviour";
+          break;
+        case GL_DEBUG_TYPE_PORTABILITY: temp.type = "Portability";
+          break;
+        case GL_DEBUG_TYPE_PERFORMANCE: temp.type = "Performance";
+          break;
+        case GL_DEBUG_TYPE_MARKER: temp.type = "Marker";
+          break;
+        case GL_DEBUG_TYPE_PUSH_GROUP: temp.type = "Push Group";
+          break;
+        case GL_DEBUG_TYPE_POP_GROUP: temp.type = "Pop Group";
+          break;
+        case GL_DEBUG_TYPE_OTHER: temp.type = "Other";
+          break;
+        default: temp.type = "Unknown";
+          break;
       }
-      case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+      //TODO Replace return statements for both low and notification severity levels for thorough debugging.
+      switch (severity)
       {
-        temp.code = GL_DEBUG_SOURCE_WINDOW_SYSTEM;
-        break;
+        case GL_DEBUG_SEVERITY_HIGH: temp.severity = "Fatal (High)";
+          break;
+        case GL_DEBUG_SEVERITY_MEDIUM: temp.severity = "Fatal (Medium)";
+          break;
+        case GL_DEBUG_SEVERITY_LOW: temp.severity = "Warn (low)";
+          break;  // Silence low warnings for now due to clutter in terminal when this is logged.
+        case GL_DEBUG_SEVERITY_NOTIFICATION: temp.severity = "Warn (info)";
+          return;  // Silence info for now due to clutter in terminal when this is logged.
+        default: temp.severity = "Warn (Unknown)";
+          break;
       }
-      case GL_DEBUG_SOURCE_SHADER_COMPILER:
+      
+      switch (error_code)
       {
-        temp.code = GL_DEBUG_SOURCE_SHADER_COMPILER;
-        break;
+        case GL_DEBUG_SOURCE_API:
+        {
+          temp.code = GL_DEBUG_SOURCE_API;
+          break;
+        }
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        {
+          temp.code = GL_DEBUG_SOURCE_WINDOW_SYSTEM;
+          break;
+        }
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        {
+          temp.code = GL_DEBUG_SOURCE_SHADER_COMPILER;
+          break;
+        }
+        case GL_DEBUG_SOURCE_THIRD_PARTY:
+        {
+          temp.code = GL_DEBUG_SOURCE_THIRD_PARTY;
+          break;
+        }
+        case GL_DEBUG_SOURCE_APPLICATION:
+        {
+          temp.code = GL_DEBUG_SOURCE_APPLICATION;
+          break;
+        }
+        case GL_INVALID_OPERATION:
+        {
+          temp.code = GL_INVALID_OPERATION;
+          break;
+        }
+        case GL_INVALID_ENUM:
+        {
+          temp.code = GL_INVALID_ENUM;
+          break;
+        }
+        case GL_INVALID_VALUE:
+        {
+          temp.code = GL_INVALID_VALUE;
+          break;
+        }
+        case GL_DEBUG_SOURCE_INVALID_UNIFORM:
+        {
+          temp.code = GL_DEBUG_SOURCE_INVALID_UNIFORM;
+          break;
+        }
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+        {
+          temp.code = GL_INVALID_FRAMEBUFFER_OPERATION;
+          break;
+        }
+        case GL_FRAMEBUFFER_UNDEFINED:
+        {
+          temp.code = GL_FRAMEBUFFER_UNDEFINED;
+          break;
+        }
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+        {
+          temp.code = GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+          break;
+        }
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        {
+          temp.code = GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+          break;
+        }
+        case GL_OUT_OF_MEMORY:
+        {
+          temp.code = GL_OUT_OF_MEMORY;
+          break;
+        }
+        default:
+        {
+          temp.code = GL_DEBUG_SOURCE_OTHER;
+          break;
+        }
       }
-      case GL_DEBUG_SOURCE_THIRD_PARTY:
+      
+      temp.description = error_message;
+      
+      if (snprintf(output,
+                   sizeof(output),
+                   "%s%s",
+                   error_message, DEFAULT) < 0)
       {
-        temp.code = GL_DEBUG_SOURCE_THIRD_PARTY;
-        break;
-      }
-      case GL_DEBUG_SOURCE_APPLICATION:
+        temp.description = std::string(
+          "Error while building string with snprintf() on line 531 in file renderer.cpp!").c_str();
+      } else
       {
-        temp.code = GL_DEBUG_SOURCE_APPLICATION;
-        break;
+        temp.description = output;
+        On_renderer_error gl_error(temp, Renderer_api::OpenGL);
+        Gl_renderer::renderer_error_callback(gl_error);
       }
-      case GL_INVALID_OPERATION:
-      {
-        temp.code = GL_INVALID_OPERATION;
-        break;
-      }
-      case GL_INVALID_ENUM:
-      {
-        temp.code = GL_INVALID_ENUM;
-        break;
-      }
-      case GL_INVALID_VALUE:
-      {
-        temp.code = GL_INVALID_VALUE;
-        break;
-      }
-      case GL_DEBUG_SOURCE_INVALID_UNIFORM:
-      {
-        temp.code = GL_DEBUG_SOURCE_INVALID_UNIFORM;
-        break;
-      }
-      case GL_INVALID_FRAMEBUFFER_OPERATION:
-      {
-        temp.code = GL_INVALID_FRAMEBUFFER_OPERATION;
-        break;
-      }
-      case GL_FRAMEBUFFER_UNDEFINED:
-      {
-        temp.code = GL_FRAMEBUFFER_UNDEFINED;
-        break;
-      }
-      case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-      {
-        temp.code = GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
-        break;
-      }
-      case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-      {
-        temp.code = GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
-        break;
-      }
-      case GL_OUT_OF_MEMORY:
-      {
-        temp.code = GL_OUT_OF_MEMORY;
-        break;
-      }
-      default:
-      {
-        temp.code = GL_DEBUG_SOURCE_OTHER;
-        break;
-      }
-    }
-    
-    temp.description = error_message;
-    
-    if (snprintf(output,
-               sizeof(output),
-               "%s%s",
-               error_message, DEFAULT) < 0)
-    {
-      temp.description = std::string(
-        "Error while building string with snprintf() on line 531 in file renderer.cpp!").c_str();
-    } else
-    {
-      temp.description = output;
-      On_renderer_error gl_error(temp, Renderer_api::Opengl);
-      Gl_renderer::renderer_error_callback(gl_error);
     }
   }
-}
+
 #endif
 }

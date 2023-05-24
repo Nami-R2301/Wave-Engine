@@ -3,26 +3,32 @@
 //
 
 #include <Renderer/gl_renderer.h>
+#include <Renderer/gl_buffer.h>
+
 
 namespace Wave
 {
   
   /*************************** Vertex buffer ***************************/
   
-  Gl_vertex_buffer::Gl_vertex_buffer(uint64_t size)
+  Gl_vertex_buffer::Gl_vertex_buffer(uint64_t size, uint64_t count)
   {
     CHECK_GL_CALL(glGenBuffers(1, &this->vbo_id)); // Create empty buffer for our vertex_source data.
     CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
-    CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW));
+    CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, size * count, nullptr, GL_DYNAMIC_DRAW));
+    this->buffer_size = size;
+    this->buffer_count = count;
   }
   
-  Gl_vertex_buffer::Gl_vertex_buffer(const void *data, size_t size, Buffer_type buffer_type)
+  Gl_vertex_buffer::Gl_vertex_buffer(const void *data, uint64_t size, uint64_t count, Buffer_type buffer_type)
   {
     CHECK_GL_CALL(glGenBuffers(1, &this->vbo_id)); // Create empty buffer for our vertex_source data.
     CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
     CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, size, data,
                                buffer_type == STATIC_DRAW ? GL_STATIC_DRAW : buffer_type == DYNAMIC_DRAW ?
                                                                              GL_DYNAMIC_DRAW : GL_STREAM_DRAW));
+    this->buffer_size = size;
+    this->buffer_count = count;
   }
   
   Gl_vertex_buffer::~Gl_vertex_buffer()
@@ -32,6 +38,21 @@ namespace Wave
       Gl_vertex_buffer::unbind();
       glDeleteBuffers(1, &this->vbo_id);
     }
+  }
+  
+  uint32_t Gl_vertex_buffer::get_count() const
+  {
+    return this->buffer_count;
+  }
+  
+  void Gl_vertex_buffer::set_count(uint32_t count_)
+  {
+    this->buffer_count = count_;
+  }
+  
+  uint32_t Gl_vertex_buffer::get_size() const
+  {
+    return this->buffer_size;
   }
   
   uint32_t Gl_vertex_buffer::get_id() const
@@ -86,10 +107,16 @@ namespace Wave
   Gl_index_buffer::Gl_index_buffer(const void *data, uint32_t count_) : count(count_)
   {
     CHECK_GL_CALL(glGenBuffers(1, &this->index_buffer_id));
-    LOG_INSTRUCTION("IBO", DEFAULT, "Binding index buffer",
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer_id);)
-    CHECK_GL_CALL(
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(count_ * INDEX_SIZE), data, GL_STATIC_DRAW));
+    Gl_index_buffer::bind();
+    if (data)
+    {
+      CHECK_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(count_ * INDEX_SIZE), data,
+                                 GL_STATIC_DRAW));
+    } else
+    {
+      CHECK_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(count_ * INDEX_SIZE), data,
+                                 GL_DYNAMIC_DRAW));
+    }
   }
   
   Gl_index_buffer::~Gl_index_buffer()
@@ -111,10 +138,21 @@ namespace Wave
     return this->bound;
   }
   
+  void Gl_index_buffer::set_count(uint32_t count_)
+  {
+    this->count = count_;
+  }
+  
   void Gl_index_buffer::bind()
   {
     CHECK_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer_id));
     Gl_index_buffer::bound = true;
+  }
+  
+  void Wave::Gl_index_buffer::set_data(const void *data, uint64_t size, uint64_t offset)
+  {
+    Gl_index_buffer::bind();
+    CHECK_GL_CALL(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, data));
   }
   
   void Gl_index_buffer::unbind() const

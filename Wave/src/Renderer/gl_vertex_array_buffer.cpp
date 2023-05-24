@@ -21,15 +21,15 @@ namespace Wave
       case Buffer_data_type::None:break;
     }
     
-    alert(WAVE_ERROR, "[GL VAO BUFFER] --> Unknown Buffer data type (on line %d, in file %s) !",
+    alert(WAVE_ERROR, "[GL vao] --> Unknown Buffer data type (on line %d, in file %s) !",
           __LINE__, __FILE__);
     return 0;
   }
   
   Gl_vertex_array_buffer::Gl_vertex_array_buffer()
   {
-    LOG_INSTRUCTION("VAO", DEFAULT, "Creating vertex array",
-                    CHECK_GL_CALL(glCreateVertexArrays(1, &this->vertex_array_id)))
+    WAVE_LOG_INSTRUCTION("GL vao", DEFAULT, "Creating vertex array",
+                         CHECK_GL_CALL(glCreateVertexArrays(1, &this->vertex_array_id)))
   }
   
   Gl_vertex_array_buffer::~Gl_vertex_array_buffer()
@@ -56,15 +56,15 @@ namespace Wave
   {
     if (Gl_vertex_array_buffer::is_bound())
     {
-      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex array",
-                      CHECK_GL_CALL(glDeleteVertexArrays(1, &this->vertex_array_id)))
-      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex buffers",
-                      for (const auto &vertex_buffer: this->vertex_buffers)
-                      {
-                        LOG_INSTRUCTION("VAO", DEFAULT, "Deleting vertex buffer", vertex_buffer->remove())
-                      })
+      WAVE_LOG_INSTRUCTION("GL vao", DEFAULT, "Deleting vertex array",
+                           CHECK_GL_CALL(glDeleteVertexArrays(1, &this->vertex_array_id)))
+      WAVE_LOG_INSTRUCTION("GL vao", DEFAULT, "Deleting vertex buffers",
+                           for (const auto &vertex_buffer: this->vertex_buffers)
+                           {
+                             WAVE_LOG_INSTRUCTION("GL vao", DEFAULT, "Deleting vertex buffer", vertex_buffer->remove())
+                           })
       
-      LOG_INSTRUCTION("VAO", DEFAULT, "Deleting index buffer", this->index_buffer->remove())
+      WAVE_LOG_INSTRUCTION("GL vao", DEFAULT, "Deleting index buffer", this->index_buffer->remove())
       this->bound = false;
     }
   }
@@ -73,7 +73,7 @@ namespace Wave
   {
     if (vertex_buffer_->get_layout().get_elements().empty())
     {
-      alert(WAVE_ERROR, "[GL VAO BUFFER] --> Vertex Buffer has no layout! (n line %d, in file %s)",
+      alert(WAVE_ERROR, "[GL vao] --> Vertex Buffer has no layout! (n line %d, in file %s)",
             __LINE__, __FILE__);
       return;
     }
@@ -136,7 +136,7 @@ namespace Wave
           break;
         }
         default:
-          alert(WAVE_ERROR, "[GL VAO BUFFER] --> Unknown Buffer_data_type! (on line %d, in file %s)",
+          alert(WAVE_ERROR, "[GL vao] --> Unknown Buffer_data_type! (on line %d, in file %s)",
                 __LINE__, __FILE__);
       }
     }
@@ -157,7 +157,7 @@ namespace Wave
     this->index_buffer = index_buffer_;
   }
   
-  const std::vector<std::shared_ptr<Vertex_buffer>> &Gl_vertex_array_buffer::get_vertex_buffers() const
+  std::vector<std::shared_ptr<Vertex_buffer>> &Gl_vertex_array_buffer::get_vertex_buffers()
   {
     return this->vertex_buffers;
   }

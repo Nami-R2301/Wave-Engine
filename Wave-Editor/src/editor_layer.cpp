@@ -7,11 +7,11 @@
 namespace Wave
 {
   
-  Color Editor_layer::framebuffer_color = Color(78.0f, 255.0f, false);  // Defaults to grey.
+  bool Editor_layer::system_panel_dock_open = true;
   
-  Editor_layer::Editor_layer(const std::shared_ptr<Wave::Editor_camera> &demo_perspective_camera_,
+  Editor_layer::Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
                              const std::vector<std::shared_ptr<Wave::Shader>> &shaders_,
-                             const std::vector<std::shared_ptr<Wave::Object_3D>> &demo_objects_,
+                             const std::vector<std::shared_ptr<Wave::Object>> &demo_objects_,
                              const std::shared_ptr<Framebuffer> &viewport_)
   {
     this->layer_name = "Editor layer";
@@ -24,34 +24,30 @@ namespace Wave
   void Editor_layer::on_attach()
   {
     // Setup object shaders.
-    this->objects[0]->add_texture(std::make_shared<Texture>("../Wave/res/Textures/tiles.png"));
-    this->shaders[1]->bind();
-    
-    unsigned int u_camera_block = glGetUniformBlockIndex(this->shaders[1]->get_id(), "u_camera");
-    CHECK_GL_CALL(glUniformBlockBinding(this->shaders[1]->get_id(), u_camera_block, 3));
-    
-    this->shaders[1]->set_uniform("u_has_texture", true);
-    this->shaders[1]->set_uniform("u_sampler", 0);
+    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png",
+                                                                       {Texture_type::Texture_2D,
+                                                                        0, 0, 0, 1, 1}));
     
     // Setup objects in scene.
-    Wave::Renderer::load_object(this->objects[0].get());
     this->objects[0]->translate(10, -10, 20);
     this->objects[0]->rotate(90, -90, 0);
     
-    this->shaders[1]->set_uniform("u_model", &this->objects[0]->get_model_matrix().get_matrix()[0][0]);
-    this->shaders[1]->unbind();
-    
     // Setup framebuffer shader.
     this->framebuffer_viewport_data.framebuffer_viewport_shader = Shader::create("Framebuffer Editor Viewport",
-                                                                                 Res_loader_3D::load_shader_source(
+                                                                                 Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert").c_str(),
-                                                                                 Res_loader_3D::load_shader_source(
+                                                                                 Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag").c_str());
+    Renderer::draw_object(this->objects[0]);
   }
   
   void Editor_layer::on_detach()
   {
-    for (const auto &shader: this->shaders) shader->unbind();  // Unbind before destruction.
+  }
+  
+  void Editor_layer::on_event([[maybe_unused]] Event &event)
+  {
+    this->camera->on_event(event);
   }
   
   void Editor_layer::on_update(float time_step)
@@ -95,154 +91,50 @@ namespace Wave
       Wave::alert(WAVE_WARN, "[SETTING] --> Force shutdown");
       Wave::Engine::get_main_window()->close();
     }
-    
-    //  Update objects.
-    this->shaders[1]->bind();
-    Renderer::begin_scene(*this->camera);
-    Renderer::draw_loaded_objects(1);
-    this->shaders[1]->unbind();
   }
   
-  void Editor_layer::on_event([[maybe_unused]] Event &event)
+  void Editor_layer::on_render()
   {
-    this->camera->on_event(event);
-  }
-  
-  void Editor_layer::on_ui_render(float time_step)
-  {
-    ImGuiIO &io = ImGui::GetIO();
-    auto bold = io.Fonts->Fonts[1];
-    io.DeltaTime = time_step;
-    // Note: Switch this to true to enable dockspace
-    static bool opt_fullscreen_persistant = true;
-    bool opt_fullscreen = opt_fullscreen_persistant;
-    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+    ImGuiIO io = ImGui::GetIO();
     
-    if (opt_fullscreen)
+    ImGuiViewport *viewport_ = ImGui::GetMainViewport();
+    
+    /* Important to set next viewport window, because otherwise a window node will clip out of the main viewport when
+     * dragged outside the main window, which is annoying when trying to re-dock a node by dragging it to the very edge,
+     * and it's separating from the dockSpace instead.
+    */
+    
+    // Render System panel UI.
+    ImGui::SetNextWindowViewport(viewport_->ID);
+    
+    if (Editor_layer::system_panel_dock_open)
     {
-      ImGuiViewport *viewport_ = ImGui::GetMainViewport();
-      ImGui::SetNextWindowPos(viewport_->Pos);
-      ImGui::SetNextWindowSize(viewport_->Size);
-      ImGui::SetNextWindowViewport(viewport_->ID);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-      Editor_layer::window_flags |=
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove;
-      Editor_layer::window_flags |=
-        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDecoration;
-    }
-    
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Wave-Engine", &(Editor_layer::dockSpace_open), Editor_layer::window_flags);
-    ImGui::PopStyleVar();  // Window Padding.
-    
-    // DockSpace
-    
-    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable && !Editor_layer::dockSpace_id)
-    {
-      Editor_layer::dockSpace_id = ImGui::GetID("Wave-Engine-DockSpace");
-      ImGui::DockBuilderRemoveNode(Editor_layer::dockSpace_id); // Clear out existing layout
-      ImGui::DockBuilderAddNode(Editor_layer::dockSpace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
-      ImGui::DockBuilderSetNodeSize(Editor_layer::dockSpace_id, ImVec2(Engine::get_main_window()->get_width(),
-                                                                       Engine::get_main_window()->get_height()));
-      
-      ImGuiID dock_main_id = Editor_layer::dockSpace_id;
-      Editor_layer::scene_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr,
-                                                                      &dock_main_id);
-      Editor_layer::stats_panel_dock_id = ImGui::DockBuilderSplitNode(Editor_layer::scene_panel_dock_id, ImGuiDir_Down,
-                                                                      0.4f, nullptr,
-                                                                      &(Editor_layer::scene_panel_dock_id));
-      Editor_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.1f, nullptr,
-                                                                       &dock_main_id);
-      
-      ImGui::DockBuilderDockWindow("Viewport", dock_main_id);
-      ImGui::DockBuilderDockWindow("Scene", Editor_layer::scene_panel_dock_id);
-      ImGui::DockBuilderDockWindow("System Info", Editor_layer::events_panel_dock_id);
-      ImGui::DockBuilderDockWindow("Entity Info", Editor_layer::stats_panel_dock_id);
-      ImGui::DockBuilderFinish(dock_main_id);
-      this->viewport_panel_dock_id = dock_main_id;
-    }
-    
-    dockspace_flags |= ImDrawListFlags_AntiAliasedLinesUseTex;
-    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-    {
-      Editor_layer::dockSpace_id = ImGui::GetID("Wave-Engine-DockSpace");
-      ImGui::DockSpace(Editor_layer::dockSpace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    }
-    
-    if (ImGui::BeginMenuBar())
-    {
-      if (ImGui::BeginMenu("File"))
+      if (ImGui::Begin("System Info", &(Editor_layer::system_panel_dock_open), ImGuiWindowFlags_None))
       {
-        ImGui::MenuItem("Open Project...", "Ctrl+O");
-        ImGui::Separator();
-        ImGui::MenuItem("New Scene", "Ctrl+N");
-        ImGui::MenuItem("Save Scene", "Ctrl+S");
-        ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S");
-        ImGui::Separator();
-        
-        if (ImGui::MenuItem("Exit"))
-        {
-          Engine::shutdown();
-        }
-        ImGui::EndMenu();
+        ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)", 1000.0f * Engine::get_time_step(),
+                    static_cast<int>(Engine::get_engine_framerate()));
+        auto framebuffer_viewport_gl = dynamic_cast<Gl_framebuffer *>(this->framebuffer_viewport_data.viewport.get());
+        ImGui::Text("Framebuffer size :\t(%.2f, %.2f)", framebuffer_viewport_gl->get_options().width,
+                    framebuffer_viewport_gl->get_options().height);
       }
+      ImGui::End();  // Stats
     }
-    ImGui::EndMenuBar();
     
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 10.0f));
-    if (ImGui::Begin("Scene", &(Editor_layer::dockSpace_open), ImGuiWindowFlags_None))
-    {
-      ImGui::PushFont(bold);
-      if (ImGui::TreeNodeEx("Background", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
-      {
-        ImGui::ColorEdit3("Color", &Editor_layer::framebuffer_color[0]);
-        ImGui::TreePop();
-      }
-      ImGui::Separator();
-      if (ImGui::TreeNodeEx("Editor camera",
-                            ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
-      {
-        float min_x = -100.0f, max_x = 100.0f, min_y = -100.0f, max_y = 100.0f, min_depth = -100.0f, max_depth = 100.0f;
-        ImGui::SliderScalar("X", ImGuiDataType_Float, &this->camera->get_position()[0], &min_x, &max_x);
-        ImGui::SliderScalar("Y", ImGuiDataType_Float, &this->camera->get_position()[1], &min_y, &max_y);
-        ImGui::SliderScalar("Z", ImGuiDataType_Float, &this->camera->get_position()[2], &min_depth, &max_depth);
-        
-        this->camera->set_position(this->camera->get_position());
-        
-        ImGui::TreePop();
-        
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 20.0f));
-        ImGui::PushFont(io.FontDefault);
-        if (ImGui::Begin("Entity Info", &(Editor_layer::dockSpace_open), ImGuiWindowFlags_None))
-        {
-          ImGui::Text("Properties : %s", this->camera->to_string().c_str());
-        }
-        ImGui::PopFont();
-        ImGui::PopStyleVar();
-        ImGui::End();
-      }
-      ImGui::PopFont();
-    }
-    ImGui::End();  // Scene hierarchy
-    ImGui::PopStyleVar();  // Window padding
+    // Render scene UI.
+    ImGui::SetNextWindowViewport(viewport_->ID);
     
-    if (ImGui::Begin("System Info", &(Editor_layer::dockSpace_open), ImGuiWindowFlags_None))
-    {
-      ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)", 1000.0f * time_step,
-                  static_cast<int>(Engine::get_engine_framerate()));
-      auto framebuffer_viewport_gl = dynamic_cast<Gl_framebuffer *>(this->framebuffer_viewport_data.viewport.get());
-      ImGui::Text("Framebuffer size :\t(%.2f, %.2f)", framebuffer_viewport_gl->get_options().width,
-                  framebuffer_viewport_gl->get_options().height);
-    }
-    ImGui::End();  // Stats
+    io.Fonts->Fonts[1]->Scale = this->scene_panel.get_font_scale();
+    this->scene_panel.on_render();
+    io.Fonts->Fonts[1]->Scale = 1.0f;  // Reset scale for other components.
+    
+    // Render Viewport framebuffer UI.
+    ImGui::SetNextWindowViewport(viewport_->ID);
     
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin("Viewport");
     ImGuiDockNode *viewport_dock_node;
-    viewport_dock_node = ImGui::DockBuilderGetNode(this->viewport_panel_dock_id);
-    viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;
+    viewport_dock_node = ImGui::DockBuilderGetNode(ImGui_layer::viewport_panel_dock_id);
+    if (viewport_dock_node) viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;
     
     if (this->framebuffer_viewport_data.viewport->get_options().samples == 1)
     {
@@ -252,16 +144,28 @@ namespace Wave
       ImGui::Image(reinterpret_cast<void *>(texture_id),
                    ImVec2(viewport_size.x, viewport_size.y),
                    ImVec2(0, 1), ImVec2(1, 0));
+      
+      /* For some reason, if the window is being dragged outside the dock container, it will cease to call the framebuffer.
+       * callback provided. After countless tests, it seems that the only quick workaround for this is to add the custom
+       * callback via the Window list instead of the host window due to Window list decreasing in size when the window node
+       * is undocked.
+       *
+       * NOTE : If we only pass the callback via the Window list, the window won't execute the custom callback
+       * once it's docked again, so, we must cover both cases for a smoother and more robust user experience.
+       *
+      */
+    } else if (viewport_dock_node->Windows.Size > 0)
+    {
+      // Add custom callback to draw texture multi-sampled framebuffer onto the docked window.
+      viewport_dock_node->HostWindow->DrawList->AddCallback(draw_viewport_quad, &this->framebuffer_viewport_data);
     } else
     {
-      viewport_dock_node->HostWindow->DrawList->AddCallback(draw_viewport_quad,
-                                                            &this->framebuffer_viewport_data);
+      // Add the custom callback when the window is undocked and being popped out of the node container.
+      viewport_dock_node->Windows.Data[0]->DrawList->AddCallback(draw_viewport_quad,
+                                                                 &this->framebuffer_viewport_data);
     }
-    ImGui::End();  // Viewport
+    ImGui::End(); // Viewport.
     ImGui::PopStyleVar();  // Window padding.
-    ImGui::End(); // Wave-Engine.
-    ImGui::PopStyleVar();  // Window Border size.
-    ImGui::PopStyleVar();  // Window Rounding.
   }
   
   void Editor_layer::draw_viewport_quad([[maybe_unused]] const ImDrawList *parentList, const ImDrawCmd *cmd)
@@ -279,10 +183,6 @@ namespace Wave
     CHECK_GL_CALL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_ibo));
     CHECK_GL_CALL(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &depth_blend_function));
     
-    CHECK_GL_CALL(glEnable(GL_SAMPLE_SHADING));
-    
-    framebuffer_data->framebuffer_viewport_shader->bind();
-    
     ImDrawData *drawData = ImGui::GetDrawData();
     float left = drawData->DisplayPos.x;
     float right = drawData->DisplayPos.x + drawData->DisplaySize.x;
@@ -296,9 +196,9 @@ namespace Wave
       {(right + left) / (left - right), (top + bottom) / (bottom - top), 0.0f,  1.0f},
     };
     
-    glUniformMatrix4fv(glGetUniformLocation(framebuffer_data->framebuffer_viewport_shader->get_id(), "u_projection"),
-                       1, GL_FALSE, &viewportProjection[0][0]);
-//    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_projection", &viewportProjection[0][0]);
+    framebuffer_data->framebuffer_viewport_shader->bind();
+    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_projection", &viewportProjection[0][0],
+                                                               false);
     
     // Bind framebuffer textures
     CHECK_GL_CALL(glActiveTexture(GL_TEXTURE1));
@@ -323,15 +223,13 @@ namespace Wave
     framebuffer_viewport_gl->data.vao->unbind();
     framebuffer_viewport_gl->data.vao->get_vertex_buffers().back()->unbind();
     framebuffer_viewport_gl->data.vao->get_index_buffer()->unbind();
-    
-    CHECK_GL_CALL(glDisable(GL_SAMPLE_SHADING));
+    framebuffer_data->framebuffer_viewport_shader->unbind();
     
     // Unbind all buffers.
     CHECK_GL_CALL(glActiveTexture(GL_TEXTURE1));
     CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
     CHECK_GL_CALL(glActiveTexture(GL_TEXTURE2));
     CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
-    framebuffer_data->framebuffer_viewport_shader->unbind();
     
     // Reset Imgui OpenGL buffers for next draw commands.
     CHECK_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_ibo));

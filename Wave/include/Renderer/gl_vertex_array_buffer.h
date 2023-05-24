@@ -19,7 +19,7 @@ namespace Wave
     void set_index_buffer(const std::shared_ptr<Index_buffer> &indexBuffer) override;
     
     [[nodiscard]] uint32_t get_id() const override;
-    [[nodiscard]] const std::vector<std::shared_ptr<Vertex_buffer>> &get_vertex_buffers() const override;
+    [[nodiscard]] std::vector<std::shared_ptr<Vertex_buffer>> &get_vertex_buffers() override;
     [[nodiscard]] const std::shared_ptr<Index_buffer> &get_index_buffer() const override;
     private:
     uint32_t vertex_array_id = 0;

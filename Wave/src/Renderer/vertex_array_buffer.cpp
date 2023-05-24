@@ -19,7 +19,7 @@ namespace Wave
                                                    "vertex_array_buffer.cpp", __LINE__ - 2);
         return std::make_shared<Gl_vertex_array_buffer>();
       }
-      case Renderer_api::Opengl:return std::make_shared<Gl_vertex_array_buffer>();
+      case Renderer_api::OpenGL:return std::make_shared<Gl_vertex_array_buffer>();
       default:
       {
         Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,

@@ -7,8 +7,12 @@
 // NEED TO BE INCLUDED IN MAIN APP ONLY
 #include <entrypoint.h>
 
-Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl, Wave::Context_api::Glfw)
+static Wave::Color previous_background_color;
+
+Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Context_api_e::Glfw,
+                                          Wave::Engine::App_type::Runtime)
 {
+  Wave::Renderer::init();
   // Add Cameras
   this->demo_perspective_camera = std::make_shared<Wave::Editor_camera>(
     Engine::get_main_window()->get_width(),
@@ -17,23 +21,17 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl, Wave::Cont
   
   
   // Add shaders
-  this->demo_object_shaders.emplace_back(Wave::Shader::create("Default",
-                                                              Wave::Res_loader_3D::load_shader_source(
-                                                                "../Wave/res/Shaders/default_3D.vert").c_str(),
-                                                              Wave::Res_loader_3D::load_shader_source(
-                                                                "../Wave/res/Shaders/default_3D.frag").c_str()));
   this->demo_text_shaders.emplace_back(Wave::Shader::create("Text",
-                                                            Wave::Res_loader_3D::load_shader_source(
+                                                            Wave::Resource_loader::load_shader_source(
                                                               "../Wave/res/Shaders/text-glyph.vert").c_str(),
-                                                            Wave::Res_loader_3D::load_shader_source(
+                                                            Wave::Resource_loader::load_shader_source(
                                                               "../Wave/res/Shaders/text-glyph.frag").c_str()));
   
   
   // Add objects
   this->demo_objects.emplace_back(
-    std::make_shared<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
-  this->demo_objects.emplace_back(
-    std::make_shared<Wave::Object_3D>(Wave::Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
+    Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
+//  this->demo_objects.emplace_back(Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj")));
   
   // Add text strings
   Wave::Text_format format = {25.0f,
@@ -42,25 +40,19 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::Opengl, Wave::Cont
                               26.0f,
                               Wave::Text_style::REGULAR,
                               Wave::Color(1.0f, 0.0f, 0.0f, 1.0f, true)};
-  this->demo_text.emplace_back(std::make_shared<Wave::Gl_text>("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf",
-                                                               "Wave Engine ~",
-                                                               format));
+  this->demo_text.emplace_back(Wave::Text::create("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf",
+                                                  "Wave Engine ~",
+                                                  format));
   
-  push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_object_shaders, this->demo_objects[0]));
+  push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_object_shaders, this->demo_objects));
   push_layer(new Wave::Text_layer(this->demo_text, this->demo_text_shaders,
                                   Wave::Vector_2f(Engine::get_main_window()->get_width(),
-                                                  Engine::get_main_window()->get_height())));
+                                                  Engine::get_main_window()->get_height()), false));
 }
 
 void Example_app::init()
 {
   Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
-}
-
-void Example_app::on_update(float time_step)
-{
-  Wave::Gl_renderer::clear_bg();
-  Engine::on_update(time_step);
 }
 
 void Example_app::on_event(Wave::Event &event)
@@ -103,6 +95,25 @@ void Example_app::on_event(Wave::Event &event)
     }
     default:break;
   }
+}
+
+void Example_app::on_update(float time_step)
+{
+  this->demo_perspective_camera->on_update(time_step);
+  if (this->background_clear_color != previous_background_color)
+  {
+    Wave::Renderer::set_clear_color(this->background_clear_color);
+    previous_background_color = this->background_clear_color;
+  }
+  Engine::on_update(time_step);
+}
+
+void Example_app::on_render()
+{
+  Wave::Renderer::begin(this->demo_perspective_camera);
+  Wave::Renderer::clear_bg();
+  Engine::on_render();
+  Wave::Renderer::end();
 }
 
 bool Example_app::window_closed_callback([[maybe_unused]] Wave::On_window_close &window_closed_event)

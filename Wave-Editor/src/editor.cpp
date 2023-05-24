@@ -10,8 +10,10 @@ namespace Wave
 {
   
   
-  Editor::Editor() : Engine(Renderer_api::Opengl, Context_api::Glfw)
+  Editor::Editor() : Engine(Renderer_api::OpenGL, Context_api_e::Glfw,
+                            Engine::App_type::Editor)
   {
+    Renderer::init();
     // Add Cameras
     this->editor_camera = std::make_shared<Editor_camera>(Engine::get_main_window()->get_width(),
                                                           Engine::get_main_window()->get_height(),
@@ -19,23 +21,16 @@ namespace Wave
     
     // Add shaders
     this->demo_shaders.emplace_back(Wave::Shader::create("Text",
-                                                         Wave::Res_loader_3D::load_shader_source(
+                                                         Wave::Resource_loader::load_shader_source(
                                                            "../Wave/res/Shaders/text-glyph.vert").c_str(),
-                                                         Wave::Res_loader_3D::load_shader_source(
+                                                         Wave::Resource_loader::load_shader_source(
                                                            "../Wave/res/Shaders/text-glyph.frag").c_str()));
-    this->demo_shaders.emplace_back(Shader::create("Default",
-                                                   Res_loader_3D::load_shader_source(
-                                                     "../Wave/res/Shaders/default_3D.vert").c_str(),
-                                                   Res_loader_3D::load_shader_source(
-                                                     "../Wave/res/Shaders/default_3D.frag").c_str()));
     
-    GLint max_samples = 0;
-    CHECK_GL_CALL(glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
-    
+    int32_t max_samples = Engine::get_main_window()->get_samples();
     // Setup default viewport framebuffer specs.
     Framebuffer_options fbSpec;
-    fbSpec.width = 1920.0f;  // Fullscreen size.
-    fbSpec.height = 1080.0f;  // Fullscreen size.
+    fbSpec.width = Engine::get_main_window()->get_width();  // Fullscreen size.
+    fbSpec.height = Engine::get_main_window()->get_height();  // Fullscreen size.
     fbSpec.samples = max_samples / 4 <= 4 ? max_samples : max_samples / 4;
     this->viewport_resolution = {fbSpec.width,
                                  fbSpec.height};
@@ -43,10 +38,10 @@ namespace Wave
     
     
     // Add objects
-    this->demo_objects.emplace_back(
-      std::make_shared<Object_3D>(Res_loader_3D("../Wave/res/Models/awp.obj").load_3D_mesh()));
-    this->demo_objects.emplace_back(
-      std::make_shared<Object_3D>(Res_loader_3D("../Wave/res/Models/cube.obj").load_3D_mesh()));
+    auto custom = Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj");
+//    auto cube = Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj");
+    
+    this->demo_objects.emplace_back(Object::create(custom));
     
     // Add text strings
     Wave::Text_format format = {25.0f,
@@ -63,11 +58,21 @@ namespace Wave
                                 this->demo_shaders,
                                 this->demo_objects,
                                 this->viewport_framebuffer));
-    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution));
-    push_overlay(new ImGui_layer());
+    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution,
+                              true));
+    push_layer(new ImGui_layer({16.0f, 1.0f}));
+  }
+  
+  void Editor::init()
+  {
   }
   
   void Editor::on_update(float time_step)
+  {
+    Engine::on_update(time_step);
+  }
+  
+  void Editor::on_render()
   {
     if (!Engine::get_main_window()->is_minimized()) ImGui_layer::begin();
     
@@ -91,19 +96,14 @@ namespace Wave
     }
     
     this->viewport_framebuffer->bind();
+    Renderer::begin(this->editor_camera);
+    Renderer::set_clear_color(this->background_clear_color);
     Renderer::clear_bg();
-    Engine::on_update(time_step);
+    Engine::on_render();
+    Renderer::end();
     this->viewport_framebuffer->unbind();
     
-    if (!Engine::get_main_window()->is_minimized())
-    {
-      ImGui_layer::end();
-    }
-  }
-  
-  void Editor::init()
-  {
-    Renderer::set_clear_color(Editor_layer::framebuffer_color);
+    if (!Engine::get_main_window()->is_minimized()) ImGui_layer::end();
   }
   
   Engine *create_app()

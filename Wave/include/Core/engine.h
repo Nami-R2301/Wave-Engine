@@ -19,12 +19,20 @@ namespace Wave
   class Engine
   {
     public:
+    enum class App_type
+    {
+      Runtime = 0,
+      Editor = 1,
+      Testing = 2
+    };
+    public:
     Engine();
-    explicit Engine(Renderer_api choice, Context_api api_choice);
+    explicit Engine(Renderer_api renderer_api_choice, Context_api_e context_api_choice, App_type executable_type_);
     virtual ~Engine();
     
     [[nodiscard]] static Engine *get_app();
     [[nodiscard]] static Window *get_main_window();  // For glfw purposes, keep this static.
+    [[nodiscard]] static float get_time_step();
     [[nodiscard]] static long get_frame_drawn_counter();
     [[nodiscard]] static float get_engine_framerate();
     [[nodiscard]] static bool get_running_state();
@@ -38,6 +46,7 @@ namespace Wave
     virtual void init();
     virtual void on_event(Event &event);
     virtual void on_update(float time_step);
+    virtual void on_render();
     void run();
     
     void push_overlay(Layer *layer);
@@ -66,7 +75,9 @@ namespace Wave
     static void wait(float start_time, float end_time);
     private:
     static Engine *instance;
+    static App_type executable_type;
     static bool running_state;
+    static float time_step;
     static long frame_drawn_counter;
     static float engine_framerate;
     static Engine_time current_time;

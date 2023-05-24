@@ -36,7 +36,7 @@ namespace Wave
     
     switch (this->api)
     {
-      case Renderer_api::Opengl:
+      case Renderer_api::OpenGL:
       {
         snprintf(api_buffer, 7, "OpenGL");
         break;

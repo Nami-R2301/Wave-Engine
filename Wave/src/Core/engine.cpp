@@ -1,11 +1,14 @@
 #include <Core/engine.h>
+#include <ranges>
 
 namespace Wave
 {
   
   Engine *Engine::instance = nullptr;
+  Engine::App_type Engine::executable_type = App_type::Editor;
   std::unique_ptr<Window> Engine::main_window = nullptr;
   float Engine::engine_framerate = 60.0f;
+  float Engine::time_step = 0.0f;
   long Engine::frame_drawn_counter = 0;
   bool Engine::running_state = false;
   Engine_time Engine::current_time;
@@ -22,90 +25,108 @@ namespace Wave
     {
       alert(WAVE_ERROR,
             "[Engine] --> App already exists! Make sure to close any instance of Wave Engine before trying again.");
+      exit(WAVE_MULTIPLE_INSTANCES);
     }
+    
     Engine::instance = this;
-    LOG_TASK("ENGINE", RED, 1, "--------- Launching Wave Engine ---------",
-             {
-               this->current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
-               Renderer::create(Renderer_api::Opengl);  // Default to OpenGL implementation.
-               Renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-               
-               // Setup context api settings.
-               Engine::main_window = Window::create(Context_api::Glfw);  // Default to OpenGL implementation.
-               // Set default callbacks.
-               Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-               Engine::main_window->bind_api_callbacks();
-               Renderer::init();
-             },
-             "Engine launched")
+    WAVE_LOG_TASK("Engine", RED, 1, "--------- Launching Wave Engine ---------",
+                  {
+                    this->current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
+                    Renderer::create(Renderer_api::OpenGL);  // Default to OpenGL implementation.
+                    Renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+                    
+                    // Setup context api settings.
+                    Engine::main_window = Window::create(Context_api_e::Glfw,
+                                                         {"Wave",
+                                                          WAVE_VALUE_DONT_CARE,
+                                                          WAVE_VALUE_DONT_CARE,
+                                                          true,
+                                                          WAVE_VALUE_DONT_CARE,
+                                                          WAVE_VALUE_DONT_CARE,
+                                                          WAVE_VALUE_DONT_CARE,
+                                                          WAVE_VALUE_DONT_CARE,
+                                                          4});
+                    // Set default callbacks.
+                    Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+                    Engine::main_window->bind_api_callbacks();
+                  },
+                  "Engine launched")
   }
   
-  Engine::Engine(Renderer_api choice, Context_api api_choice)
+  Engine::Engine(Renderer_api choice, Context_api_e api_choice, App_type executable_type_)
   {
 #if defined(DEBUG)
     Wave::open_stream();  // Open log file stream.
 #endif
+    Engine::executable_type = executable_type_;
     if (Engine::instance)
     {
       alert(WAVE_ERROR,
             "[Engine] --> App already exists! Make sure to close any instance of Wave Engine before trying again.");
+      exit(WAVE_MULTIPLE_INSTANCES);
     }
     Engine::instance = this;
-    LOG_TASK("ENGINE", RED, 1, "--------- Launching Wave Engine ---------",
-             {
-               this->current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
-               Renderer::create(Renderer_api::Opengl);  // Default to OpenGL implementation.
-               Renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-               
-               switch (choice)
-               {
-                 case Renderer_api::Opengl:
-                   // Setup context api settings.
-                   Engine::main_window = Window::create(api_choice);
-                   // Set default callbacks.
-                   Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-                   Engine::main_window->bind_api_callbacks();
-                   break;
-                 case Renderer_api::Vulkan:
-                   alert(WAVE_WARN,
-                         "Engine does NOT support Vulkan yet!\tRenderer set to OpenGL instead.");
-                   // Setup render api settings.
-                   Engine::main_window = Window::create(api_choice);
-                   // Set default callbacks.
-                   Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-                   Engine::main_window->bind_api_callbacks();
-                   break;
-                 case Renderer_api::Directx:
-                   alert(WAVE_WARN,
-                         "Engine does NOT support DirectX yet!\tRenderer set to OpenGL instead.");
-                   // Setup render api settings.
-                   Engine::main_window = Window::create(api_choice);
-                   // Set default callbacks.
-                   Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-                   Engine::main_window->bind_api_callbacks();
-                   break;
-                 default:Engine::main_window = Window::create(api_choice);
-                   // Set default callbacks.
-                   Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-                   Engine::main_window->bind_api_callbacks();
-               }
-               Renderer::init();
-             },
-             "Engine launched")
+    WAVE_LOG_TASK("Engine", RED, 1, "--------- Launching Wave Engine ---------",
+                  {
+                    this->current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
+                    Renderer::create(Renderer_api::OpenGL);  // Default to OpenGL implementation.
+                    Renderer::set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+                    
+                    switch (choice)
+                    {
+                      case Renderer_api::OpenGL:
+                        // Setup context api settings.
+                        Engine::main_window = Window::create(api_choice, {"Wave",
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          true,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          8});
+                        // Set default callbacks.
+                        Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+                        Engine::main_window->bind_api_callbacks();
+                        break;
+                      case Renderer_api::Vulkan:
+                        alert(WAVE_WARN,
+                              "Engine does NOT support Vulkan yet!\tRenderer set to OpenGL instead.");
+                        break;
+                      case Renderer_api::Directx:
+                        alert(WAVE_WARN,
+                              "Engine does NOT support DirectX yet!\tRenderer set to OpenGL instead.");
+                        break;
+                      default:
+                        Engine::main_window = Window::create(api_choice, {"Wave",
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          true,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          WAVE_VALUE_DONT_CARE,
+                                                                          8});
+                        // Set default callbacks.
+                        Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+                        Engine::main_window->bind_api_callbacks();
+                    }
+                  },
+                  "Engine launched")
   }
   
   Engine::~Engine()
   {
-    LOG_TASK("ENGINE", RED, 1, "--------- Shutting down Wave Engine ---------",
-             {
-               if (this->has_crashed())
-               {
-                 alert(WAVE_ERROR, "[ENGINE] --> Engine exited with error code : %s0x%X%s ...",
-                       RED, get_exit_status(), DEFAULT);
-               }
-               this->shutdown();
-             },
-             "Engine shut down")
+    WAVE_LOG_TASK("Engine", RED, 1, "--------- Shutting down Wave Engine ---------",
+                  {
+                    if (this->has_crashed())
+                    {
+                      alert(WAVE_ERROR, "[Engine] --> Engine exited with error code : %s0x%X%s ...",
+                            RED, get_exit_status(), DEFAULT);
+                    }
+                    this->shutdown();
+                  },
+                  "Engine shut down")
 #if defined(DEBUG)
     Wave::close_stream();  // Close log file stream.
 #endif
@@ -126,6 +147,11 @@ namespace Wave
     return Engine::engine_framerate;
   }
   
+  float Engine::get_time_step()
+  {
+    return Engine::time_step;
+  }
+  
   long Engine::get_frame_drawn_counter()
   {
     return Engine::frame_drawn_counter;
@@ -141,9 +167,9 @@ namespace Wave
     return Engine::exit_code;
   }
   
-  void Engine::set_engine_framerate(float time_step)
+  void Engine::set_engine_framerate(float time_step_)
   {
-    Engine::engine_framerate = 1.0f / time_step;  // Get frame time in secs.
+    Engine::engine_framerate = 1.0f / time_step_;  // Get frame time in secs.
   }
   
   void Engine::set_frame_drawn_counter(long counter)
@@ -187,17 +213,8 @@ namespace Wave
   
   void Engine::init()
   {
-    Timer init_time;
-    init_time.start();
-    
     // Default dark mode-like background.
     Renderer::set_clear_color(Wave::Color(0.03f, 1.0f, true));
-    
-    auto cube = std::make_unique<Cube>(Res_loader_3D("cube.obj").load_3D_mesh());
-    Renderer::load_object(cube.get());
-    
-    init_time.stop();
-    alert(WAVE_INFO, "Time spent for initialization : %.3f ms", init_time.get_time_in_mili());
     Engine::current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
     Engine::set_exit_status(static_cast<int32_t>(Renderer::get_state().code));
   }
@@ -207,25 +224,42 @@ namespace Wave
     Engine::set_running_state(true);
     
     float last_frame_time = 0.0f;
-    float time_step;  // Avoid tying game speed to framerate.
+    float time_step_;  // Avoid tying game speed to framerate.
     Timer draw_time;
     draw_time.start();
     while (!Engine::main_window->is_closing() && Renderer::is_running())
     {
       Engine::current_time.update_engine_run_time();
       float current_run_time = Engine::current_time.get_up_time();
-      time_step = current_run_time - last_frame_time;
+      time_step_ = current_run_time - last_frame_time;
+      Engine::time_step = time_step_;
       last_frame_time = current_run_time;
-      this->set_engine_framerate(time_step);
+      this->set_engine_framerate(Engine::time_step);
       
-      on_update(time_step);  // Overriden on_update function gets called here.
+      on_update(Engine::time_step);  // Overwritten on_render function gets called here.
+      on_render();
+      // Refresh window
+      Engine::main_window->on_render(); // Refresh the window screen.
       draw_time.stop();
+      //    Engine::last_mouse_position = Input::get_mouse_cursor_position();
+      Engine::set_frame_drawn_counter(Engine::frame_drawn_counter + 1);
+      
+      // Set minimum wait time between each frame to control game speed.
+      Engine::wait(Engine::time_step,
+                   Engine::main_window->is_vsync() ?
+                   1.0f / static_cast<float>(Engine::main_window->get_refresh_rate()) :
+                   Engine::main_window->is_minimized() ? 1.0f / 30.0f :
+                   0.0f);  // Set to NOT wait and to render as many frames as possible (V-Sync off).
+      
       // Show how many fps were achieved if a second passed or if we rendered enough frames before the second passed.
       if (draw_time.get_time_in_seconds() >= 1.0f)
       {
-        char title[33];
-        alert(WAVE_INFO, "[ENGINE] --> Framerate : %ld", get_frame_drawn_counter());
-        if (snprintf(title, 33, "Wave Engine | OpenGL | %ld FPS", get_frame_drawn_counter()) < 0) return;
+        char title[50];
+        const char *current_title = Engine::main_window->get_title();
+        alert(WAVE_INFO, "[Engine] --> Framerate : %ld", get_frame_drawn_counter());
+        if (snprintf(title, sizeof(title), "%s | OpenGL | %ld FPS", current_title, get_frame_drawn_counter()) <
+            0)
+          return;
         Engine::main_window->set_title(title);
         Engine::set_frame_drawn_counter(0);
         draw_time.start();
@@ -259,40 +293,45 @@ namespace Wave
       default:break;
     }
     
-    for (auto it = this->layer_stack.rbegin(); it != this->layer_stack.rend(); ++it)
+    for (auto &it: std::ranges::reverse_view(this->layer_stack))
     {
       if (event.handled) break;
-      (*it)->on_event(event);
+      it->on_event(event);
     }
   }
   
-  void Engine::on_update(float time_step)
+  void Engine::on_update(float time_step_)
   {
-    Timer frame_time;
-    frame_time.start();
-    
     if (!Engine::main_window->is_minimized())
     {
       // Poll all context events
       Engine::main_window->poll_api_events();
       for (Layer *layer: this->layer_stack)
       {
-        layer->on_update(time_step);
-        layer->on_ui_render(time_step);
+        layer->on_update(time_step_);
       }
     }
-    // Refresh window
-    Engine::main_window->on_update(time_step); // Refresh the window screen.
-    
-    Engine::last_mouse_position = Input::get_mouse_cursor_position();
-    Engine::set_frame_drawn_counter(Engine::frame_drawn_counter + 1);
-    
-    frame_time.stop();
-    // Set minimum wait time between each frame to control game speed.
-    Engine::wait(frame_time.get_time_in_seconds(),
-                 Engine::main_window->is_vsync() ? 1.0f / static_cast<float>(Engine::main_window->get_refresh_rate()) :
-                 Engine::main_window->is_minimized() ? 1.0f / 30.0f :
-                 0.0f);  // Set to NOT wait and to render as many frames as possible (V-Sync off).
+  }
+  
+  void Engine::on_render()
+  {
+    if (Engine::executable_type == App_type::Runtime)
+    {
+      for (Layer *layer: this->layer_stack)
+      {
+        layer->on_render();
+      }
+    } else
+    {
+      // Process ImGUI layer first to init dockSpace.
+      if (*(this->layer_stack.end() - 1)) (*(this->layer_stack.end() - 1))->on_render();
+      
+      // Skip ImGUI layer.
+      for (auto it = this->layer_stack.begin(); it != this->layer_stack.end() - 1; ++it)
+      {
+        (*it)->on_render();
+      }
+    }
   }
   
   void Engine::wait(float start_time, float end_time)
@@ -312,12 +351,12 @@ namespace Wave
     if ((Engine::get_exit_status() >> 4) &
         (WAVE_ENGINE_CONTEXT_CRASH >> 4))  // Shift 4 bits to the right to mask error.
     {
-      alert(WAVE_ERROR, "[ENGINE] --> Window has not been requested to close by the user!");
+      alert(WAVE_ERROR, "[Engine] --> Window has not been requested to close by the user!");
     }
     if ((Engine::get_exit_status() >> 4) &
-        (WAVE_ENGINE_RENDERER_CRASH >> 4))  // Shift 4 bits to the right to mask error.
+        (WAVE_ENGINE_RENDERER_CRASH >> 4))
     {
-      alert(WAVE_ERROR, "[ENGINE] --> Renderer has encountered a fatal error!");
+      alert(WAVE_ERROR, "[Engine] --> Renderer has encountered a fatal error!");
     }
   }
   

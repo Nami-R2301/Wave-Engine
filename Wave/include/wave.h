@@ -1,8 +1,8 @@
 #pragma once
 
 /************************* Renderer ********************************/
-#include <Renderer/gl_renderer.h>
-#include <Renderer/gl_shader.h>
+#include <Renderer/renderer.h>
+#include <Renderer/shader.h>
 
 /************************* Core ********************************/
 #include <Core/core.h>
@@ -19,7 +19,7 @@
 
 /************************* Utilities ********************************/
 #include <Utilities/logger.h>
-#include <Utilities/res_loader.h>
+#include <Utilities/Resource_loader.h>
 
 /************************* Input ********************************/
 #include <Input/input.h>
@@ -42,10 +42,11 @@
 #include <Scene/components.h>
 #include <Scene/scene.h>
 #include <Scene/scene_camera.h>
+#include <ImGUI/scene_panel.h>
 
 /************************* Entities ********************************/
-#include <Objects/objects.h>
-#include <Objects/gl_text.h>
+#include <Objects/object.h>
+#include <Objects/text.h>
 
 /************************* Window ********************************/
 #include <Window/window.h>

@@ -4,22 +4,23 @@
 
 
 // IMGUI
-#include <imGUI/imgui.h>
-#include <imGUI/imgui_internal.h>
 #include <imGUI/backends/imgui_impl_glfw.h>
 #include <imGUI/backends/imgui_impl_opengl3.h>
 
 // Wave
-#include <ImGUI/imGUI_layer.h>
 #include <Core/engine.h>
 
 namespace Wave
 {
+  bool ImGui_layer::dockSpace_open = true;
+  ImGuiWindowFlags ImGui_layer::window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  ImGuiID ImGui_layer::dockSpace_id = 0, ImGui_layer::viewport_panel_dock_id = 0, ImGui_layer::scene_panel_dock_id = 0,
+    ImGui_layer::events_panel_dock_id = 0, ImGui_layer::stats_panel_dock_id = 0;
   
-  
-  ImGui_layer::ImGui_layer()
+  ImGui_layer::ImGui_layer(ImGui_layer_data_s imgui_data)
   {
-    this->layer_name = "ImGUI Layer";
+    this->layer_name = "UI Layer";
+    this->imgui_data = imgui_data;
   }
   
   void ImGui_layer::on_attach()
@@ -33,13 +34,11 @@ namespace Wave
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-    float fontSize = 18.0f;// *2.0f;
+    float fontSize = this->imgui_data.font_size;// *2.0f;
     io.FontDefault = io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf",
-                                                  fontSize * 1.10f);
-    io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf", fontSize * 1.10f);
-    io.FontGlobalScale = 0.8f;
+                                                  fontSize);
+    io.Fonts->AddFontFromFileTTF("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf", fontSize);
+    io.FontGlobalScale = this->imgui_data.font_scale;
     io.DisplaySize = ImVec2(static_cast<float>(Engine::get_main_window()->get_width()),
                             static_cast<float>(Engine::get_main_window()->get_height()));
     
@@ -49,7 +48,6 @@ namespace Wave
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle &style = ImGui::GetStyle();
     style.AntiAliasedLinesUseTex = true;
-    style.WindowMinSize.x = 50.0f;
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
       style.WindowRounding = 0.0f;
@@ -63,10 +61,10 @@ namespace Wave
     
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(glfw_window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    ImGui_ImplOpenGL3_Init(Renderer::get_api_shader_version());
   }
   
-  void ImGui_layer::on_update(float time_step)
+  void ImGui_layer::on_update([[maybe_unused]] float time_step)
   {
   }
   
@@ -85,8 +83,95 @@ namespace Wave
     e.handled |= e.is_in_category(EVENT_CATEGORY_KEYBOARD) & io.WantCaptureKeyboard;
   }
   
-  void ImGui_layer::on_ui_render(float time_step)
+  void ImGui_layer::on_render()
   {
+#ifndef RUNTIME
+    ImGuiIO &io = ImGui::GetIO();
+    auto bold = io.Fonts->Fonts[1];
+    // Note: Switch this to true to enable dockspace
+    static bool opt_fullscreen_persistant = true;
+    bool opt_fullscreen = opt_fullscreen_persistant;
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+    
+    if (opt_fullscreen)
+    {
+      ImGuiViewport *viewport_ = ImGui::GetMainViewport();
+      ImGui::SetNextWindowPos(viewport_->Pos);
+      ImGui::SetNextWindowSize(viewport_->Size);
+      ImGui::SetNextWindowViewport(viewport_->ID);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+      ImGui_layer::window_flags |=
+        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove;
+      ImGui_layer::window_flags |=
+        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoDecoration;
+    }
+    
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("Wave-Engine", &(ImGui_layer::dockSpace_open), ImGui_layer::window_flags);
+    ImGui::PopStyleVar();  // Window Padding.
+    
+    // DockSpace
+    
+    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable && !ImGui_layer::dockSpace_id)
+    {
+      ImGui_layer::dockSpace_id = ImGui::GetID("Wave-Engine-DockSpace");
+      ImGui::DockBuilderRemoveNode(ImGui_layer::dockSpace_id); // Clear out existing layout
+      ImGui::DockBuilderAddNode(ImGui_layer::dockSpace_id, ImGuiDockNodeFlags_DockSpace); // Add empty node
+      ImGui::DockBuilderSetNodeSize(ImGui_layer::dockSpace_id, ImVec2(Engine::get_main_window()->get_width(),
+                                                                      Engine::get_main_window()->get_height()));
+      
+      ImGuiID dock_main_id = ImGui_layer::dockSpace_id;
+      ImGui_layer::scene_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.15f, nullptr,
+                                                                     &dock_main_id);
+      ImGui_layer::stats_panel_dock_id = ImGui::DockBuilderSplitNode(ImGui_layer::scene_panel_dock_id, ImGuiDir_Down,
+                                                                     0.4f, nullptr,
+                                                                     &(ImGui_layer::scene_panel_dock_id));
+      ImGui_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.1f, nullptr,
+                                                                      &dock_main_id);
+      
+      ImGui::DockBuilderDockWindow("Viewport", dock_main_id);
+      ImGui::DockBuilderDockWindow("Scene", ImGui_layer::scene_panel_dock_id);
+      ImGui::DockBuilderDockWindow("System Info", ImGui_layer::events_panel_dock_id);
+      ImGui::DockBuilderDockWindow("Entity Info", ImGui_layer::stats_panel_dock_id);
+      ImGui::DockBuilderFinish(dock_main_id);
+      ImGui_layer::viewport_panel_dock_id = dock_main_id;
+    }
+    
+    dockspace_flags |= ImDrawListFlags_AntiAliasedLinesUseTex;
+    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+    {
+      ImGui_layer::dockSpace_id = ImGui::GetID("Wave-Engine-DockSpace");
+      ImGui::DockSpace(ImGui_layer::dockSpace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+    }
+    
+    ImGui::PushFont(bold);
+    if (ImGui::BeginMenuBar())
+    {
+      if (ImGui::BeginMenu("File"))
+      {
+        ImGui::MenuItem("Open Project...", "Ctrl+O");
+        ImGui::Separator();
+        ImGui::MenuItem("New Scene", "Ctrl+N");
+        ImGui::MenuItem("Save Scene", "Ctrl+S");
+        ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S");
+        ImGui::Separator();
+        
+        if (ImGui::MenuItem("Exit"))
+        {
+          Engine::shutdown();
+        }
+        ImGui::EndMenu();
+      }
+    }
+    ImGui::EndMenuBar();
+    ImGui::PopFont();
+    
+    ImGui::End();  // Wave Engine.
+    ImGui::PopStyleVar();  // Window Border size.
+    ImGui::PopStyleVar();  // Window Rounding.
+#endif
   }
   
   void ImGui_layer::begin()

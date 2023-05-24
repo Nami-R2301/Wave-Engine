@@ -15,6 +15,7 @@ public:
   void init() override;
   void on_update(float time_step) override;
   void on_event(Wave::Event &event) override;
+  void on_render() override;
   
   bool window_closed_callback([[maybe_unused]] Wave::On_window_close &window_closed_event) override;
   bool window_resize_callback([[maybe_unused]] Wave::On_window_resize &window_resized_event) override;
@@ -23,7 +24,8 @@ public:
   
   std::vector<std::shared_ptr<Wave::Shader>> demo_object_shaders;
   std::vector<std::shared_ptr<Wave::Shader>> demo_text_shaders;
-  std::shared_ptr<Wave::Editor_camera> demo_perspective_camera;
-  std::vector<std::shared_ptr<Wave::Object_3D>> demo_objects;
+  std::shared_ptr<Wave::Camera> demo_perspective_camera;
+  std::vector<std::shared_ptr<Wave::Object>> demo_objects;
   std::vector<std::shared_ptr<Wave::Text>> demo_text;
+  Wave::Color background_clear_color = Wave::Color(78.0f, 255.0f, false);
 };

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <wave_pch.h>
 #include <Core/interfaces.h>
 #include <Utilities/logger.h>
 #include <freetype/freetype.h>
@@ -12,40 +11,70 @@
 namespace Wave
 {
   
+  enum class Texture_type
+  {
+    None,
+    Texture_2D,
+    Texture_2D_Ms_array,
+    Texture_3D,
+    Cube_map,
+    Cube_map_array
+  };
+  
+  typedef struct Texture_data_s
+  {
+    Texture_type type = Texture_type::None;
+    int32_t width = 0;
+    int32_t height = 0;
+    int32_t depth = 0;
+    uint32_t slot = 0;
+    int32_t samples = 1;
+  } Texture_data_s;
+  
   class Texture : public Printable
   {
     public:
-    Texture() = default;
-    explicit Texture(const char *file_path);
-    Texture(const char *file_path, FT_Face face);
-    ~Texture() override;
+    static std::shared_ptr<Texture> create(const char *file_path, Texture_data_s texture_data);
+    ~Texture() override = default;
     
-    void bind_to_context();
+    [[nodiscard]] virtual int32_t convert_to_api(Texture_data_s data) = 0;
+    [[nodiscard]] virtual uint32_t get_id() const = 0;
+    [[nodiscard]] virtual int32_t get_width() const = 0;
+    [[nodiscard]] virtual int32_t get_height() const = 0;
+    [[nodiscard]] virtual int32_t get_depth() const = 0;
+    [[nodiscard]] virtual uint32_t get_texture_slot() const = 0;
+    [[nodiscard]] virtual int32_t get_bits_per_pixel() const = 0;
     
-    INTERFACE_PRINT
+    virtual void set_id(int32_t id_texture) = 0;
+    virtual void set_width(int32_t width_) = 0;
+    virtual void set_height(int32_t height_) = 0;
+    virtual void set_depth(int32_t height_) = 0;
+    virtual void set_texture_slot(uint32_t texture_slot_) = 0;
+    virtual void set_bits_per_pixel(int32_t bits_per_pixel) = 0;
     
-    [[nodiscard]] uint32_t get_id() const;
-    [[nodiscard]] int get_width() const;
-    [[nodiscard]] int get_height() const;
-    [[nodiscard]] int get_bits_per_pixel() const;
-    [[nodiscard]] unsigned char *get_local_buffer() const;
+    virtual void bind(uint32_t slot_) const = 0;
+    virtual void unbind() const = 0;
+    virtual void remove() = 0;
+    virtual void set_data(const void **data) const = 0;
     
-    void set_id(int id_texture);
-    void set_local_buffer(unsigned char *local_buffer);
-    void set_width(int width);
-    void set_height(int height);
-    void set_bits_per_pixel(int bits_per_pixel);
-    
-    void bind(uint32_t slot_) const;
-    void unbind() const;
-    void remove() const;
-    
-    Texture &operator=(const Texture &other_texture);
-    private:
-    uint32_t texture_id = 255;
-    unsigned char *local_buffer = nullptr;
-    int width = 0;
-    int height = 0;
-    int bits_per_pixel = 0;
+    virtual explicit operator bool() const = 0;
+  };
+  
+  /********************* TEXTURE 2D ********************/
+  
+  class Texture_2D : public Texture
+  {
+    public:
+    static std::shared_ptr<Texture_2D> create(const char *file_path, Texture_data_s texture_data);
+    ~Texture_2D() override = default;
+  };
+  
+  /********************* TEXTURE 3D ********************/
+  
+  class Texture_3D : public Texture
+  {
+    public:
+    static std::shared_ptr<Texture_3D> create(const char *file_path, Texture_data_s texture_data);
+    ~Texture_3D() override = default;
   };
 }

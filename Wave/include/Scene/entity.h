@@ -20,61 +20,61 @@ namespace Wave
     Entity(const Entity &other) = default;
     
     template<typename T, typename... Args>
-    T &AddComponent(Args &&... args)
+    T &add_component(Args &&... args)
     {
-      HZ_CORE_ASSERT(!HasComponent<T>(), "Entity already has component!");
-      T &component = m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
-      m_Scene->OnComponentAdded<T>(*this, component);
+      T &component = scene->registry.emplace<T>(entity_handle, std::forward<Args>(args)...);
+      scene->OnComponentAdded<T>(*this, component);
       return component;
     }
     
     template<typename T, typename... Args>
-    T &AddOrReplaceComponent(Args &&... args)
+    T &add_or_replace_component(Args &&... args)
     {
-      T &component = m_Scene->m_Registry.emplace_or_replace<T>(m_EntityHandle, std::forward<Args>(args)...);
-      m_Scene->OnComponentAdded<T>(*this, component);
+      T &component = scene->registry.emplace_or_replace<T>(entity_handle, std::forward<Args>(args)...);
+      scene->OnComponentAdded<T>(*this, component);
       return component;
     }
     
     template<typename T>
-    T &GetComponent()
+    T &get_component()
     {
-      if (!HasComponent<T>())
+      if (!has_component<T>())
         alert(WAVE_ERROR, "[Entity] --> Entity does not have component!");
-      return m_Scene->m_Registry.get<T>(m_EntityHandle);
+      return scene->registry.get<T>(entity_handle);
     }
     
     template<typename T>
-    bool HasComponent()
+    bool has_component()
     {
-      return m_Scene->m_Registry.any_of<T>(m_EntityHandle);
+      return scene->registry.any_of<T>(entity_handle);
     }
     
     template<typename T>
-    void RemoveComponent()
+    void remove_component()
     {
-      HZ_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
-      m_Scene->m_Registry.remove<T>(m_EntityHandle);
+      if (!has_component<T>())
+        alert(WAVE_ERROR, "[Entity] --> Entity does not have component!");
+      scene->registry.remove<T>(entity_handle);
     }
     
     explicit operator bool() const
-    { return m_EntityHandle != entt::null; }
+    { return entity_handle != entt::null; }
     
     explicit operator entt::entity() const
-    { return m_EntityHandle; }
+    { return entity_handle; }
     
     explicit operator uint32_t() const
-    { return (uint32_t) m_EntityHandle; }
+    { return (uint32_t) entity_handle; }
     
-    uint64_t GetUUID()
-    { return GetComponent<IDComponent>().ID; }
+    uint64_t get_uuid()
+    { return get_component<ID_component_s>().ID; }
     
-    const std::string &GetName()
-    { return GetComponent<TagComponent>().Tag; }
+    const std::string &get_name()
+    { return get_component<Tag_component_s>().Tag; }
     
     bool operator==(const Entity &other) const
     {
-      return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene;
+      return entity_handle == other.entity_handle && scene == other.scene;
     }
     
     bool operator!=(const Entity &other) const
@@ -83,8 +83,8 @@ namespace Wave
     }
     
     private:
-    entt::entity m_EntityHandle{entt::null};
-    Scene *m_Scene = nullptr;
+    entt::entity entity_handle{entt::null};
+    Scene *scene = nullptr;
   };
 }
 

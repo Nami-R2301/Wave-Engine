@@ -13,7 +13,9 @@ endif ()
 
 add_library(ImGUI STATIC ${CMAKE_SOURCE_DIR}/Wave/src/ImGUI/imGUI_build.cpp)
 
-target_compile_definitions(ImGUI PUBLIC $<$<CONFIG:DEBUG>:IMGUI_IMPL_OPENGL_DEBUG>)
+if (CMAKE_BUILD_TYPE STREQUAL DEBUG)
+    target_compile_definitions(ImGUI PUBLIC IMGUI_IMPL_OPENGL_DEBUG)
+endif ()
 
 target_link_libraries(ImGUI PUBLIC OpenGL::GL)
 
@@ -33,7 +35,7 @@ add_library(Wave STATIC
         Wave/src/Math/vector_4f.cpp
         Wave/src/Utilities/logger.cpp
         Wave/src/Math/transform.cpp
-        Wave/src/Utilities/res_loader.cpp
+        Wave/src/Utilities/Resource_loader.cpp
         Wave/src/Scene/camera.cpp
         Wave/src/Renderer/texture.cpp
         Wave/src/Renderer/gl_vertex_array_buffer.cpp
@@ -65,7 +67,9 @@ add_library(Wave STATIC
         Wave/src/Scene/scene_camera.cpp
         Wave/src/Renderer/gl_shader.cpp
         Wave/src/Renderer/uniform_buffer.cpp
-        Wave/src/Renderer/gl_uniform_buffer.cpp)
+        Wave/src/Renderer/gl_uniform_buffer.cpp
+        Wave/include/Renderer/gl_texture.cpp
+        Wave/src/ImGUI/scene_panel.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -131,8 +135,6 @@ if (UNIX)
             Wave/include/Dependencies
             Wave/include/Dependencies/GL/glfw/include
             Wave/include/Dependencies/imGUI/)
-
-    target_compile_definitions(Editor PUBLIC EDITOR)
 
     target_link_libraries(Editor PUBLIC Wave)
 

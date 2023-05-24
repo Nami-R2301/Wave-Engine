@@ -14,46 +14,42 @@
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glm/glm/gtx/quaternion.hpp>
+#include <utility>
 
 namespace Wave
 {
   
-  struct IDComponent : public Printable
+  struct ID_component_s
   {
-    uint64_t ID;
+    uint64_t ID = 0;
     
-    INTERFACE_PRINT
-    
-    IDComponent() = default;
-    IDComponent(const IDComponent &) = default;
+    ID_component_s() = default;
+    ID_component_s(const ID_component_s &) = default;
   };
   
-  struct TagComponent : public Printable
+  struct Tag_component_s
   {
     std::string Tag;
     
-    TagComponent() = default;
-    TagComponent(const TagComponent &) = default;
+    Tag_component_s() = default;
+    Tag_component_s(const Tag_component_s &) = default;
     
-    INTERFACE_PRINT
     
-    explicit TagComponent(const std::string &tag)
-      : Tag(tag)
+    explicit Tag_component_s(std::string tag)
+      : Tag(std::move(tag))
     {}
   };
   
-  struct TransformComponent : public Printable
+  struct Transform_component_s
   {
     glm::vec3 Translation = {0.0f, 0.0f, 0.0f};
     glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
     glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
     
-    TransformComponent() = default;
-    TransformComponent(const TransformComponent &) = default;
+    Transform_component_s() = default;
+    Transform_component_s(const Transform_component_s &) = default;
     
-    INTERFACE_PRINT
-    
-    explicit TransformComponent(const glm::vec3 &translation)
+    explicit Transform_component_s(const glm::vec3 &translation)
       : Translation(translation)
     {}
     
@@ -67,74 +63,61 @@ namespace Wave
     }
   };
   
-  struct SpriteRendererComponent : public Printable
+  struct Sprite_component_s
   {
     glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
     std::shared_ptr<Texture> texture;
     float TilingFactor = 1.0f;
     
-    SpriteRendererComponent() = default;
-    SpriteRendererComponent(const SpriteRendererComponent &) = default;
+    Sprite_component_s() = default;
+    Sprite_component_s(const Sprite_component_s &) = default;
     
-    INTERFACE_PRINT
-    
-    explicit SpriteRendererComponent(const glm::vec4 &color)
+    explicit Sprite_component_s(const glm::vec4 &color)
       : Color(color)
     {}
   };
   
-  struct CircleRendererComponent : public Printable
+  struct Circle_component_s
   {
     glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
     float Thickness = 1.0f;
     float Fade = 0.005f;
     
-    INTERFACE_PRINT
-    
-    CircleRendererComponent() = default;
-    CircleRendererComponent(const CircleRendererComponent &) = default;
+    Circle_component_s() = default;
+    Circle_component_s(const Circle_component_s &) = default;
   };
   
-  struct CameraComponent : public Printable
+  struct Camera_component_s
   {
     Scene_camera Camera;
     bool Primary = true; // TODO: think about moving to Scene
     bool FixedAspectRatio = false;
     
-    INTERFACE_PRINT
-    
-    CameraComponent() = default;
-    CameraComponent(const CameraComponent &) = default;
-  };
-  
-  struct ScriptComponent : public Printable
-  {
-    std::string ClassName;
-    
-    INTERFACE_PRINT
-    
-    ScriptComponent() = default;
-    ScriptComponent(const ScriptComponent &) = default;
+    Camera_component_s() = default;
+    Camera_component_s(const Camera_component_s &) = default;
   };
   
   // Forward declaration
-  class ScriptableEntity;
+  class Scriptable_entity;
   
-  struct NativeScriptComponent : public Printable
+  struct Script_component_s
   {
-    ScriptableEntity *Instance = nullptr;
+    std::string ClassName;
     
-    ScriptableEntity *(*InstantiateScript)();
-    void (*DestroyScript)(NativeScriptComponent *);
+    Script_component_s() = default;
+    Script_component_s(const Script_component_s &) = default;
     
-    INTERFACE_PRINT
+    Scriptable_entity *Instance = nullptr;
+    
+    Scriptable_entity *(*InstantiateScript)(){};
+    void (*DestroyScript)(Script_component_s *){};
     
     template<typename T>
     void Bind()
     {
       InstantiateScript = []()
-      { return static_cast<ScriptableEntity *>(new T()); };
-      DestroyScript = [](NativeScriptComponent *nsc)
+      { return static_cast<Scriptable_entity *>(new T()); };
+      DestroyScript = [](Script_component_s *nsc)
       {
         delete nsc->Instance;
         nsc->Instance = nullptr;
@@ -144,7 +127,7 @@ namespace Wave
   
   // Physics
   
-  struct Rigidbody2DComponent : public Printable
+  struct Rigid_body_2D_component_s
   {
     enum class BodyType
     {
@@ -156,13 +139,11 @@ namespace Wave
     // Storage for runtime
     void *RuntimeBody = nullptr;
     
-    INTERFACE_PRINT
-    
-    Rigidbody2DComponent() = default;
-    Rigidbody2DComponent(const Rigidbody2DComponent &) = default;
+    Rigid_body_2D_component_s() = default;
+    Rigid_body_2D_component_s(const Rigid_body_2D_component_s &) = default;
   };
   
-  struct BoxCollider2DComponent : public Printable
+  struct Box_collider_2D_component_s
   {
     glm::vec2 Offset = {0.0f, 0.0f};
     glm::vec2 Size = {0.5f, 0.5f};
@@ -176,13 +157,11 @@ namespace Wave
     // Storage for runtime
     void *RuntimeFixture = nullptr;
     
-    INTERFACE_PRINT
-    
-    BoxCollider2DComponent() = default;
-    BoxCollider2DComponent(const BoxCollider2DComponent &) = default;
+    Box_collider_2D_component_s() = default;
+    Box_collider_2D_component_s(const Box_collider_2D_component_s &) = default;
   };
   
-  struct CircleCollider2DComponent : public Printable
+  struct Circle_collider_2D_component_s
   {
     glm::vec2 Offset = {0.0f, 0.0f};
     float Radius = 0.5f;
@@ -196,20 +175,18 @@ namespace Wave
     // Storage for runtime
     void *RuntimeFixture = nullptr;
     
-    INTERFACE_PRINT
-    
-    CircleCollider2DComponent() = default;
-    CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
+    Circle_collider_2D_component_s() = default;
+    Circle_collider_2D_component_s(const Circle_collider_2D_component_s &) = default;
   };
   
   template<typename... Component>
-  struct ComponentGroup
+  struct Component_group_s
   {
   };
   
-  using AllComponents =
-    ComponentGroup<TransformComponent, SpriteRendererComponent,
-      CircleRendererComponent, CameraComponent, ScriptComponent,
-      NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent,
-      CircleCollider2DComponent>;
+  using all_components =
+    Component_group_s<Transform_component_s, Sprite_component_s,
+      Circle_component_s, Camera_component_s, Script_component_s,
+      Rigid_body_2D_component_s, Box_collider_2D_component_s,
+      Circle_collider_2D_component_s>;
 }

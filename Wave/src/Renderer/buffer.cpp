@@ -6,7 +6,7 @@
 
 namespace Wave
 {
-  std::shared_ptr<Vertex_buffer> Vertex_buffer::create(uint64_t size)
+  std::shared_ptr<Vertex_buffer> Vertex_buffer::create(uint64_t size, uint64_t count)
   {
     switch (Renderer::get_api())
     {
@@ -14,7 +14,7 @@ namespace Wave
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::Opengl:return std::make_shared<Gl_vertex_buffer>(size);
+      case Renderer_api::OpenGL:return std::make_shared<Gl_vertex_buffer>(size, count);
       case Renderer_api::Vulkan:
         alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
@@ -29,7 +29,8 @@ namespace Wave
     return nullptr;
   }
   
-  std::shared_ptr<Vertex_buffer> Vertex_buffer::create(const void *vertices, uint64_t size, Buffer_type buffer_type)
+  std::shared_ptr<Vertex_buffer> Vertex_buffer::create(const void *vertices, uint64_t size, uint64_t count,
+                                                       Buffer_type buffer_type)
   {
     switch (Renderer::get_api())
     {
@@ -37,7 +38,9 @@ namespace Wave
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::Opengl:return std::make_shared<Gl_vertex_buffer>(vertices, size, buffer_type);
+      case Renderer_api::OpenGL:
+        return std::make_shared<Gl_vertex_buffer>(vertices, size,
+                                                  count, buffer_type);
       case Renderer_api::Vulkan:
         alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
@@ -60,7 +63,7 @@ namespace Wave
         alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::Opengl:return std::make_shared<Gl_index_buffer>(indices, size);
+      case Renderer_api::OpenGL:return std::make_shared<Gl_index_buffer>(indices, size);
       case Renderer_api::Vulkan:
         alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);

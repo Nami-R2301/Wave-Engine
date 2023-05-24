@@ -17,30 +17,32 @@
 namespace Wave
 {
   
-  enum class Context_api
+  enum class Context_api_e
   {
     Glfw,
     Glut,
     Win32
   };
   
-  typedef struct Api_info
+  typedef struct Api_info_s
   {
     int version_major;
     int version_minor;
     int version_revision;
   } Api_info;
   
-  typedef struct Monitor_properties
+  typedef struct Window_properties_s
   {
-    const char *title = "Main Window";
-    float width = 0;
-    float height = 0;
-    int32_t red_bits = 0;
-    int32_t blue_bits = 0;
-    int32_t green_bits = 0;
-    int32_t refresh_rate = 30;
-  } Monitor_properties;
+    const char *title = nullptr;
+    float width = WAVE_VALUE_DONT_CARE;
+    float height = WAVE_VALUE_DONT_CARE;
+    bool vsync = true;
+    int32_t red_bits = WAVE_VALUE_DONT_CARE;
+    int32_t blue_bits = WAVE_VALUE_DONT_CARE;
+    int32_t green_bits = WAVE_VALUE_DONT_CARE;
+    int32_t refresh_rate = WAVE_VALUE_DONT_CARE;
+    int32_t sample_rate = WAVE_VALUE_DONT_CARE;
+  } Window_properties_s;
   
   class Window
   {
@@ -48,13 +50,13 @@ namespace Wave
     Window() = default;
     virtual ~Window() = default;
     
-    static std::unique_ptr<Window> create(Context_api api_chosen);
+    static std::unique_ptr<Window> create(Context_api_e api_chosen, Window_properties_s options);
     
     virtual void setup_api() const = 0;
     virtual void setup_monitor() = 0;
     virtual void create_window() = 0;
     virtual void poll_api_events() = 0;
-    virtual void on_update(float time_step) = 0;
+    virtual void on_render() = 0;
     virtual void bind_api_callbacks() = 0;
     virtual void unbind_api_callback(const Event &event) = 0;
     virtual void toggle_fullscreen() = 0;
@@ -63,7 +65,8 @@ namespace Wave
     virtual void hide() = 0;
     virtual bool is_closing() = 0;
     
-    [[nodiscard]] virtual Context_api get_context() const = 0;
+    [[nodiscard]] virtual Context_api_e get_context() const = 0;
+    [[nodiscard]] virtual std::string get_context_version() const = 0;
     [[nodiscard]] virtual void *get_native_window() const = 0;
     [[nodiscard]] virtual void *get_native_monitor() const = 0;
     [[nodiscard]] virtual const char *get_title() const = 0;
@@ -74,6 +77,7 @@ namespace Wave
     [[nodiscard]] virtual const Vector_2f &get_aspect_ratio() const = 0;
     [[nodiscard]] virtual int32_t get_refresh_rate() const = 0;
     [[nodiscard]] virtual int32_t get_max_refresh_rate() const = 0;
+    [[nodiscard]] virtual int32_t get_samples() const = 0;
     [[nodiscard]] virtual bool is_vsync() const = 0;
     [[nodiscard]] virtual bool is_minimized() const = 0;
     [[nodiscard]] virtual bool is_focused() const = 0;
@@ -102,8 +106,5 @@ namespace Wave
     
     virtual bool operator==(const Window &window);
     virtual bool operator!=(const Window &window);
-    
-    private:
-    static std::function<void(Event &)> event_callback_function;
   };
 }

@@ -12,7 +12,7 @@ namespace Wave
   {
     switch (Renderer::get_api())
     {
-      case Renderer_api::Opengl:return std::make_shared<Gl_shader>(name, vertex_source, fragment_source);
+      case Renderer_api::OpenGL:return std::make_shared<Gl_shader>(name, vertex_source, fragment_source);
       default:
         Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
                                                    "Api not supported at the moment! Please select OpenGL instead.",

@@ -75,7 +75,7 @@ namespace Wave
     this->options = opt;
     Gl_framebuffer::unbind();
     
-    auto vbo = Vertex_buffer::create(16 * sizeof(float));
+    auto vbo = Vertex_buffer::create(sizeof(float), 16);
     std::vector<Buffer_element> b_elements;
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", false);
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", false);

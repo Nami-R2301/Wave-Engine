@@ -40,7 +40,7 @@ namespace Wave
     return buffer;
   }
   
-  On_context_error::On_context_error(Context_state state, Context_api api)
+  On_context_error::On_context_error(Context_state_s state, Context_api_e api)
   {
     this->state = state;
     this->api = api;
@@ -65,17 +65,17 @@ namespace Wave
     }
     switch (this->api)
     {
-      case Context_api::Glfw:
+      case Context_api_e::Glfw:
       {
         strncat(buffer, "GLFW", 5);
         break;
       }
-      case Context_api::Glut:
+      case Context_api_e::Glut:
       {
         strncat(buffer, "GLUT", 5);
         break;
       }
-      case Context_api::Win32:
+      case Context_api_e::Win32:
       {
         strncat(buffer, "WIN32", 6);
         break;
@@ -88,12 +88,12 @@ namespace Wave
     return buffer;
   }
   
-  Context_state On_context_error::get_context_state() const
+  Context_state_s On_context_error::get_context_state() const
   {
     return this->state;
   }
   
-  Context_api On_context_error::get_context_api() const
+  Context_api_e On_context_error::get_context_api() const
   {
     return this->api;
   }

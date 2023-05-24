@@ -12,7 +12,7 @@ namespace Wave
   {
     switch (Renderer::get_api())
     {
-      case Renderer_api::Opengl: return std::make_shared<Gl_uniform_buffer>(size, binding);
+      case Renderer_api::OpenGL: return std::make_shared<Gl_uniform_buffer>(size, binding);
       default:
       {
         Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
@@ -21,6 +21,6 @@ namespace Wave
                                                    "vertex_array_buffer.cpp", __LINE__ - 2);
       }
     }
-    return std::make_shared<Gl_uniform_buffer>(size, 0);
+    return std::make_shared<Gl_uniform_buffer>(size, binding);
   }
 } // Wave

@@ -63,6 +63,11 @@ namespace Wave
     return std::sqrt((this->x * this->x) + (this->y * this->y) + (this->z * this->z));
   }
   
+  float Vector_3f::size() const
+  {
+    return sizeof(this->x) + sizeof(this->y) + sizeof(this->z);
+  }
+  
   float Vector_3f::dot(const Vector_3f &other_vector) const
   {
     return (this->x * other_vector.get_x()) +
@@ -237,5 +242,10 @@ namespace Wave
   void Vector_3f::operator/=(const Vector_3f &other_vector)
   {
     *this = *this / other_vector;
+  }
+  
+  Vector_3f::operator Vector_2f() const
+  {
+    return {this->x, this->y};
   }
 }

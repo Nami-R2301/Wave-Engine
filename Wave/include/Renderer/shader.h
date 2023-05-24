@@ -34,11 +34,12 @@ namespace Wave
     // Uniform handling.
     [[nodiscard]] virtual int get_uniform_location(const char *uniform_name) const = 0;
     virtual void set_uniform(const char *uniform_name, const Color &color) const = 0;
-    virtual void set_uniform(const char *uniform_name, const float *matrix_4f) const = 0;
+    virtual void set_uniform(const char *uniform_name, const float *matrix_4f, bool transpose) const = 0;
     
-    virtual void set_uniform(const char *uniform_name, bool value) const = 0;
-    virtual void set_uniform(const char *uniform_name, int value) const = 0;
-    virtual void set_uniform(const char *uniform_name, float value) const = 0;
+    virtual void set_uniform(const char *uniform_name, bool bool_value) const = 0;
+    virtual void set_uniform(const char *uniform_name, int32_t int_value) const = 0;
+    virtual void set_uniform(const char *uniform_name, uint32_t uint_value) const = 0;
+    virtual void set_uniform(const char *uniform_name, float float_value) const = 0;
     virtual void set_uniform(const char *uniform_name, glm::mat4x4 value) const = 0;
     [[maybe_unused]] virtual void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const = 0;
   };

@@ -11,45 +11,44 @@
 namespace Wave
 {
   
-  Glfw_window::Glfw_window() : Window()
+  std::function<void(Event &event)> Glfw_window::event_callback_function;
+  
+  Glfw_window::Glfw_window(Window_properties_s options) : Window()
   {
     glfwSetErrorCallback(glfw_error_callback);
-    LOG_TASK("Window", PURPLE, 1, "Preparing app window ...", Glfw_window::create_window(),
-             "App window loaded") // Make glfw context.
-  }
-  
-  Glfw_window::Glfw_window(Context_api context_api_chosen) : Window()
-  {
-    this->context_api = context_api_chosen;
+    this->window_properties = options;
+    WAVE_LOG_TASK("GLFW window", PURPLE, 2, "Preparing app window ...", Glfw_window::create_window(),
+                  "App window loaded") // Make glfw context.
   }
   
   Glfw_window::~Glfw_window()
   {
-    LOG_TASK("Window", GREEN, 4, "Closing window ...", Glfw_window::shutdown(), "Window closed")
+    WAVE_LOG_TASK("GLFW window", PURPLE, 2, "Closing window ...", Glfw_window::shutdown(), "GLFW window closed")
   }
   
   void Glfw_window::create_window()
   {
     // Init glfw library.
-    LOG_INSTRUCTION("Window", DEFAULT, "Making openGL context", (glfwInit()))
+    WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Making openGL context", glfwInit())
     this->set_glfw_init_status(true);
     
     glfwGetVersion(&this->api_info.version_major, &this->api_info.version_minor, &this->api_info.version_revision);
     // So that we will only use the modern functions in it.
-    Wave::alert(WAVE_INFO, "[Window] --> Api (GLFW) version : %d.%d.%d",
+    Wave::alert(WAVE_INFO, "[GLFW window] --> Api (GLFW) version : %d.%d.%d",
                 this->api_info.version_major, this->api_info.version_minor,
                 this->api_info.version_revision);
-    LOG_TASK("Window", RED, 2, "Setting up monitor...", this->setup_monitor(), "Monitor loaded and set")
-    LOG_INSTRUCTION("Window", DEFAULT, "Setting up window api", this->setup_api())
+    WAVE_LOG_TASK("GLFW window", RED, 2, "Setting up monitor...", this->setup_monitor(), "Monitor loaded and set")
+    WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Setting up window api", this->setup_api())
     // Generate a pointer to a window using our monitor info, so that we later hide it.
-    LOG_INSTRUCTION("Window", DEFAULT, "Creating window (windowed mode)",
-                    GLFWwindow *window_ = glfwCreateWindow(this->get_width(), this->get_height(),
-                                                           this->get_title(),
-                      nullptr, nullptr)) // Windowed mode.
+    WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Creating window (windowed mode)",
+                         GLFWwindow *window_ = glfwCreateWindow(this->get_width(), this->get_height(),
+                                                                this->get_title(),
+                           nullptr, nullptr)) // Windowed mode.
     this->set_native_window(window_);
     if (!this->window)
     {
-      Wave::alert(WAVE_ERROR, "[Window] --> One or multiple core extensions for GLFW are not supported!\tExiting ...");
+      Wave::alert(WAVE_ERROR,
+                  "[GLFW window] --> One or multiple core extensions for GLFW are not supported!\tExiting ...");
     }
     
     glfwMakeContextCurrent(static_cast<GLFWwindow *>(this->get_native_window())); // Show our window.
@@ -73,14 +72,12 @@ namespace Wave
 #endif
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_FLOATING, GLFW_FALSE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_RED_BITS, this->monitor_properties.red_bits);
-    glfwWindowHint(GLFW_GREEN_BITS, this->monitor_properties.green_bits);
-    glfwWindowHint(GLFW_BLUE_BITS, this->monitor_properties.blue_bits);
-    glfwWindowHint(GLFW_REFRESH_RATE, this->monitor_properties.refresh_rate);
+    if (this->window_properties.sample_rate > 0) glfwWindowHint(GLFW_SAMPLES, this->window_properties.sample_rate);
+    glfwWindowHint(GLFW_RED_BITS, this->window_properties.red_bits);
+    glfwWindowHint(GLFW_GREEN_BITS, this->window_properties.green_bits);
+    glfwWindowHint(GLFW_BLUE_BITS, this->window_properties.blue_bits);
+    glfwWindowHint(GLFW_REFRESH_RATE, this->window_properties.refresh_rate);
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   }
   
   void Glfw_window::setup_monitor()
@@ -90,12 +87,13 @@ namespace Wave
     if (monitors) this->set_native_monitor(monitors[0]); // Get main monitor specs.
     const GLFWvidmode *mode = glfwGetVideoMode(
       static_cast<GLFWmonitor *>(this->get_native_monitor())); // Get video specs of monitor.
-    this->set_width(static_cast<float>(mode->width));
-    this->set_height(static_cast<float>(mode->height));
-    this->set_refresh_rate(mode->refreshRate);
-    this->set_max_refresh_rate(mode->refreshRate);
-    this->set_vsync(true);
-    this->set_title("~ Wave Engine ~");
+    if (this->window_properties.width == WAVE_VALUE_DONT_CARE) this->set_width(static_cast<float>(mode->width));
+    if (this->window_properties.height == WAVE_VALUE_DONT_CARE) this->set_height(static_cast<float>(mode->height));
+    if (this->window_properties.refresh_rate == WAVE_VALUE_DONT_CARE) this->set_refresh_rate(mode->refreshRate);
+    if (this->window_properties.refresh_rate == WAVE_VALUE_DONT_CARE) this->set_max_refresh_rate(mode->refreshRate);
+    if (!this->window_properties.title) this->set_title("No title");
+    this->set_vsync(this->window_properties.vsync);
+    
     float x_scale_, y_scale_;
     glfwGetMonitorContentScale(static_cast<GLFWmonitor *>(this->get_native_monitor()), &x_scale_,
                                &y_scale_);  // Get monitor scale.
@@ -108,17 +106,17 @@ namespace Wave
     glfwPollEvents();
   }
   
-  void Glfw_window::on_update([[maybe_unused]] float time_step)
+  void Glfw_window::on_render()
   {
     if (this->is_closing())
     {
       On_window_close window_closed;
-      Window::get_event_callback_function()(window_closed);
+      Glfw_window::get_event_callback_function()(window_closed);
       return;
     }
     // Refresh framebuffer.
     glfwSwapBuffers(static_cast<GLFWwindow *>(this->get_native_window()));
-    glfwSwapInterval(this->vsync);  // Disable/enable Vertical synchronisation (Vsync).
+    glfwSwapInterval(this->window_properties.vsync);  // Disable/enable Vertical synchronisation (Vsync).
   }
   
   void Glfw_window::bind_api_callbacks()
@@ -128,7 +126,7 @@ namespace Wave
                                    {
                                      On_window_resize window_resized(static_cast<float>(width),
                                                                      static_cast<float>(height));
-                                     Window::get_event_callback_function()(window_resized);
+                                     Glfw_window::get_event_callback_function()(window_resized);
                                    });
     
     
@@ -153,33 +151,33 @@ namespace Wave
                           int32_t action, [[maybe_unused]] int32_t mods)
                        {
                          On_any_key_event any_key;
-                         Window::get_event_callback_function()(any_key);
+                         Glfw_window::get_event_callback_function()(any_key);
                          switch (action)
                          {
                            case GLFW_PRESS:
                            {
                              On_key_press key_pressed(key);
-                             Window::get_event_callback_function()(key_pressed);
+                             Glfw_window::get_event_callback_function()(key_pressed);
                              break;
                            }
                            
                            case GLFW_REPEAT:
                            {
                              On_key_hold key_held(key);
-                             Window::get_event_callback_function()(key_held);
+                             Glfw_window::get_event_callback_function()(key_held);
                              break;
                            }
                            
                            case GLFW_RELEASE:
                            {
                              On_key_release key_released(key);
-                             Window::get_event_callback_function()(key_released);
+                             Glfw_window::get_event_callback_function()(key_released);
                              break;
                            }
                            
                            default:
                            {
-                             Window::get_event_callback_function()(any_key);
+                             Glfw_window::get_event_callback_function()(any_key);
                              break;
                            }
                          }
@@ -193,21 +191,21 @@ namespace Wave
                                    case GLFW_PRESS:
                                    {
                                      On_mouse_button_press mouse_btn_pressed(button);
-                                     Window::get_event_callback_function()(mouse_btn_pressed);
+                                     Glfw_window::get_event_callback_function()(mouse_btn_pressed);
                                      break;
                                    }
                                    
                                    case GLFW_REPEAT:
                                    {
                                      On_mouse_button_hold mouse_btn_held(button);
-                                     Window::get_event_callback_function()(mouse_btn_held);
+                                     Glfw_window::get_event_callback_function()(mouse_btn_held);
                                      break;
                                    }
                                    
                                    case GLFW_RELEASE:
                                    {
                                      On_mouse_button_release mouse_btn_released(button);
-                                     Window::get_event_callback_function()(mouse_btn_released);
+                                     Glfw_window::get_event_callback_function()(mouse_btn_released);
                                      break;
                                    }
                                    
@@ -228,7 +226,7 @@ namespace Wave
                               {
                                 On_window_resize window_resized(static_cast<float>(width_),
                                                                 static_cast<float>(height_));
-                                Window::get_event_callback_function()(window_resized);
+                                Glfw_window::get_event_callback_function()(window_resized);
                               });
     glfwSetScrollCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                           []([[maybe_unused]] GLFWwindow *window_, double x_offset, double y_offset)
@@ -236,7 +234,7 @@ namespace Wave
                             On_mouse_wheel_scroll wheel_input(
                               Vector_2f(static_cast<float>(x_offset),
                                         static_cast<float>(y_offset)));
-                            Window::get_event_callback_function()(wheel_input);
+                            Glfw_window::get_event_callback_function()(wheel_input);
                           });
   }
   
@@ -343,21 +341,24 @@ namespace Wave
   
   void Glfw_window::shutdown()
   {
-    if (Glfw_window::glfw_is_init())  // If window has been created.
+    if (this->glfw_init)
     {
-      LOG_INSTRUCTION("WINDOW", DEFAULT, "Terminating GLFW",
-                      {
-                        this->close();
-                        glfwDestroyWindow(static_cast<GLFWwindow *>(get_native_window()));
-                        glfwTerminate();
-                      })
+      WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Closing window", this->close());
+      
+      glfwDestroyWindow(static_cast<GLFWwindow *>(get_native_window()));
+      glfwTerminate();
     }
     this->glfw_init = false;
   }
   
-  Context_api Glfw_window::get_context() const
+  Context_api_e Glfw_window::get_context() const
   {
     return this->context_api;
+  }
+  
+  std::string Glfw_window::get_context_version() const
+  {
+    return glfwGetVersionString();
   }
   
   void *Glfw_window::get_native_window() const
@@ -372,17 +373,17 @@ namespace Wave
   
   const char *Glfw_window::get_title() const
   {
-    return this->monitor_properties.title;
+    return this->window_properties.title;
   }
   
   float Glfw_window::get_width() const
   {
-    return this->monitor_properties.width;
+    return this->window_properties.width;
   }
   
   float Glfw_window::get_height() const
   {
-    return this->monitor_properties.height;
+    return this->window_properties.height;
   }
   
   const Vector_2f &Glfw_window::get_aspect_ratio() const
@@ -392,7 +393,7 @@ namespace Wave
   
   int32_t Glfw_window::get_refresh_rate() const
   {
-    return this->monitor_properties.refresh_rate;
+    return this->window_properties.refresh_rate;
   }
   
   bool Glfw_window::is_fullscreen() const
@@ -402,7 +403,7 @@ namespace Wave
   
   bool Glfw_window::is_vsync() const
   {
-    return this->vsync;
+    return this->window_properties.vsync;
   }
   
   const Vector_2f &Glfw_window::get_window_pos() const
@@ -425,9 +426,19 @@ namespace Wave
     return this->max_refresh_rate;
   }
   
-  void Window::set_event_callback_function(const std::function<void(Event &)> &callback_function)
+  int32_t Glfw_window::get_samples() const
   {
-    Window::event_callback_function = callback_function;
+    return this->samples;
+  }
+  
+  const std::function<void(Event &event)> &Glfw_window::get_event_callback_function()
+  {
+    return Glfw_window::event_callback_function;
+  }
+  
+  void Glfw_window::set_event_callback_function(const std::function<void(Event &)> &callback_function)
+  {
+    Glfw_window::event_callback_function = callback_function;
   }
   
   void Glfw_window::set_native_window(void *window_)
@@ -442,10 +453,9 @@ namespace Wave
   
   void Glfw_window::set_title(const char *title_)
   {
-    this->monitor_properties.title = title_;
     if (get_native_window())
     {
-      (glfwSetWindowTitle(static_cast<GLFWwindow *>(get_native_window()), title_));
+      glfwSetWindowTitle(static_cast<GLFWwindow *>(get_native_window()), title_);
     }
   }
   
@@ -475,12 +485,12 @@ namespace Wave
   
   void Glfw_window::set_width(float width_)
   {
-    this->monitor_properties.width = width_;
+    this->window_properties.width = width_;
   }
   
   void Glfw_window::set_height(float height_)
   {
-    this->monitor_properties.height = height_;
+    this->window_properties.height = height_;
   }
   
   void Glfw_window::set_aspect_ratio(const Vector_2f &aspect_ratio_)
@@ -507,7 +517,7 @@ namespace Wave
   
   void Glfw_window::set_refresh_rate(int32_t refresh_rate_)
   {
-    this->monitor_properties.refresh_rate = refresh_rate_;
+    this->window_properties.refresh_rate = refresh_rate_;
   }
   
   void Glfw_window::set_max_refresh_rate(int32_t refresh_rate_)
@@ -517,15 +527,15 @@ namespace Wave
   
   void Glfw_window::set_vsync(bool vsync_)
   {
-    this->vsync = vsync_;
+    this->window_properties.vsync = vsync_;
   }
   
   void Glfw_window::set_window_pos(float x_pos_, float y_pos_)
   {
-    if (x_pos_ > this->monitor_properties.width || y_pos_ > this->monitor_properties.height)
+    if (x_pos_ > this->window_properties.width || y_pos_ > this->window_properties.height)
     {
-      this->position_on_screen = {this->monitor_properties.width / 2,
-                                  this->monitor_properties.height / 2};
+      this->position_on_screen = {this->window_properties.width / 2,
+                                  this->window_properties.height / 2};
       return;
     }
     this->position_on_screen = {x_pos_,
@@ -576,13 +586,13 @@ namespace Wave
         On_context_error glfw_error({"Glfw error",
                                      "Fatal",
                                      description,
-                                     error_code}, Context_api::Glfw);
+                                     error_code}, Context_api_e::Glfw);
         return get_event_callback_function()(glfw_error);
       }
       On_context_error glfw_error({"Glfw error",
                                    "Fatal",
                                    buffer,
-                                   error_code}, Context_api::Glfw);
+                                   error_code}, Context_api_e::Glfw);
       return get_event_callback_function()(glfw_error);
     }
   }

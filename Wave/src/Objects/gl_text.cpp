@@ -5,6 +5,8 @@
 #include <Objects/gl_text.h>
 #include <Renderer/gl_renderer.h>
 
+#include <utility>
+
 namespace Wave
 {
   
@@ -19,30 +21,30 @@ namespace Wave
   Gl_text::Gl_text(const std::string &string)
   {
     int32_t result = Gl_text::init("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf");
-    if (result != 0) alert(WAVE_ERROR, "[Gl Text] --> Error when initializing freetype, error %d", result);
+    if (result != 0) alert(WAVE_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
     this->text = string;
   }
   
   Gl_text::Gl_text(const char *font_file_name)
   {
     int32_t result = Gl_text::init(font_file_name);
-    if (result != 0) alert(WAVE_ERROR, "[Gl Text] --> Error when initializing freetype, error %d", result);
+    if (result != 0) alert(WAVE_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
     this->text = "Example text";
   }
   
   Gl_text::Gl_text(const char *font_file_name, const std::string &string)
   {
     int32_t result = Gl_text::init(font_file_name);
-    if (result != 0) alert(WAVE_ERROR, "[Gl Text] --> Error when initializing freetype, error %d", result);
+    if (result != 0) alert(WAVE_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
     this->text = string;
   }
   
   Gl_text::Gl_text(const char *font_file_name, const std::string &string, Text_format format_)
   {
     int32_t result = Gl_text::init(font_file_name);
-    if (result != 0) alert(WAVE_ERROR, "[Gl Text] --> Error when initializing freetype, error %d", result);
+    if (result != 0) alert(WAVE_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
     this->text = string;
-    this->format = format_;
+    this->format = std::move(format_);
   }
   
   int32_t Gl_text::init(const char *font_file_path)
@@ -93,8 +95,8 @@ namespace Wave
       // now store character for later use
       Glyph character = {
         texture,
-        Vector_2f(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-        Vector_2f(face->glyph->bitmap_left, face->glyph->bitmap_top),
+        Vector_2f((float) face->glyph->bitmap.width, (float) face->glyph->bitmap.rows),
+        Vector_2f((float) face->glyph->bitmap_left, (float) face->glyph->bitmap_top),
         static_cast<unsigned int>(face->glyph->advance.x)
       };
       this->characters.insert(std::pair<char, Glyph>(c, character));
