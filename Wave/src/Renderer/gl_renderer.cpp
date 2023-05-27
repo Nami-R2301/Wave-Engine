@@ -56,22 +56,11 @@ namespace Wave
                                 Renderer::Draw_command current_command;
                                 std::vector<Buffer_element> b_elements;  // Vbo layout.
                                 
-                                // Set default shader if none specified
-                                current_command.associated_shader = Wave::Shader::create("Text",
-                                                                                         Wave::Resource_loader::load_shader_source(
-                                                                                           "../Wave/res/Shaders/text-glyph.vert").c_str(),
-                                                                                         Wave::Resource_loader::load_shader_source(
-                                                                                           "../Wave/res/Shaders/text-glyph.frag").c_str());
-                                current_command.associated_shader->bind();
-                                
                                 b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
                                 
-                                current_command.associated_shader->set_uniform("u_sampler", 0);
-                                current_command.associated_shader->set_uniform("u_text_color", Color(1.0f, 1.0f, true));
-                                
                                 Buffer_layout vbo_layout(b_elements);
-                                auto vbo_ = Vertex_buffer::create(sizeof(float) * 4, 6);
+                                auto vbo_ = Vertex_buffer::create(sizeof(float) * 4, max_vertices);
                                 vbo_->set_layout(vbo_layout);
                                 
                                 current_command.vertex_array_buffer = Vertex_array_buffer::create();
@@ -93,23 +82,6 @@ namespace Wave
                                 // Add draw command for batch rendering.
                                 Renderer::Draw_command initial_command;
                                 std::vector<Buffer_element> b_elements;  // Vbo layout.
-                                
-                                // Set default shader if none specified
-                                initial_command.associated_shader = Wave::Shader::create("Object 3D",
-                                                                                         Wave::Resource_loader::load_shader_source(
-                                                                                           "../Wave/res/Shaders/default_3D.vert").c_str(),
-                                                                                         Wave::Resource_loader::load_shader_source(
-                                                                                           "../Wave/res/Shaders/default_3D.frag").c_str());
-                                
-                                initial_command.associated_shader->bind();
-                                unsigned int u_camera_block = glGetUniformBlockIndex(
-                                  initial_command.associated_shader->get_id(), "u_camera");
-                                CHECK_GL_CALL(glUniformBlockBinding(initial_command.associated_shader->get_id(),
-                                                                    u_camera_block,
-                                                                    3));
-                                
-                                initial_command.associated_shader->set_uniform("u_has_texture", true);
-                                initial_command.associated_shader->set_uniform("u_sampler", 1);
                                 
                                 // Set default shader layout for an 3D object.
                                 b_elements.emplace_back(Buffer_data_type::Vector_3f, "Position", true);
@@ -149,13 +121,11 @@ namespace Wave
   
   void Gl_renderer::flush()
   {
+    for (const auto &texture: Gl_renderer::textures) texture->bind(texture->get_texture_slot());
+    
     for (uint64_t i = 0; i < draw_cmd_count; ++i)
     {
       Gl_renderer::draw_commands[i]->associated_shader->bind();
-      for (const auto &texture: Gl_renderer::textures)
-      {
-        if (texture) texture->bind(texture->get_texture_slot());
-      }
       
       Gl_renderer::draw_commands[i]->vertex_array_buffer->bind();
       if (Gl_renderer::draw_commands[i]->vertex_array_buffer->get_index_buffer())  // Has an index_buffer
@@ -166,6 +136,10 @@ namespace Wave
                                                     GL_UNSIGNED_INT,
                                                     (const void *) Gl_renderer::draw_commands[i]->ibo_offset,
                                                     Gl_renderer::draw_commands[i]->ibo_offset));
+      } else
+      {
+        CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, 0,
+                                   Gl_renderer::draw_commands[i]->vertex_array_buffer->get_vertex_buffers()[0]->get_count()));  // Draw everything.
       }
       Gl_renderer::draw_commands[i]->vbo_offset = 0;
       Gl_renderer::draw_commands[i]->ibo_offset = 0;
@@ -361,9 +335,17 @@ namespace Wave
                                                                                                               0);
   }
   
-  void Gl_renderer::draw_object(const std::shared_ptr<Object> &object)
+  void Gl_renderer::draw_object(const std::shared_ptr<Object> &object, const std::shared_ptr<Shader> &linked_shader)
   {
+    Gl_renderer::draw_commands[1]->associated_shader = linked_shader;
     Gl_renderer::draw_commands[1]->associated_shader->bind();
+    
+    unsigned int u_camera_block = glGetUniformBlockIndex(
+      Gl_renderer::draw_commands[1]->associated_shader->get_id(), "u_camera");
+    CHECK_GL_CALL(glUniformBlockBinding(Gl_renderer::draw_commands[1]->associated_shader->get_id(),
+                                        u_camera_block,
+                                        3));
+    
     uint64_t object_vbo_data_size, object_ibo_data_size, object_vbo_data_count, object_ibo_data_count;
     // If we reached the max batch memory limit (2 MB).
     object_vbo_data_count = object->get_vertex_count();
@@ -406,21 +388,25 @@ namespace Wave
     draw_cmd_count++;
   }
   
-  void Gl_renderer::draw_text(const std::shared_ptr<Text> &text)
+  void Gl_renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Shader> &linked_shader)
   {
-    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0));
+    Gl_renderer::draw_commands[0]->associated_shader = linked_shader;
+    Gl_renderer::draw_commands[0]->associated_shader->bind();
     Gl_renderer::draw_commands[0]->vertex_array_buffer->bind();
     
-    float x = text->get_offset_x(), y = text->get_offset_y(), scale = text->get_scale();
+    std::string string = text->get_string();
+    uint32_t vbo_count = 0;
+    uint32_t vbo_offset = 0;
+    float offset_x = text->get_offset_x(), offset_y = text->get_offset_y(), scale = text->get_scale();
     
     // Iterate through all characters
     std::string::const_iterator c;
-    for (c = text->get_string().begin(); c != text->get_string().end(); c++)
+    for (c = string.begin(); c != string.end(); c++)
     {
       Glyph ch = (*text)[*c];
       
-      float x_pos = x + ch.bearing.get_x() * scale;
-      float y_pos = y - (ch.size.get_y() - ch.bearing.get_y()) * scale;
+      float x_pos = offset_x + ch.bearing.get_x() * scale;
+      float y_pos = offset_y - (ch.size.get_y() - ch.bearing.get_y()) * scale;
       float w = ch.size.get_x() * scale;
       float h = ch.size.get_y() * scale;
       // Update VBO for each character
@@ -434,20 +420,23 @@ namespace Wave
         {x_pos + w, y_pos + h, 1.0f, 0.0f}
       };
       // Render glyph texture over quad
-      CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, ch.texture_id));
+      
+      Gl_renderer::textures.emplace_back(ch.texture);
       
       // Update content of VBO memory
       Gl_renderer::draw_commands[0]->vertex_array_buffer->get_vertex_buffers().back()->set_data(vertices,
-                                                                                                sizeof(vertices), 0);
+                                                                                                sizeof(vertices),
+                                                                                                vbo_offset);
+      vbo_count += 6;
+      vbo_offset += 6 * (sizeof(float) * 4);
       
-      // Draw
-      CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
       // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
-      x += static_cast<float>((ch.advance >> 6)) *
-           scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+      offset_x += static_cast<float>((ch.advance >> 6)) *
+                  scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }
+    Gl_renderer::draw_commands[0]->vertex_array_buffer->get_vertex_buffers().back()->set_count(vbo_count);
     Gl_renderer::draw_commands[0]->vertex_array_buffer->unbind();
-    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+    Gl_renderer::draw_commands[0]->associated_shader->unbind();
   }
   
   void Gl_renderer::shutdown()

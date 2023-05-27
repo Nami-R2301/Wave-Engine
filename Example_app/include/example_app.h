@@ -22,8 +22,7 @@ public:
   bool mouse_movement_callback(Wave::On_mouse_movement &mouse_cursor_event) override;
   bool mouse_wheel_callback(Wave::On_mouse_wheel_scroll &mouse_wheel_input) override;
   
-  std::vector<std::shared_ptr<Wave::Shader>> demo_object_shaders;
-  std::vector<std::shared_ptr<Wave::Shader>> demo_text_shaders;
+  std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;
   std::shared_ptr<Wave::Camera> demo_perspective_camera;
   std::vector<std::shared_ptr<Wave::Object>> demo_objects;
   std::vector<std::shared_ptr<Wave::Text>> demo_text;

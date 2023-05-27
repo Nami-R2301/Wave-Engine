@@ -24,9 +24,10 @@
 #include <Renderer/framebuffer.h>
 #include <Renderer/uniform_buffer.h>
 
-constexpr int max_draw_commands = 1000;
-constexpr int max_vertices = 2'000'000;
-constexpr int max_indices = 2'000'000;
+constexpr int64_t max_draw_commands = 1000;
+constexpr int64_t max_vertices = 2'000'000;
+constexpr int64_t max_indices = 2'000'000;
+constexpr int32_t max_textures = 32;
 
 namespace Wave
 {
@@ -76,8 +77,8 @@ namespace Wave
     static void end();
     
     // Immediate rendering.
-    static void draw_object(const std::shared_ptr<Object> &object);
-    static void draw_text(const std::shared_ptr<Text> &text);
+    static void draw_object(const std::shared_ptr<Object> &object, const std::shared_ptr<Shader> &linked_shader);
+    static void draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Shader> &linked_shader);
     
     // Shutdown
     static void shutdown();

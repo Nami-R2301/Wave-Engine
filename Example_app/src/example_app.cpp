@@ -21,11 +21,16 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   
   
   // Add shaders
-  this->demo_text_shaders.emplace_back(Wave::Shader::create("Text",
-                                                            Wave::Resource_loader::load_shader_source(
-                                                              "../Wave/res/Shaders/text-glyph.vert").c_str(),
-                                                            Wave::Resource_loader::load_shader_source(
-                                                              "../Wave/res/Shaders/text-glyph.frag").c_str()));
+  this->demo_shaders.emplace_back(Wave::Shader::create("Object",
+                                                       Wave::Resource_loader::load_shader_source(
+                                                         "../Wave/res/Shaders/default_3D.vert").c_str(),
+                                                       Wave::Resource_loader::load_shader_source(
+                                                         "../Wave/res/Shaders/default_3D.frag").c_str()));
+  this->demo_shaders.emplace_back(Wave::Shader::create("Text",
+                                                       Wave::Resource_loader::load_shader_source(
+                                                         "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                       Wave::Resource_loader::load_shader_source(
+                                                         "../Wave/res/Shaders/text-glyph.frag").c_str()));
   
   
   // Add objects
@@ -44,8 +49,8 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
                                                   "Wave Engine ~",
                                                   format));
   
-  push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_object_shaders, this->demo_objects));
-  push_layer(new Wave::Text_layer(this->demo_text, this->demo_text_shaders,
+  push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));
+  push_layer(new Wave::Text_layer(this->demo_text, this->demo_shaders,
                                   Wave::Vector_2f(Engine::get_main_window()->get_width(),
                                                   Engine::get_main_window()->get_height()), false));
 }

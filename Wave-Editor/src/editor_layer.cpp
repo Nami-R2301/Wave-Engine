@@ -38,7 +38,11 @@ namespace Wave
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert").c_str(),
                                                                                  Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag").c_str());
-    Renderer::draw_object(this->objects[0]);
+    this->shaders[0]->bind();
+    this->shaders[0]->set_uniform("u_has_texture", true);
+    this->shaders[0]->set_uniform("u_sampler", 1);
+    Renderer::draw_object(this->objects[0], this->shaders[0]);
+    this->shaders[0]->unbind();
   }
   
   void Editor_layer::on_detach()

@@ -20,6 +20,11 @@ namespace Wave
                                                           90.0f, 0.1f, 1000.0f);
     
     // Add shaders
+    this->demo_shaders.emplace_back(Wave::Shader::create("Object",
+                                                         Wave::Resource_loader::load_shader_source(
+                                                           "../Wave/res/Shaders/default_3D.vert").c_str(),
+                                                         Wave::Resource_loader::load_shader_source(
+                                                           "../Wave/res/Shaders/default_3D.frag").c_str()));
     this->demo_shaders.emplace_back(Wave::Shader::create("Text",
                                                          Wave::Resource_loader::load_shader_source(
                                                            "../Wave/res/Shaders/text-glyph.vert").c_str(),

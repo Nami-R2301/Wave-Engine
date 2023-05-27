@@ -220,7 +220,9 @@ namespace Wave
     Face_2D_s face_2D_indices = {indices[0] - 1,
                                  indices[1] - 1,
                                  indices[2] - 1,
-                                 indices[3] - 1};
+                                 indices[3] - 1,
+                                 indices[4] - 1,
+                                 indices[5] - 1};
     
     return face_2D_indices;
   }

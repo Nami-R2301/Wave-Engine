@@ -11,13 +11,13 @@ namespace Wave
   static Orthographic_camera custom_projection;
   
   Text_layer::Text_layer(const std::vector<std::shared_ptr<Text>> &strings_,
-                         const std::vector<std::shared_ptr<Shader>> &text_shaders_,
+                         const std::vector<std::shared_ptr<Shader>> &shaders_,
                          const Vector_2f &viewport_size_,
                          bool imgui_render)
   {
     this->imgui_enabled = imgui_render;
     this->strings = strings_;
-    this->text_shaders = text_shaders_;
+    this->shaders = shaders_;
     this->viewport_size = viewport_size_;
     custom_projection = Orthographic_camera(this->viewport_size.get_x(), this->viewport_size.get_y(), 0.1f, 1000.0f);
     this->projection = glm::ortho(0.0f, this->viewport_size.get_x(), 0.0f, this->viewport_size.get_y());
@@ -30,15 +30,17 @@ namespace Wave
   
   void Text_layer::on_attach()
   {
-    this->text_shaders[0]->bind();
-    this->text_shaders[0]->set_uniform("u_projection", this->projection);
-    this->text_shaders[0]->set_uniform("u_text_color", this->strings[0]->get_format().color);
-    this->text_shaders[0]->unbind();
+    this->shaders[1]->bind();
+    this->shaders[1]->set_uniform("u_sampler", 0);
+    this->shaders[1]->set_uniform("u_projection", this->projection);
+    this->shaders[1]->set_uniform("u_text_color", this->strings[0]->get_format().color);
+    Renderer::draw_text(this->strings[0], this->shaders[1]);
+    this->shaders[1]->unbind();
   }
   
   void Text_layer::on_detach()
   {
-    for (const std::shared_ptr<Shader> &shader: this->text_shaders) shader->unbind();
+    for (const std::shared_ptr<Shader> &shader: this->shaders) shader->unbind();
   }
   
   void Text_layer::on_event(Event &event)
@@ -59,18 +61,10 @@ namespace Wave
   
   void Text_layer::on_update([[maybe_unused]] float time_step)
   {
-    this->text_shaders[0]->bind();
-    this->text_shaders[0]->set_uniform("u_projection", this->projection);
-    this->text_shaders[0]->set_uniform("u_text_color", this->strings[0]->get_format().color);
-    this->text_shaders[0]->unbind();
   }
   
   void Text_layer::on_render()
   {
-    this->text_shaders[0]->bind();
-    Renderer::draw_text(this->strings[0]);
-    this->text_shaders[0]->unbind();
-    
     on_imgui_render();
   }
   

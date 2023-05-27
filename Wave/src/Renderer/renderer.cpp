@@ -249,26 +249,26 @@ namespace Wave
     }
   }
   
-  void Renderer::draw_object(const std::shared_ptr<Object> &object)
+  void Renderer::draw_object(const std::shared_ptr<Object> &object, const std::shared_ptr<Shader> &linked_shader)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::draw_object(object);
+        Gl_renderer::draw_object(object, linked_shader);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::draw_text(const std::shared_ptr<Text> &text)
+  void Renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Shader> &linked_shader)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::draw_text(text);
+        Gl_renderer::draw_text(text, linked_shader);
         break;
       }
       default:break;

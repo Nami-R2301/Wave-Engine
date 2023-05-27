@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <wave_pch.h>
+#include <Renderer/texture.h>
 #include <Renderer/color.h>
 
 #include <ft2build.h>
@@ -30,7 +30,7 @@ namespace Wave
   
   typedef struct Glyph
   {
-    uint32_t texture_id;  // ID handle of the glyph texture
+    std::shared_ptr<Texture> texture;  // Handle of the glyph texture
     Vector_2f size;       // Size of glyph
     Vector_2f bearing;    // Offset from baseline to left/top of glyph
     uint32_t advance;    // Offset to advance to next glyph

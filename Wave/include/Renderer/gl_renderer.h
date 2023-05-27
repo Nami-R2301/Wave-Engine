@@ -84,8 +84,8 @@ namespace Wave
     static void init_text_buffers();
     
     // Rendering objects.
-    static void draw_object(const std::shared_ptr<Object> &object);
-    static void draw_text(const std::shared_ptr<Text> &text);
+    static void draw_object(const std::shared_ptr<Object> &object, const std::shared_ptr<Shader> &linked_shader);
+    static void draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Shader> &linked_shader);
     
     // Error handling.
     static bool renderer_error_callback([[maybe_unused]] On_renderer_error &renderer_error);

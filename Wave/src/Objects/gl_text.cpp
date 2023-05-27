@@ -10,14 +10,6 @@
 namespace Wave
 {
   
-  Gl_text::~Gl_text()
-  {
-    for (const auto &character: this->characters)
-    {
-      CHECK_GL_CALL(glDeleteTextures(1, &character.second.texture_id));
-    }
-  }
-  
   Gl_text::Gl_text(const std::string &string)
   {
     int32_t result = Gl_text::init("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf");
@@ -72,27 +64,16 @@ namespace Wave
         continue;
       }
       
-      // generate texture
-      unsigned int texture;
-      CHECK_GL_CALL(glGenTextures(1, &texture));
-      CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, texture));
-      CHECK_GL_CALL(glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RED,
-        face->glyph->bitmap.width,
-        face->glyph->bitmap.rows,
-        0,
-        GL_RED,
-        GL_UNSIGNED_BYTE,
-        face->glyph->bitmap.buffer
-      ));
-      // set texture options
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      // now store character for later use
+      // Generate texture for each glyph.
+      auto texture = Texture::create(font_file_path, {Texture_type::Texture_2D,
+                                                      static_cast<int32_t>(face->glyph->bitmap.width),
+                                                      static_cast<int32_t>(face->glyph->bitmap.rows),
+                                                      WAVE_VALUE_DONT_CARE,
+                                                      0,
+                                                      WAVE_VALUE_DONT_CARE,
+                                                      face->glyph->bitmap.buffer});
+      
+      // Store character for later use
       Glyph character = {
         texture,
         Vector_2f((float) face->glyph->bitmap.width, (float) face->glyph->bitmap.rows),
@@ -101,7 +82,6 @@ namespace Wave
       };
       this->characters.insert(std::pair<char, Glyph>(c, character));
     }
-    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     
     FT_Done_Face(this->face);
     FT_Done_FreeType(this->ft);

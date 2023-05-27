@@ -18,8 +18,8 @@ namespace Wave
   typedef struct Face_2D_s
   {
     uint32_t first_vertex_index;
-    uint32_t first_texture_index;
     uint32_t first_normal_index;
+    uint32_t first_texture_index;
     
     uint32_t second_vertex_index;
     uint32_t second_texture_index;

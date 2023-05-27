@@ -14,15 +14,14 @@ namespace Wave
   {
     public:
     Gl_texture_2D(const char *file_path, Texture_data_s data);
-    explicit Gl_texture_2D(const char *file_path, FT_Face face);
     ~Gl_texture_2D() override;
     
     [[nodiscard]] int32_t convert_to_api(Texture_data_s data) override;
-    [[nodiscard]] uint32_t get_id() const override;
+    [[nodiscard]] uint32_t &get_id() override;
     [[nodiscard]] int32_t get_width() const override;
     [[nodiscard]] int32_t get_height() const override;
     [[nodiscard]] int32_t get_depth() const override;
-    [[nodiscard]] uint32_t get_texture_slot() const override;
+    [[nodiscard]] int32_t get_texture_slot() const override;
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
     
     INTERFACE_PRINT
@@ -31,13 +30,14 @@ namespace Wave
     void set_width(int width_) override;
     void set_height(int height_) override;
     void set_depth(int height_) override;
-    void set_texture_slot(uint32_t texture_slot_) override;
+    void set_texture_slot(int32_t texture_slot_) override;
     void set_bits_per_pixel(int bits_per_pixel) override;
+    [[nodiscard]] void *get_data() const override;
     
-    void bind(uint32_t slot_) const override;
+    void bind(int32_t slot_) const override;
     void unbind() const override;
     void remove() override;
-    void set_data(const void **data) const override;
+    void set_data(const void **data_array) const override;
     
     
     explicit operator bool() const override;
@@ -48,9 +48,10 @@ namespace Wave
     int32_t internal_type = 0;
     int32_t width = 0;
     int32_t height = 0;
-    uint32_t texture_slot = 0;
+    int32_t texture_slot = 0;
     int32_t bits_per_pixel = 0;
     int32_t samples = 1;
+    void *data = nullptr;
   };
   
   /********************* TEXTURE 3D ********************/
@@ -62,12 +63,13 @@ namespace Wave
     ~Gl_texture_3D() override;
     
     [[nodiscard]] int32_t convert_to_api(Texture_data_s data) override;
-    [[nodiscard]] uint32_t get_id() const override;
+    [[nodiscard]] uint32_t &get_id() override;
     [[nodiscard]] int32_t get_width() const override;
     [[nodiscard]] int32_t get_height() const override;
     [[nodiscard]] int32_t get_depth() const override;
-    [[nodiscard]] uint32_t get_texture_slot() const override;
+    [[nodiscard]] int32_t get_texture_slot() const override;
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
+    [[nodiscard]] void *get_data() const override;
     
     INTERFACE_PRINT
     
@@ -75,13 +77,13 @@ namespace Wave
     void set_width(int width_) override;
     void set_height(int height_) override;
     void set_depth(int depth_) override;
-    void set_texture_slot(uint32_t texture_slot_) override;
+    void set_texture_slot(int32_t texture_slot_) override;
     void set_bits_per_pixel(int bits_per_pixel) override;
     
-    void bind(uint32_t slot_) const override;
+    void bind(int32_t slot_) const override;
     void unbind() const override;
     void remove() override;
-    void set_data(const void **data) const override;
+    void set_data(const void **data_array) const override;
     
     
     explicit operator bool() const override;
@@ -93,8 +95,9 @@ namespace Wave
     int32_t width = 0;
     int32_t height = 0;
     int32_t depth = 0;
-    uint32_t texture_slot = 0;
+    int32_t texture_slot = 0;
     int32_t bits_per_pixel = 0;
     int32_t samples = 1;
+    void *data = nullptr;
   };
 } // Wave

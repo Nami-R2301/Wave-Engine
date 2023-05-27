@@ -18,13 +18,20 @@ void Example_scene_3D::on_attach()
 {
   this->objects[0]->add_texture(Wave::Texture::create("../Wave/res/Textures/tiles.png",
                                                       {Wave::Texture_type::Texture_2D,
-                                                       0, 0, 0, 1, 1}));
+                                                       WAVE_VALUE_DONT_CARE,
+                                                       WAVE_VALUE_DONT_CARE,
+                                                       WAVE_VALUE_DONT_CARE,
+                                                       1, 1}));
   
   // Setup objects in scene.
   this->objects[0]->translate(10, -10, 20);
   this->objects[0]->rotate(90, -90, 0);
   
-  Wave::Renderer::draw_object(this->objects[0]);
+  this->shaders[0]->bind();
+  this->shaders[0]->set_uniform("u_has_texture", true);
+  this->shaders[0]->set_uniform("u_sampler", 1);
+  Wave::Renderer::draw_object(this->objects[0], this->shaders[0]);
+  this->shaders[0]->unbind();
 }
 
 void Example_scene_3D::on_detach()
