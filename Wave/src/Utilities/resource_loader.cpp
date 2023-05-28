@@ -1,7 +1,7 @@
 //
 // Created by nami on 5/20/22.
 //
-#include <Utilities/Resource_loader.h>
+#include <Utilities/resource_loader.h>
 #include <Utilities/logger.h>
 
 namespace Wave
@@ -48,9 +48,9 @@ namespace Wave
     return {};
   }
   
-  std::shared_ptr<Texture> Resource_loader::load_texture_source(const char *file_path, Texture_data_s data)
+  std::shared_ptr<Texture> Resource_loader::load_texture_source(const char *file_path)
   {
-    return Texture::create(file_path, data);
+    return Texture::create(file_path);
   }
   
   Object_2D_data_s Resource_loader::load_object_2D_source(const char *file_path)

@@ -7,6 +7,7 @@
 #include <Core/layer.h>
 #include <Renderer/renderer.h>
 #include <Objects/gl_text.h>
+#include <Scene/camera.h>
 #include <Renderer/shader.h>
 
 namespace Wave
@@ -32,7 +33,7 @@ namespace Wave
     std::vector<std::shared_ptr<Text>> strings;
     std::vector<std::shared_ptr<Shader>> shaders;
     std::vector<std::shared_ptr<Vertex_array_buffer>> vao_list{};
-    glm::mat4x4 projection = glm::mat4(1.0f);
+    Orthographic_camera projection;
     Vector_2f viewport_size = Vector_2f(0);
     bool imgui_enabled;
   };

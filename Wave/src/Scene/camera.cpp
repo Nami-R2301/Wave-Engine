@@ -216,10 +216,11 @@ namespace Wave
   void Orthographic_camera::update_projection_matrix()
   {
     this->projection_matrix.init_orthographic_projection(0,
-                                                         this->width * this->aspect_ratio,
-                                                         this->height * this->aspect_ratio,
+                                                         this->width,
+                                                         this->height,
                                                          0,
                                                          this->z_near,
                                                          this->z_far);
+    this->projection_matrix.transpose();
   }
 }

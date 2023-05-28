@@ -8,6 +8,14 @@
 namespace Wave
 {
   
+  Matrix_4f::Matrix_4f(float identity)
+  {
+    this->matrix = std::shared_ptr<float[4][4]>(new float[4][4]());
+    this->num_rows = 4;
+    this->num_cols = 4;
+    init_scale(identity, identity, identity);
+  }
+  
   Matrix_4f::Matrix_4f()
   {
     this->matrix = std::shared_ptr<float[4][4]>(new float[4][4]());
@@ -166,12 +174,14 @@ namespace Wave
   void Matrix_4f::init_scale(Vector_3f vector_3f)
   {
     // For every row except w.
-    this->matrix.get()[0][0] = vector_3f.get_x(), this->matrix.get()[1][1] = vector_3f.get_y(), this->matrix.get()[2][2] = vector_3f.get_z();
+    this->matrix.get()[0][0] = vector_3f.get_x(), this->matrix.get()[1][1] = vector_3f.get_y(),
+    this->matrix.get()[2][2] = vector_3f.get_z(), this->matrix.get()[3][3] = 1.0f;
   }
   
   void Matrix_4f::init_scale(float x_, float y_, float z_)
   {
-    this->matrix.get()[0][0] = x_, this->matrix.get()[1][1] = y_, this->matrix.get()[2][2] = z_;
+    this->matrix.get()[0][0] = x_, this->matrix.get()[1][1] = y_,
+    this->matrix.get()[2][2] = z_, this->matrix.get()[3][3] = 1.0f;
   }
   
   void Matrix_4f::init_perspective_projection(float fov_, float z_near_, float z_far_)
@@ -196,11 +206,11 @@ namespace Wave
     
     float scale_x = 2 / (right_ - left_);
     float scale_y = 2 / (top_ - bottom_);
-    float scale_z = 1 / (z_far_ - z_near_);
+    float scale_z = -2 / (z_far_ - z_near_);
     
     float pos_x = -(right_ + left_) / (right_ - left_);
     float pos_y = -(top_ + bottom_) / (top_ - bottom_);
-    float pos_z = -z_near_ / (z_far_ - z_near_);
+    float pos_z = -(z_far_ + z_near_) / (z_far_ - z_near_);
     
     init_scale(scale_x, scale_y, scale_z);
     init_translation(pos_x, pos_y, pos_z);
@@ -225,20 +235,6 @@ namespace Wave
         set_value(j, i, original.get_value(i, j));
       }
     }
-  }
-  
-  Matrix_4f Matrix_4f::convert(const glm::mat4 &glm_matrix)
-  {
-    Matrix_4f conversion;
-    conversion.init_identity();
-    for (int i = 0; i < 4; i++)
-    {
-      for (int j = 0; j < 4; j++)
-      {
-        conversion.set_value(i, j, glm_matrix[i][j]);
-      }
-    }
-    return conversion;
   }
   
   Vector_4f Matrix_4f::operator*(const Vector_4f &vector_4f) const

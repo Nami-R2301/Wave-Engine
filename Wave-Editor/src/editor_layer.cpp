@@ -24,9 +24,7 @@ namespace Wave
   void Editor_layer::on_attach()
   {
     // Setup object shaders.
-    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png",
-                                                                       {Texture_type::Texture_2D,
-                                                                        0, 0, 0, 1, 1}));
+    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
     
     // Setup objects in scene.
     this->objects[0]->translate(10, -10, 20);
@@ -38,15 +36,12 @@ namespace Wave
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert").c_str(),
                                                                                  Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag").c_str());
-    this->shaders[0]->bind();
-    this->shaders[0]->set_uniform("u_has_texture", true);
-    this->shaders[0]->set_uniform("u_sampler", 1);
-    Renderer::draw_object(this->objects[0], this->shaders[0]);
-    this->shaders[0]->unbind();
+    Renderer::send_object(*this->objects[0], *this->shaders[0]);
   }
   
   void Editor_layer::on_detach()
   {
+    for (const std::shared_ptr<Shader> &shader: this->shaders) shader->unbind();
   }
   
   void Editor_layer::on_event([[maybe_unused]] Event &event)

@@ -3,6 +3,7 @@
 //
 
 #include <Renderer/gl_renderer.h>
+#include <cassert>
 
 namespace Wave
 {

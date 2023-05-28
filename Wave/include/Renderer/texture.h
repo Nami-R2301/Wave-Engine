@@ -25,17 +25,18 @@ namespace Wave
   typedef struct Texture_data_s
   {
     Texture_type type = Texture_type::None;
-    int32_t width = 0;
-    int32_t height = 0;
-    int32_t depth = 0;
-    int32_t slot = 0;
-    int32_t samples = 1;
+    int32_t desired_width = 0;
+    int32_t desired_height = 0;
+    int32_t desired_depth = 0;
+    int32_t desired_slot = 0;
+    int32_t desired_samples = 1;
     void *data = nullptr;
   } Texture_data_s;
   
   class Texture : public Printable
   {
     public:
+    static std::shared_ptr<Texture> create(const char *file_path);
     static std::shared_ptr<Texture> create(const char *file_path, Texture_data_s texture_data);
     ~Texture() override = default;
     
@@ -68,6 +69,7 @@ namespace Wave
   class Texture_2D : public Texture
   {
     public:
+    static std::shared_ptr<Texture_2D> create(const char *file_path);
     static std::shared_ptr<Texture_2D> create(const char *file_path, Texture_data_s texture_data);
     ~Texture_2D() override = default;
   };
@@ -77,6 +79,7 @@ namespace Wave
   class Texture_3D : public Texture
   {
     public:
+    static std::shared_ptr<Texture_3D> create(const char *file_path);
     static std::shared_ptr<Texture_3D> create(const char *file_path, Texture_data_s texture_data);
     ~Texture_3D() override = default;
   };

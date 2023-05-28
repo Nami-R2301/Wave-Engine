@@ -12,10 +12,10 @@ namespace Wave
   class Gl_text : public Text
   {
     public:
-    explicit Gl_text(const std::string &string);
-    explicit Gl_text(const char *font_path);
-    Gl_text(const char *font_file_name, const std::string &string);
-    Gl_text(const char *font_file_name, const std::string &string, Text_format text_format_);
+    Gl_text();
+    explicit Gl_text(const std::string &string_);
+    Gl_text(const char *font_file_name, const std::string &string_);
+    Gl_text(const char *font_file_name, const std::string &string_, Text_format text_format_);
     ~Gl_text() override = default;
     
     [[nodiscard]] int32_t init(const char *font_name);

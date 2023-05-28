@@ -6,14 +6,8 @@
 
 #include <Core/core.h>
 #include <Scene/scene_camera.h>
+#include <Math/transform.h>
 #include <Renderer/texture.h>
-
-#include <glm/glm/glm.hpp>
-#include <glm/glm/gtc/matrix_transform.hpp>
-
-#define GLM_ENABLE_EXPERIMENTAL
-
-#include <glm/glm/gtx/quaternion.hpp>
 #include <utility>
 
 namespace Wave
@@ -42,44 +36,46 @@ namespace Wave
   
   struct Transform_component_s
   {
-    glm::vec3 Translation = {0.0f, 0.0f, 0.0f};
-    glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
-    glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
+    Transform transform_component;
     
     Transform_component_s() = default;
     Transform_component_s(const Transform_component_s &) = default;
     
-    explicit Transform_component_s(const glm::vec3 &translation)
-      : Translation(translation)
-    {}
-    
-    [[nodiscard]] glm::mat4 GetTransform() const
+    explicit Transform_component_s(const Transform &transform_)
     {
-      glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
-      
-      return glm::translate(glm::mat4(1.0f), Translation)
-             * rotation
-             * glm::scale(glm::mat4(1.0f), Scale);
+      this->transform_component = transform_;
+    }
+    
+    explicit Transform_component_s(const Vector_3f &translation, const Vector_3f &rotation, const Vector_3f &scale)
+    {
+      this->transform_component.set_translation(translation);
+      this->transform_component.set_rotation(rotation);
+      this->transform_component.set_scale(scale);
+    }
+    
+    [[nodiscard]] Matrix_4f get_transform() const
+    {
+      return transform_component.get_transform_matrix();
     }
   };
   
   struct Sprite_component_s
   {
-    glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+    Vector_4f Color{1.0f, 1.0f, 1.0f, 1.0f};
     std::shared_ptr<Texture> texture;
     float TilingFactor = 1.0f;
     
     Sprite_component_s() = default;
     Sprite_component_s(const Sprite_component_s &) = default;
     
-    explicit Sprite_component_s(const glm::vec4 &color)
+    explicit Sprite_component_s(const Vector_4f &color)
       : Color(color)
     {}
   };
   
   struct Circle_component_s
   {
-    glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+    Vector_4f Color{1.0f, 1.0f, 1.0f, 1.0f};
     float Thickness = 1.0f;
     float Fade = 0.005f;
     
@@ -145,8 +141,8 @@ namespace Wave
   
   struct Box_collider_2D_component_s
   {
-    glm::vec2 Offset = {0.0f, 0.0f};
-    glm::vec2 Size = {0.5f, 0.5f};
+    Vector_2f Offset = {0.0f, 0.0f};
+    Vector_2f Size = {0.5f, 0.5f};
     
     // TODO(Yan): move into physics material in the future maybe
     float Density = 1.0f;
@@ -163,7 +159,7 @@ namespace Wave
   
   struct Circle_collider_2D_component_s
   {
-    glm::vec2 Offset = {0.0f, 0.0f};
+    Vector_2f Offset = {0.0f, 0.0f};
     float Radius = 0.5f;
     
     // TODO(Yan): move into physics material in the future maybe

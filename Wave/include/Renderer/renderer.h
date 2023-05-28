@@ -14,15 +14,14 @@
 #include <Objects/object.h>
 #include <Objects/text.h>
 
-#include <Utilities/Resource_loader.h>
-
+#include <Utilities/resource_loader.h>
 #include <Events/renderer_event.h>
-
 #include <Renderer/shader.h>
 #include <Renderer/vertex_array_buffer.h>
 #include <Window/window.h>
 #include <Renderer/framebuffer.h>
 #include <Renderer/uniform_buffer.h>
+#include <Scene/camera.h>
 
 constexpr int64_t max_draw_commands = 1000;
 constexpr int64_t max_vertices = 2'000'000;
@@ -38,7 +37,7 @@ namespace Wave
     typedef struct Draw_command
     {
       uint64_t vbo_offset = 0, ibo_offset = 0;
-      std::shared_ptr<Shader> associated_shader;
+      Shader *associated_shader = nullptr;
       std::shared_ptr<Vertex_array_buffer> vertex_array_buffer;
     } Draw_command;
     
@@ -64,21 +63,20 @@ namespace Wave
     // Events
     static void on_event(Event &event);
     
-    static void load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index = 0);
-    
     // Load assets
-    static void prerender_text();
+    static void init_text_buffers();
     static void init_object_buffers();
+    static void add_uniform_buffer(const char *uniform_block_name, uint64_t buffer_size);
+    static void set_uniform_buffer_data();
     
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
+    static void load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index = 0);
+    static void send_object(Object &object, Shader &linked_shader);
+    static void send_text(Text &text, Shader &linked_shader);
     static void flush();
-    static void send(const std::vector<std::shared_ptr<Object>> &objects);
-    static void end();
     
-    // Immediate rendering.
-    static void draw_object(const std::shared_ptr<Object> &object, const std::shared_ptr<Shader> &linked_shader);
-    static void draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Shader> &linked_shader);
+    static void end();
     
     // Shutdown
     static void shutdown();

@@ -4,7 +4,7 @@
 mkdir -p build
 cmake -S . -B build
 cd build
-cmake --build . --target Editor
+cmake --build . --target Editor -- -j
 
 # Setup working directory for Engine to load assets properly
 sudo mkdir -p /usr/local/Wave-Engine/bin

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Scene/camera.h"
-#include <wave_pch.h>
+#include <Core/interfaces.h>
+#include <Math/matrix_4f.h>
 
 namespace Wave
 {
@@ -20,8 +20,7 @@ namespace Wave
     [[nodiscard]] const Vector_3f &get_translation() const;
     [[nodiscard]] const Vector_3f &get_rotation() const;
     [[nodiscard]] const Vector_3f &get_scale() const;
-    [[nodiscard]] static Matrix_4f get_transform_matrix(const Matrix_4f &model, const Matrix_4f &view,
-                                                        const Matrix_4f &projection);
+    [[nodiscard]] Matrix_4f get_transform_matrix() const;
     
     void set_rotation(const Vector_3f &rotation_);
     void set_rotation(float x, float y, float z);

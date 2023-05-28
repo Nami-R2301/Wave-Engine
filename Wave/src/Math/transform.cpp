@@ -67,10 +67,14 @@ namespace Wave
   }
   
   // Final matrix to apply to each vertex in the vertex shader.
-  Matrix_4f Transform::get_transform_matrix(const Matrix_4f &model, const Matrix_4f &view,
-                                            const Matrix_4f &projection)
+  Matrix_4f Transform::get_transform_matrix() const
   {
-    return projection * (view * model);
+    Matrix_4f rotation_matrix, translation_matrix, scale_matrix;
+    rotation_matrix.init_rotation(this->rotation);
+    translation_matrix.init_translation(this->translation);
+    scale_matrix.init_scale(this->scale);
+    
+    return translation_matrix * (rotation_matrix * scale_matrix);
   }
   
   std::string Transform::to_string() const

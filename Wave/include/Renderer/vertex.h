@@ -33,10 +33,13 @@ namespace Wave
     
     void set_position(const Vector_2f &position_);
     void set_position(float x, float y);
+    
     void set_normal(const Vector_2f &normal_);
     void set_normal(float x, float y);
+    
     void set_color(const Color &color_);
     void set_color(float r, float g, float b, float a);
+    
     void set_tex_coord(const Vector_2f &tex_coord_);
     void set_tex_coord(float x, float y);
     
@@ -78,11 +81,13 @@ namespace Wave
     
     void set_position(const Vector_3f &position_);
     void set_position(float x, float y, float z);
+    
     void set_normal(const Vector_3f &normal_);
     void set_normal(float x, float y, float z);
     
     void set_color(const Color &color_);
     void set_color(float r, float g, float b, float a);
+    
     void set_tex_coord(const Vector_2f &tex_coord_);
     void set_tex_coord(float x, float y);
     

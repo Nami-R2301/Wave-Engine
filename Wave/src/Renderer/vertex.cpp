@@ -213,15 +213,6 @@ namespace Wave
     this->tex_coord = vertex_2D.get_tex_coord();
   }
   
-  Vertex_3D::Vertex_3D(const Vertex_3D &other_vertex)
-  {
-    if (this == &other_vertex) return;
-    this->position = other_vertex.position;
-    this->color = other_vertex.color;
-    this->normal = other_vertex.normal;
-    this->tex_coord = other_vertex.tex_coord;
-  }
-  
   Vertex_3D::Vertex_3D(float x_coord, float y_coord, float z_coord, float _red_, float _green_,
                        float _blue_, float _alpha_)
   {
@@ -229,6 +220,15 @@ namespace Wave
     this->position.set_y(y_coord);
     this->position.set_z(z_coord);
     this->color = Color(_red_, _green_, _blue_, _alpha_);
+  }
+  
+  Vertex_3D::Vertex_3D(const Vertex_3D &other_vertex)
+  {
+    if (this == &other_vertex) return;
+    this->position = other_vertex.position;
+    this->color = other_vertex.color;
+    this->normal = other_vertex.normal;
+    this->tex_coord = other_vertex.tex_coord;
   }
   
   float Vertex_3D::length() const

@@ -27,11 +27,7 @@ void Example_scene_3D::on_attach()
   this->objects[0]->translate(10, -10, 20);
   this->objects[0]->rotate(90, -90, 0);
   
-  this->shaders[0]->bind();
-  this->shaders[0]->set_uniform("u_has_texture", true);
-  this->shaders[0]->set_uniform("u_sampler", 1);
-  Wave::Renderer::draw_object(this->objects[0], this->shaders[0]);
-  this->shaders[0]->unbind();
+  Wave::Renderer::send_object(*this->objects[0], *this->shaders[0]);
 }
 
 void Example_scene_3D::on_detach()
@@ -52,7 +48,7 @@ void Example_scene_3D::on_update(float time_step)
   if (Wave::Input::is_key_held(WAVE_KEY_D))
     this->camera->move(this->camera->get_right(), velocity * time_step);
   
-  this->camera->update_view_matrix();
+  this->camera->on_update(time_step);
 }
 
 void Example_scene_3D::on_event(Wave::Event &event)

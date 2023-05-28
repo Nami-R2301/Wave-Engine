@@ -30,6 +30,11 @@ namespace Wave
                                                            "../Wave/res/Shaders/text-glyph.vert").c_str(),
                                                          Wave::Resource_loader::load_shader_source(
                                                            "../Wave/res/Shaders/text-glyph.frag").c_str()));
+    this->demo_shaders.emplace_back(Wave::Shader::create("Text",
+                                                         Wave::Resource_loader::load_shader_source(
+                                                           "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                         Wave::Resource_loader::load_shader_source(
+                                                           "../Wave/res/Shaders/text-glyph.frag").c_str()));
     
     int32_t max_samples = Engine::get_main_window()->get_samples();
     // Setup default viewport framebuffer specs.
@@ -43,21 +48,20 @@ namespace Wave
     
     
     // Add objects
-    auto custom = Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj");
-//    auto cube = Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj");
-    
-    this->demo_objects.emplace_back(Object::create(custom));
+    this->demo_objects.emplace_back(
+      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
     
     // Add text strings
-    Wave::Text_format format = {25.0f,
-                                this->viewport_resolution.get_y() - 25.0f,  // Inverted y (Top = max y value).
-                                1.0f,
-                                26.0f,
-                                Wave::Text_style::REGULAR,
-                                Wave::Color(1.0f, 0.0f, 0.0f, 1.0f, true)};
-    this->demo_texts.emplace_back(Text::create("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf",
-                                               "Wave Engine ~",
-                                               format));
+    this->demo_texts.emplace_back(Text::create());
+    
+    Wave::Text_format format_2 = {25.0f + this->demo_texts.back()->get_total_horizontal_text_size(),
+                                  this->viewport_resolution.get_y() - 25.0f,  // Inverted y (Top = max y value).
+                                  1.0f,
+                                  26.0f,
+                                  Wave::Text_style::REGULAR,
+                                  Wave::Color(1.0f, 0.0f, 0.0f, 1.0f, true)};
+    this->demo_texts.emplace_back(Text::create());
+    this->demo_texts.back()->set_format(format_2);
     
     push_layer(new Editor_layer(this->editor_camera,
                                 this->demo_shaders,
@@ -65,7 +69,7 @@ namespace Wave
                                 this->viewport_framebuffer));
     push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution,
                               true));
-    push_layer(new ImGui_layer({16.0f, 1.0f}));
+    push_layer(new ImGui_layer());
   }
   
   void Editor::init()

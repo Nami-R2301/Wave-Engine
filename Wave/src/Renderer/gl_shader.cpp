@@ -174,11 +174,6 @@ namespace Wave
     CHECK_GL_CALL(glUniform1f(get_uniform_location(uniform_name), float_value));
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, glm::mat4x4 glm_matrix) const
-  {
-    CHECK_GL_CALL(glUniformMatrix4fv(get_uniform_location(uniform_name), 1, GL_FALSE, glm::value_ptr(glm_matrix)));
-  }
-  
   void Gl_shader::set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const
   {
     CHECK_GL_CALL(glUniform3f(get_uniform_location(uniform_name), vector_3f.get_x(),

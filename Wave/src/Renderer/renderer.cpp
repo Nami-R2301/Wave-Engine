@@ -207,7 +207,7 @@ namespace Wave
     }
   }
   
-  void Renderer::prerender_text()
+  void Renderer::init_text_buffers()
   {
     switch (Renderer::api_in_use)
     {
@@ -249,26 +249,26 @@ namespace Wave
     }
   }
   
-  void Renderer::draw_object(const std::shared_ptr<Object> &object, const std::shared_ptr<Shader> &linked_shader)
+  void Renderer::send_object(Object &object, Shader &linked_shader)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::draw_object(object, linked_shader);
+        Gl_renderer::send_object(object, linked_shader);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Shader> &linked_shader)
+  void Renderer::send_text(Text &text, Shader &linked_shader)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::draw_text(text, linked_shader);
+        Gl_renderer::send_text(text, linked_shader);
         break;
       }
       default:break;
@@ -308,19 +308,6 @@ namespace Wave
       case Renderer_api::OpenGL:
       {
         Gl_renderer::flush();
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::send(const std::vector<std::shared_ptr<Object>> &objects)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::send(objects);
         break;
       }
       default:break;

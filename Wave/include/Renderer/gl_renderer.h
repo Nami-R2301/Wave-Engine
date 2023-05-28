@@ -65,10 +65,7 @@ namespace Wave
     // Initial setup.
     static void init();
     [[nodiscard]] static bool is_running();
-    static void begin(std::shared_ptr<Camera> &camera);
-    static void end();
-    static void flush();
-    static void send(const std::vector<std::shared_ptr<Object>> &objects);
+    
     static void on_event(Event &event);
     static void show_renderer_info();
     static int32_t get_max_texture_units();
@@ -84,8 +81,11 @@ namespace Wave
     static void init_text_buffers();
     
     // Rendering objects.
-    static void draw_object(const std::shared_ptr<Object> &object, const std::shared_ptr<Shader> &linked_shader);
-    static void draw_text(const std::shared_ptr<Text> &text, const std::shared_ptr<Shader> &linked_shader);
+    static void begin(std::shared_ptr<Camera> &camera);
+    static void send_object(Object &object, Shader &linked_shader);
+    static void send_text(Text &text, Shader &linked_shader);
+    static void flush();
+    static void end();
     
     // Error handling.
     static bool renderer_error_callback([[maybe_unused]] On_renderer_error &renderer_error);

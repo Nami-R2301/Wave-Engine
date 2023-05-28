@@ -16,11 +16,11 @@ namespace Wave
     public:
     typedef struct ImGui_layer_data_s
     {
-      float font_size = 20.0f;
+      float font_size = 16.0f;
       float font_scale = 1.0f;
     } ImGui_layer_data_s;
     public:
-    explicit ImGui_layer(ImGui_layer_data_s imgui_data_ = {20.0f, 1.0f});
+    explicit ImGui_layer(ImGui_layer_data_s imgui_data_ = {16.0f, 1.0f});
     ~ImGui_layer() override = default;
     
     void on_attach() override;

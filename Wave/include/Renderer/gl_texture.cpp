@@ -14,11 +14,98 @@ namespace Wave
   
   /********************* TEXTURE 2D ********************/
   
+  Gl_texture_2D::Gl_texture_2D(const char *file_path)
+  {
+    this->texture_type = Texture_type::Texture_2D;
+    this->samples = 1;
+    this->texture_slot = 1;
+    this->data = nullptr;
+    
+    // Generating font textures.
+    if (strcmp(&file_path[strlen(file_path) - 3], "ttf") == 0)
+    {
+      this->texture_slot = 0;  // Default text glyph texture slot given for renderer.
+      this->internal_type = Gl_texture_2D::convert_to_api({this->texture_type,
+                                                           this->width, this->height, 0,
+                                                           this->texture_slot, this->samples,
+                                                           this->data});
+      CHECK_GL_CALL(glCreateTextures(this->internal_type, 1, &this->texture_id));
+      this->bind(this->texture_slot);
+      
+      // set texture options
+      CHECK_GL_CALL(glTexParameteri(this->internal_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+      CHECK_GL_CALL(glTexParameteri(this->internal_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+      CHECK_GL_CALL(glTexParameteri(this->internal_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+      CHECK_GL_CALL(glTexParameteri(this->internal_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+      
+      CHECK_GL_CALL(glTexImage2D(
+        this->internal_type,
+        0,
+        GL_RED,
+        this->width == WAVE_VALUE_DONT_CARE ? 0 : this->width,
+        this->height == WAVE_VALUE_DONT_CARE ? 0 : this->height,
+        0,
+        GL_RED,
+        GL_UNSIGNED_BYTE,
+        this->data));
+    } else if (file_path)
+    {
+      
+      // Load file texture in memory.
+      stbi_set_flip_vertically_on_load(1);  // Invert y-axis for opengl matrix coordinates.
+      this->data = (stbi_uc *) stbi_load(file_path, &this->width, &this->height, &this->bits_per_pixel,
+                                         4);  // 4 channels (RGBA).
+      
+      this->internal_type = Gl_texture_2D::convert_to_api({this->texture_type,
+                                                           this->width, this->height, 0,
+                                                           this->texture_slot, this->samples,
+                                                           this->data});
+      // Initialize openGL texture buffers.
+      CHECK_GL_CALL(glCreateTextures(this->internal_type, 1, &this->texture_id));
+      this->bind(this->texture_slot);
+      
+      // Min surface to cover.
+      glTexParameteri(this->internal_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      // Max surface to cover and extend.
+      glTexParameteri(this->internal_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      // Normalize x-axis of texture.
+      glTexParameteri(this->internal_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      // Normalize y-axis of texture.
+      glTexParameteri(this->internal_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      // Normalize z-axis of texture.
+      glTexParameteri(this->internal_type, GL_TEXTURE_WRAP_R, GL_REPEAT);
+      
+      this->set_data((const void **) &this->data);
+      
+      if (!this->data)
+      {
+        Wave::alert(WAVE_ERROR, "[Texture] : Could not load image from %s", file_path);
+      }
+      
+      // Assign texture image to texture buffer.
+      // Deallocate file texture from CPU since it's loaded onto the GPU.
+      if (this->data) stbi_image_free((stbi_uc *) this->data);
+    } else
+    {
+      this->internal_type = Gl_texture_2D::convert_to_api({this->texture_type,
+                                                           this->width, this->height, 0,
+                                                           0, 1, this->data});
+      // Initialize openGL texture buffers.
+      CHECK_GL_CALL(glCreateTextures(this->internal_type, 1, &this->texture_id));
+      this->bind(this->texture_slot);
+      
+      this->set_data((const void **) &this->data);
+      // Assign texture image to texture buffer.
+      // Deallocate file texture from CPU since it's loaded onto the GPU.
+      if (this->data) stbi_image_free((stbi_uc *) this->data);
+    }
+  }
+  
   Gl_texture_2D::Gl_texture_2D(const char *file_path, Texture_data_s data)
   {
     this->texture_type = data.type;
-    this->samples = data.samples;
-    this->texture_slot = data.slot;
+    this->samples = data.desired_samples;
+    this->texture_slot = data.desired_slot;
     this->data = data.data;
     
     // Generating font textures.
@@ -40,9 +127,9 @@ namespace Wave
           this->internal_type,
           0,
           GL_R8,
-          data.width == WAVE_VALUE_DONT_CARE ? 0 : data.width,
-          data.height == WAVE_VALUE_DONT_CARE ? 0 : data.height,
-          data.depth == WAVE_VALUE_DONT_CARE ? 0 : data.depth,
+          data.desired_width == WAVE_VALUE_DONT_CARE ? 0 : data.desired_width,
+          data.desired_height == WAVE_VALUE_DONT_CARE ? 0 : data.desired_height,
+          data.desired_depth == WAVE_VALUE_DONT_CARE ? 0 : data.desired_depth,
           0,
           GL_RED,
           GL_UNSIGNED_BYTE,
@@ -53,8 +140,8 @@ namespace Wave
           this->internal_type,
           0,
           GL_RED,
-          data.width == WAVE_VALUE_DONT_CARE ? 0 : data.width,
-          data.height == WAVE_VALUE_DONT_CARE ? 0 : data.height,
+          data.desired_width == WAVE_VALUE_DONT_CARE ? 0 : data.desired_width,
+          data.desired_height == WAVE_VALUE_DONT_CARE ? 0 : data.desired_height,
           0,
           GL_RED,
           GL_UNSIGNED_BYTE,
@@ -119,7 +206,7 @@ namespace Wave
     {
       case Texture_type::Texture_2D:
       {
-        if (data_.samples > 1) return GL_TEXTURE_2D_MULTISAMPLE;
+        if (data_.desired_samples > 1) return GL_TEXTURE_2D_MULTISAMPLE;
         return GL_TEXTURE_2D;
       }
       case Texture_type::Texture_2D_Array: return GL_TEXTURE_2D_ARRAY;
@@ -307,11 +394,44 @@ namespace Wave
   
   /********************* TEXTURE 3D ********************/
   
+  Gl_texture_3D::Gl_texture_3D(const char *file_path)
+  {
+    this->texture_type = Texture_type::Texture_3D;
+    this->samples = 1;
+    this->texture_slot = 0;
+    stbi_uc *image_buffer{};
+    
+    if (file_path)
+    {
+      
+      // Load file texture in memory.
+      stbi_set_flip_vertically_on_load(1);  // Invert y-axis for opengl matrix coordinates.
+      image_buffer = stbi_load(file_path, &this->width, &this->height, &this->bits_per_pixel,
+                               4);  // 4 channels (RGBA).
+      if (!image_buffer)
+      {
+        Wave::alert(WAVE_ERROR, "[Texture] : Could not load image from %s", file_path);
+      }
+    }
+    
+    this->internal_type = Gl_texture_3D::convert_to_api({this->texture_type,
+                                                         this->width, this->height, this->depth,
+                                                         0, 1, this->data});
+    // Initialize openGL texture buffers.
+    CHECK_GL_CALL(glCreateTextures(this->internal_type, 1, &this->texture_id));
+    
+    this->set_data((const void **) &this->data);
+    
+    // Assign texture image to texture buffer.
+    // Deallocate file texture from CPU since it's loaded onto the GPU.
+    if (image_buffer) stbi_image_free(image_buffer);
+  }
+  
   Gl_texture_3D::Gl_texture_3D(const char *file_path, Texture_data_s data)
   {
     this->texture_type = data.type;
-    this->samples = data.samples;
-    this->texture_slot = data.slot;
+    this->samples = data.desired_samples;
+    this->texture_slot = data.desired_slot;
     stbi_uc *image_buffer{};
     if (file_path)
     {
@@ -348,7 +468,7 @@ namespace Wave
     {
       case Texture_type::Texture_3D:
       {
-        if (data_.samples > 1) return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+        if (data_.desired_samples > 1) return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
         return GL_TEXTURE_3D;
       }
       case Texture_type::Cube_map: return GL_TEXTURE_CUBE_MAP;

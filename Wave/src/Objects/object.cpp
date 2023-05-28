@@ -2,11 +2,16 @@
 // Created by nami on 07/01/23.
 //
 
-#include "Renderer/vertex.h"
 #include <Objects/object.h>
+#include <Utilities/resource_loader.h>
 
 namespace Wave
 {
+  
+  std::shared_ptr<Object> Object::create()
+  {
+    return Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj"));
+  }
   
   std::shared_ptr<Object> Object::create(const Object_2D_data_s &object_2D_data)
   {
@@ -270,6 +275,7 @@ namespace Wave
   void Object_2D::set_model_matrix(const Matrix_4f &mat)
   {
     this->model_matrix = mat;
+    Object_2D::update_model_matrix();
   }
   
   void Object_2D::update_model_matrix()
@@ -568,43 +574,43 @@ namespace Wave
   void Object_3D::set_model_transform(const Transform &model_transform_)
   {
     this->model_transform = model_transform_;
-    update_model_matrix();
+    this->update_model_matrix();
   }
   
   void Object_3D::rotate(const Vector_3f &rotation_)
   {
     this->model_transform.set_rotation(rotation_);
-    update_model_matrix();
+    this->update_model_matrix();
   }
   
   void Object_3D::rotate(float x, float y, float z)
   {
     this->model_transform.set_rotation(x, y, z);
-    update_model_matrix();
+    this->update_model_matrix();
   }
   
   void Object_3D::translate(const Vector_3f &translation_)
   {
     this->model_transform.set_translation(translation_ + this->origin);
-    update_model_matrix();
+    this->update_model_matrix();
   }
   
   void Object_3D::translate(float x, float y, float z)
   {
     this->model_transform.set_translation(Vector_3f(x, y, z) + this->origin);
-    update_model_matrix();
+    this->update_model_matrix();
   }
   
   void Object_3D::scale(const Vector_3f &scalar_)
   {
     this->model_transform.set_scale(scalar_);
-    update_model_matrix();
+    this->update_model_matrix();
   }
   
   void Object_3D::scale(float x, float y, float z)
   {
     this->model_transform.set_scale(x, y, z);
-    update_model_matrix();
+    this->update_model_matrix();
   }
   
   void Object_3D::move(const Vector_3f &position_)
@@ -619,13 +625,8 @@ namespace Wave
   
   void Object_3D::update_model_matrix()
   {
-    Matrix_4f translation_matrix, rotation_matrix, scale_matrix;
-    
-    translation_matrix.init_translation(this->model_transform.get_translation());
-    rotation_matrix.init_rotation(this->model_transform.get_rotation());
-    scale_matrix.init_scale(this->model_transform.get_scale());
-    
-    this->model_matrix = (translation_matrix * (rotation_matrix * scale_matrix));
+    this->model_matrix = this->model_transform.get_transform_matrix();
+    this->model_matrix.transpose();
   }
   
   void Object_3D::apply_vertex_properties(const Object_3D_data_s &mesh)

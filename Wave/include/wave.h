@@ -19,7 +19,7 @@
 
 /************************* Utilities ********************************/
 #include <Utilities/logger.h>
-#include <Utilities/Resource_loader.h>
+#include <Utilities/resource_loader.h>
 
 /************************* Input ********************************/
 #include <Input/input.h>

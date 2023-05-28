@@ -35,7 +35,7 @@ add_library(Wave STATIC
         Wave/src/Math/vector_4f.cpp
         Wave/src/Utilities/logger.cpp
         Wave/src/Math/transform.cpp
-        Wave/src/Utilities/Resource_loader.cpp
+        Wave/src/Utilities/resource_loader.cpp
         Wave/src/Scene/camera.cpp
         Wave/src/Renderer/texture.cpp
         Wave/src/Renderer/gl_vertex_array_buffer.cpp

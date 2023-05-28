@@ -6,8 +6,6 @@
 
 #include <Events/app_event.h>
 #include <Math/matrix_4f.h>
-#include <glm/glm/glm.hpp>
-#include <glm/glm/ext/matrix_transform.hpp>
 
 namespace Wave
 {
@@ -76,11 +74,6 @@ namespace Wave
     [[nodiscard]] Matrix_4f &get_view_matrix()
     {
       return this->view_matrix;
-    };
-    
-    [[nodiscard]] const glm::mat4 &get_view_glm_matrix() const
-    {
-      return this->view_matrix_glm;
     };
     
     [[nodiscard]] const Matrix_4f &get_projection_matrix() const
@@ -183,7 +176,6 @@ namespace Wave
     Vector_3f up = Vector_3f(0);
     Vector_4f orientation = Vector_4f(0);
     Matrix_4f view_matrix{};
-    glm::mat4 view_matrix_glm = glm::mat4(1.0f);
     Matrix_4f projection_matrix{};
   };
   
@@ -239,12 +231,5 @@ namespace Wave
     float size = 1.0f;
     float z_near = -1.0f;
     float z_far = 1.0f;
-    
-    Vector_2f center_position = Vector_2f(0);
-    Vector_3f position = Vector_3f(0, 0, -1);
-    Vector_3f target = Vector_3f(0);
-    Vector_3f up = Vector_3f(0);
-    Matrix_4f view_matrix{};
-    Matrix_4f projection_matrix{};
   };
 }

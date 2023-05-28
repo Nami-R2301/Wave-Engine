@@ -23,6 +23,38 @@ namespace Wave
     }
   }
   
+  std::shared_ptr<Texture> Texture::create(const char *file_path)
+  {
+    switch (Renderer::get_api())
+    {
+      case Renderer_api::OpenGL: return std::make_shared<Gl_texture_2D>(file_path);
+      default:
+      {
+        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
+                                                   "Api not supported at the moment! Auto selecting OpenGL instead.",
+                                                   "Texture_2D::create()",
+                                                   "texture.cpp", __LINE__ - 2);
+        return std::make_shared<Gl_texture_2D>(file_path);
+      }
+    }
+  }
+  
+  std::shared_ptr<Texture_2D> Texture_2D::create(const char *file_path)
+  {
+    switch (Renderer::get_api())
+    {
+      case Renderer_api::OpenGL: return std::make_shared<Gl_texture_2D>(file_path);
+      default:
+      {
+        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
+                                                   "Api not supported at the moment! Auto selecting OpenGL instead.",
+                                                   "Texture_3D::create()",
+                                                   "texture.cpp", __LINE__ - 2);
+        return std::make_shared<Gl_texture_2D>(file_path);
+      }
+    }
+  }
+  
   std::shared_ptr<Texture_2D> Texture_2D::create(const char *file_path, Texture_data_s texture_data)
   {
     switch (Renderer::get_api())
@@ -35,6 +67,22 @@ namespace Wave
                                                    "Texture_2D::create()",
                                                    "texture.cpp", __LINE__ - 2);
         return std::make_shared<Gl_texture_2D>(file_path, texture_data);
+      }
+    }
+  }
+  
+  std::shared_ptr<Texture_3D> Texture_3D::create(const char *file_path)
+  {
+    switch (Renderer::get_api())
+    {
+      case Renderer_api::OpenGL: return std::make_shared<Gl_texture_3D>(file_path);
+      default:
+      {
+        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
+                                                   "Api not supported at the moment! Auto selecting OpenGL instead.",
+                                                   "Texture_3D::create()",
+                                                   "texture.cpp", __LINE__ - 2);
+        return std::make_shared<Gl_texture_3D>(file_path);
       }
     }
   }

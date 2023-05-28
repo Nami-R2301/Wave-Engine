@@ -5,9 +5,6 @@
 #pragma once
 
 #include <Math/matrix_4f.h>
-#include <glm/glm/gtc/matrix_transform.hpp>
-#include <glm/glm/gtc/type_ptr.hpp>
-
 #include <Renderer/color.h>
 
 namespace Wave
@@ -40,7 +37,6 @@ namespace Wave
     virtual void set_uniform(const char *uniform_name, int32_t int_value) const = 0;
     virtual void set_uniform(const char *uniform_name, uint32_t uint_value) const = 0;
     virtual void set_uniform(const char *uniform_name, float float_value) const = 0;
-    virtual void set_uniform(const char *uniform_name, glm::mat4x4 value) const = 0;
     [[maybe_unused]] virtual void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const = 0;
   };
 }

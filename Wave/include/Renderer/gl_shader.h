@@ -40,7 +40,6 @@ namespace Wave
     void set_uniform(const char *uniform_name, int32_t value) const override;
     void set_uniform(const char *uniform_name, uint32_t value) const override;
     void set_uniform(const char *uniform_name, float value) const override;
-    void set_uniform(const char *uniform_name, glm::mat4x4 value) const override;
     [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
     private:
     std::string name = "No name";

@@ -36,18 +36,12 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   // Add objects
   this->demo_objects.emplace_back(
     Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
-//  this->demo_objects.emplace_back(Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj")));
   
   // Add text strings
-  Wave::Text_format format = {25.0f,
-                              Engine::get_main_window()->get_height() - 38.0f,
-                              1.0f,
-                              26.0f,
-                              Wave::Text_style::REGULAR,
-                              Wave::Color(1.0f, 0.0f, 0.0f, 1.0f, true)};
-  this->demo_text.emplace_back(Wave::Text::create("../Wave/res/Fonts/Comfortaa/Comfortaa-Bold.ttf",
-                                                  "Wave Engine ~",
-                                                  format));
+  this->demo_text.emplace_back(Wave::Text::create());
+  this->demo_text.emplace_back(Wave::Text::create());
+  this->demo_text.back()->set_offset_x(25.0f + this->demo_text.back()->get_total_horizontal_text_size());
+  this->demo_text.back()->set_color(Wave::Color(0xFF0000FF));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));
   push_layer(new Wave::Text_layer(this->demo_text, this->demo_shaders,

@@ -41,27 +41,33 @@ namespace Wave
     public:
     virtual ~Text() = default;
     
-    static std::shared_ptr<Text>
-    create(const char *font_file_path, const std::string &string, const Text_format &format_);
+    static std::shared_ptr<Text> create();
+    static std::shared_ptr<Text> create(const std::string &string_);
+    static std::shared_ptr<Text> create(const char *font_file_path, const std::string &string_);
+    static std::shared_ptr<Text> create(const char *font_file_path, const std::string &string_,
+                                        const Text_format &format_);
     
     [[nodiscard]] float get_offset_x() const;
     [[nodiscard]] float get_offset_y() const;
+    [[nodiscard]] const Color &get_color() const;
     [[nodiscard]] float get_scale() const;
     [[nodiscard]] const Text_format &get_format() const;
     [[nodiscard]] const std::string &get_string() const;
     [[nodiscard]] const FT_Face &get_face() const;
     [[nodiscard]] const Glyph &get_character(uint8_t character_code);
     [[nodiscard]] const std::map<uint8_t, Glyph> &get_characters() const;
+    [[nodiscard]] float get_total_horizontal_text_size();
     
-    void set_scale(float scale_);
     void set_offset_x(float offset);
     void set_offset_y(float offset);
+    void set_color(const Color &color);
+    void set_scale(float scale_);
     void set_format(const Text_format &format_);
     void set_character(uint8_t character_code, const Glyph &character);
     
     Glyph &operator[](uint8_t index);
     protected:
-    std::string text;
+    std::string string;
     Text_format format;
     FT_Library ft = nullptr;
     FT_Face face = nullptr;

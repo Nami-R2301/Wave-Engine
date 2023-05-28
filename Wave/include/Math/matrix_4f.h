@@ -5,7 +5,7 @@
 #pragma once
 
 #include <Math/vector.h>
-#include <glm/glm/mat4x4.hpp>
+#include <Core/interfaces.h>
 
 namespace Wave
 {
@@ -14,6 +14,7 @@ namespace Wave
   {
     public:
     Matrix_4f();
+    explicit Matrix_4f(float identity);
     Matrix_4f(const Matrix_4f &other_matrix);
     ~Matrix_4f() override = default;
     
@@ -33,12 +34,11 @@ namespace Wave
     [[nodiscard]] float get_value(int row, int col) const;
     [[nodiscard]] int get_num_rows() const;
     [[nodiscard]] int get_num_cols() const;
-    void set_value(int row, int col, float value);
     
     INTERFACE_PRINT
     
+    void set_value(int row, int col, float value);
     void transpose();
-    static Matrix_4f convert(const glm::mat4 &glm_matrix);
     
     Matrix_4f operator*(const Matrix_4f &other_matrix) const;
     Vector_4f operator*(const Vector_4f &vector_4f) const;

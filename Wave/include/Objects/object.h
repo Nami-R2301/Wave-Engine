@@ -70,6 +70,7 @@ namespace Wave
   class Object : public Printable, Movable
   {
     public:
+    static std::shared_ptr<Object> create();
     static std::shared_ptr<Object> create(const Object_2D_data_s &object_2D_data);
     static std::shared_ptr<Object> create(const Object_3D_data_s &object_3D_data);
     ~Object() override = default;
@@ -181,7 +182,7 @@ namespace Wave
     std::vector<uint32_t> faces;
     std::vector<Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
-    Matrix_4f model_matrix{};
+    Matrix_4f model_matrix = Matrix_4f(1.0f);
     Transform model_transform{};
     protected:
     void apply_vertex_properties(const Object_2D_data_s &sprite);
@@ -318,7 +319,7 @@ namespace Wave
     std::vector<uint32_t> faces;
     std::vector<Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
-    Matrix_4f model_matrix{};
+    Matrix_4f model_matrix = Matrix_4f(1.0f);
     Transform model_transform{};
     protected:
     void apply_vertex_properties(const Object_3D_data_s &mesh);

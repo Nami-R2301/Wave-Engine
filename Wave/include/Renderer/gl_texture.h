@@ -13,6 +13,7 @@ namespace Wave
   class Gl_texture_2D : public Texture_2D
   {
     public:
+    explicit Gl_texture_2D(const char *file_path);
     Gl_texture_2D(const char *file_path, Texture_data_s data);
     ~Gl_texture_2D() override;
     
@@ -59,6 +60,7 @@ namespace Wave
   class Gl_texture_3D : public Texture_3D
   {
     public:
+    Gl_texture_3D(const char *file_path);
     Gl_texture_3D(const char *file_path, Texture_data_s data);
     ~Gl_texture_3D() override;
     
