@@ -17,8 +17,8 @@ namespace Wave
     
     switch (texture_data.type)
     {
-      case Texture_type::Texture_2D: return Texture_2D::create(file_path, texture_data);
-      case Texture_type::Texture_3D: return Texture_3D::create(file_path, texture_data);
+      case Texture_type_e::Texture_2D: return Texture_2D::create(file_path, texture_data);
+      case Texture_type_e::Texture_3D: return Texture_3D::create(file_path, texture_data);
       default: return Texture_2D::create(file_path, texture_data);
     }
   }

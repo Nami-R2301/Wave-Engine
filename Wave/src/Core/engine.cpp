@@ -23,7 +23,7 @@ namespace Wave
 #endif
     if (Engine::instance)
     {
-      alert(WAVE_ERROR,
+      alert(WAVE_LOG_ERROR,
             "[Engine] --> App already exists! Make sure to close any instance of Wave Engine before trying again.");
       exit(WAVE_MULTIPLE_INSTANCES);
     }
@@ -61,7 +61,7 @@ namespace Wave
     Engine::executable_type = executable_type_;
     if (Engine::instance)
     {
-      alert(WAVE_ERROR,
+      alert(WAVE_LOG_ERROR,
             "[Engine] --> App already exists! Make sure to close any instance of Wave Engine before trying again.");
       exit(WAVE_MULTIPLE_INSTANCES);
     }
@@ -90,11 +90,11 @@ namespace Wave
                         Engine::main_window->bind_api_callbacks();
                         break;
                       case Renderer_api::Vulkan:
-                        alert(WAVE_WARN,
+                        alert(WAVE_LOG_WARN,
                               "Engine does NOT support Vulkan yet!\tRenderer set to OpenGL instead.");
                         break;
                       case Renderer_api::Directx:
-                        alert(WAVE_WARN,
+                        alert(WAVE_LOG_WARN,
                               "Engine does NOT support DirectX yet!\tRenderer set to OpenGL instead.");
                         break;
                       default:
@@ -121,7 +121,7 @@ namespace Wave
                   {
                     if (this->has_crashed())
                     {
-                      alert(WAVE_ERROR, "[Engine] --> Engine exited with error code : %s0x%X%s ...",
+                      alert(WAVE_LOG_ERROR, "[Engine] --> Engine exited with error code : %s0x%X%s ...",
                             RED, get_exit_status(), DEFAULT);
                     }
                     this->shutdown();
@@ -256,7 +256,7 @@ namespace Wave
       {
         char title[50];
         const char *current_title = Engine::main_window->get_title();
-        alert(WAVE_INFO, "[Engine] --> Framerate : %ld", get_frame_drawn_counter());
+        alert(WAVE_LOG_INFO, "[Engine] --> Framerate : %ld", get_frame_drawn_counter());
         if (snprintf(title, sizeof(title), "%s | OpenGL | %ld FPS", current_title, get_frame_drawn_counter()) <
             0)
           return;
@@ -351,12 +351,12 @@ namespace Wave
     if ((Engine::get_exit_status() >> 4) &
         (WAVE_ENGINE_CONTEXT_CRASH >> 4))  // Shift 4 bits to the right to mask error.
     {
-      alert(WAVE_ERROR, "[Engine] --> Window has not been requested to close by the user!");
+      alert(WAVE_LOG_ERROR, "[Engine] --> Window has not been requested to close by the user!");
     }
     if ((Engine::get_exit_status() >> 4) &
         (WAVE_ENGINE_RENDERER_CRASH >> 4))
     {
-      alert(WAVE_ERROR, "[Engine] --> Renderer has encountered a fatal error!");
+      alert(WAVE_LOG_ERROR, "[Engine] --> Renderer has encountered a fatal error!");
     }
   }
   
@@ -408,7 +408,7 @@ namespace Wave
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_F4))
     {
-      Wave::alert(WAVE_WARN, "[SETTING] --> Force shutdown");
+      Wave::alert(WAVE_LOG_WARN, "[SETTING] --> Force shutdown");
       Wave::Engine::get_main_window()->close();
       return true;
     }

@@ -179,10 +179,10 @@ namespace Wave
 //                                             result_vector_4f.get_y(),
 //                                             result_vector_4f.get_z());
 //
-//      alert(WAVE_INFO, "Current cursor position : (%lf, %lf)",
+//      alert(WAVE_LOG_INFO, "Current cursor position : (%lf, %lf)",
 //            (position_x / Engine::get_main_window()->get_width()),
 //            (position_y / Engine::get_main_window()->get_height()));
-//      alert(WAVE_INFO, "Current transform matrix : %s", transform_matrix.to_string().c_str());
+//      alert(WAVE_LOG_INFO, "Current transform matrix : %s", transform_matrix.to_string().c_str());
 //      if (result_vector_3f.absolute().get_x() < (position_x / Engine::get_main_window()->get_width()) ||
 //          result_vector_3f.absolute().get_y() < (position_y / Engine::get_main_window()->get_height()))
 //        return false;

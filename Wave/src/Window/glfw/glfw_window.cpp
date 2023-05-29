@@ -34,7 +34,7 @@ namespace Wave
     
     glfwGetVersion(&this->api_info.version_major, &this->api_info.version_minor, &this->api_info.version_revision);
     // So that we will only use the modern functions in it.
-    Wave::alert(WAVE_INFO, "[GLFW window] --> Api (GLFW) version : %d.%d.%d",
+    Wave::alert(WAVE_LOG_INFO, "[GLFW window] --> Api (GLFW) version : %d.%d.%d",
                 this->api_info.version_major, this->api_info.version_minor,
                 this->api_info.version_revision);
     WAVE_LOG_TASK("GLFW window", RED, 2, "Setting up monitor...", this->setup_monitor(), "Monitor loaded and set")
@@ -47,7 +47,7 @@ namespace Wave
     this->set_native_window(window_);
     if (!this->window)
     {
-      Wave::alert(WAVE_ERROR,
+      Wave::alert(WAVE_LOG_ERROR,
                   "[GLFW window] --> One or multiple core extensions for GLFW are not supported!\tExiting ...");
     }
     
@@ -302,7 +302,7 @@ namespace Wave
   {
     if (!Glfw_window::is_fullscreen())
     {
-      alert(WAVE_INFO, "[WINDOW] --> Set window position to : (%d, %d)",
+      alert(WAVE_LOG_INFO, "[WINDOW] --> Set window position to : (%d, %d)",
             this->get_window_pos().get_x(), this->get_window_pos().get_y());
       
       this->set_native_monitor(glfwGetPrimaryMonitor());

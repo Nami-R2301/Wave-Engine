@@ -12,15 +12,15 @@ namespace Wave
     FILE *file_ptr = fopen(file_path, "rb");
     if (!file_ptr)
     {
-      alert(WAVE_ERROR, "[Resource loader] --> Error opening shader source file! "
-                        "Make sure the file path exists and is in text format!",
+      alert(WAVE_LOG_ERROR, "[Resource loader] --> Error opening shader source file! "
+                            "Make sure the file path exists and is in text format!",
             file_path);
       return {};
     }
     if (fseek(file_ptr, 0, SEEK_END) < 0)  // Get last character position in file.
     {
-      alert(WAVE_ERROR, "[Resource loader] --> Error opening shader source file! "
-                        "Make sure the file path exists and is in text format!",
+      alert(WAVE_LOG_ERROR, "[Resource loader] --> Error opening shader source file! "
+                            "Make sure the file path exists and is in text format!",
             file_path);
       return {};
     }
@@ -31,8 +31,8 @@ namespace Wave
     {
       if (!fread(shader_source_buffer, sizeof(char), file_size, file_ptr))
       {
-        Wave::alert(WAVE_ERROR, "[Resource loader] --> Error while reading source (fread returned %d)",
-                    ERROR_READ_SHADER);
+        Wave::alert(WAVE_LOG_ERROR, "[Resource loader] --> Error while reading source (fread returned %d)",
+                    WAVE_INTERNAL_ERROR_READ_SHADER);
         fclose(file_ptr);
         free(shader_source_buffer);
         return {};
@@ -43,8 +43,8 @@ namespace Wave
     }
     fclose(file_ptr);
     free(shader_source_buffer);
-    alert(WAVE_ERROR, "[Resource loader] --> Error while parsing shader file %s! "
-                      "Make sure the file path exists and is in text format!", file_path);
+    alert(WAVE_LOG_ERROR, "[Resource loader] --> Error while parsing shader file %s! "
+                          "Make sure the file path exists and is in text format!", file_path);
     return {};
   }
   
@@ -63,8 +63,8 @@ namespace Wave
     FILE *file_ptr = fopen(file_path, "rb");
     if (!file_ptr)
     {
-      alert(WAVE_ERROR, "[Resource loader] --> Error opening object 3D source file! "
-                        "Make sure the file path exists and is in text format!",
+      alert(WAVE_LOG_ERROR, "[Resource loader] --> Error opening object 3D source file! "
+                            "Make sure the file path exists and is in text format!",
             file_path);
       return {};
     }
@@ -88,19 +88,19 @@ namespace Wave
     
     if (vertices.empty())
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any vertices!",
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any vertices!",
                   file_path);
     }
     
     if (face_indices.empty())
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any indices!",
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any indices!",
                   file_path);
     }
     
     if (tex_coords.empty())
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any texture coordinates!",
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any texture coordinates!",
                   file_path);
       tex_coords.resize(face_indices.size(), Vector_2f(-1));
     }
@@ -119,8 +119,8 @@ namespace Wave
     FILE *file_ptr = fopen(file_path, "rb");
     if (!file_ptr)
     {
-      alert(WAVE_ERROR, "[Resource loader] --> Error opening object 3D source file! "
-                        "Make sure the file path exists and is in text format!",
+      alert(WAVE_LOG_ERROR, "[Resource loader] --> Error opening object 3D source file! "
+                            "Make sure the file path exists and is in text format!",
             file_path);
       return {};
     }
@@ -144,19 +144,19 @@ namespace Wave
     
     if (vertices.empty())
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any vertices!",
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any vertices!",
                   file_path);
     }
     
     if (face_indices.empty())
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any indices!",
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any indices!",
                   file_path);
     }
     
     if (tex_coords.empty())
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any texture coordinates!",
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any texture coordinates!",
                   file_path);
       tex_coords.resize(face_indices.size(), Vector_2f(-1));
     }
@@ -170,7 +170,7 @@ namespace Wave
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Reached end of file while loading vertex positions (v)");
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Reached end of file while loading vertex positions (v)");
       return {};
     }
     return {strtof(x, nullptr), strtof(y, nullptr)};
@@ -181,7 +181,7 @@ namespace Wave
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Reached end of file while loading vertex positions (v)");
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Reached end of file while loading vertex positions (v)");
       return {};
     }
     return {strtof(x, nullptr), strtof(y, nullptr), strtof(z, nullptr)};
@@ -194,7 +194,7 @@ namespace Wave
                                 {0}};
     if (fscanf(file_ptr, "%s %s %s\n", face_data[0], face_data[1], face_data[2]) == EOF)
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Reached end of file while loading 3D face indices (f)");
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Reached end of file while loading 3D face indices (f)");
       return {};
     }
     std::string line(face_data[0]);
@@ -234,7 +234,7 @@ namespace Wave
                                 {0}};
     if (fscanf(file_ptr, "%s %s %s\n", face_data[0], face_data[1], face_data[2]) == EOF)
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Reached end of file while loading 3D face indices (f)");
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Reached end of file while loading 3D face indices (f)");
       return {};
     }
     std::string line(face_data[0]);
@@ -275,7 +275,7 @@ namespace Wave
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Reached end of file while loading normal positions (vn)");
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Reached end of file while loading normal positions (vn)");
       return {};
     }
     return {strtof(x, nullptr), strtof(y, nullptr)};
@@ -286,7 +286,7 @@ namespace Wave
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
     {
-      Wave::alert(WAVE_WARN, "[Resource loader] --> Reached end of file while loading normal positions (vn)");
+      Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Reached end of file while loading normal positions (vn)");
       return {};
     }
     return {strtof(x, nullptr), strtof(y, nullptr), strtof(z, nullptr)};
@@ -297,7 +297,7 @@ namespace Wave
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s", x, y) == EOF)
     {
-      Wave::alert(WAVE_WARN,
+      Wave::alert(WAVE_LOG_WARN,
                   "[Resource loader] --> Reached end of file while loading texture coordinate positions (vt)");
       return {};
     }  // Get next string after space.

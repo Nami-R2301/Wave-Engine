@@ -27,6 +27,7 @@ namespace Wave
   
   Object_2D::Object_2D(const Object_2D &obj)
   {
+    this->object_type_e = obj.object_type_e;
     this->vertices = obj.vertices;
     this->faces = obj.faces;
     this->tex_coords = obj.tex_coords;
@@ -37,18 +38,11 @@ namespace Wave
   
   Object_2D::Object_2D(const Object_2D_data_s &object_2D_data)
   {
-    for (const Vertex_2D &vertex: object_2D_data.vertices)
-    {
-      this->vertices.emplace_back(Vector_2f(vertex.get_position().get_x(), vertex.get_position().get_y()),
-                                  vertex.get_color(), vertex.get_tex_coord());
-    }
+    this->object_type_e = Object_type_e::Object_2D;
+    this->vertices = object_2D_data.vertices;
     this->tex_coords = object_2D_data.tex_coords;
     this->textures = object_2D_data.textures;
-  }
-  
-  Object_2D Object_2D::clone() const
-  {
-    return {*this};
+    apply_vertex_properties(object_2D_data);
   }
   
   void Object_2D::normalize()
@@ -56,7 +50,13 @@ namespace Wave
     //TODO
   }
   
-  Object_type_e Object_2D::get_type()
+  void *Object_2D::copy() const
+  {
+    std::shared_ptr<Object> copy = std::make_shared<Object_2D>(*this);
+    return (void *) &(*copy);
+  }
+  
+  Object_type_e Object_2D::get_type() const
   {
     return Object_type_e::Object_2D;
   }
@@ -264,14 +264,6 @@ namespace Wave
     this->update_model_matrix();
   }
   
-  void Object_2D::move(const Vector_3f &position_)
-  {
-    this->set_position({position_.get_x(),
-                        position_.get_y(),
-                        0});
-    this->update_model_matrix();
-  }
-  
   void Object_2D::set_model_matrix(const Matrix_4f &mat)
   {
     this->model_matrix = mat;
@@ -375,7 +367,7 @@ namespace Wave
   
   Object_3D::Object_3D(const Object_3D &mesh)
   {
-    this->object_type_e = Object_type_e::Object_3D;
+    this->object_type_e = mesh.object_type_e;
     this->vertices = mesh.vertices;
     this->faces = mesh.faces;
     this->normals = mesh.normals;
@@ -384,9 +376,10 @@ namespace Wave
     this->model_transform = mesh.model_transform;
   }
   
-  Object_3D Object_3D::clone() const
+  void *Object_3D::copy() const
   {
-    return {*this};
+    std::shared_ptr<Object> copy = std::make_shared<Object_3D>(*this);
+    return (void *) &(*copy);
   }
   
   void Object_3D::convert_in_2D()
@@ -410,9 +403,9 @@ namespace Wave
     //TODO
   }
   
-  Object_type_e Object_3D::get_type()
+  Object_type_e Object_3D::get_type() const
   {
-    return Object_type_e::Object_3D;
+    return this->object_type_e;
   }
   
   const void *Object_3D::get_vertices() const
@@ -577,9 +570,9 @@ namespace Wave
     this->update_model_matrix();
   }
   
-  void Object_3D::rotate(const Vector_3f &rotation_)
+  void Object_3D::rotate(const Vector_3f &angle)
   {
-    this->model_transform.set_rotation(rotation_);
+    this->model_transform.set_rotation(angle);
     this->update_model_matrix();
   }
   
@@ -611,11 +604,6 @@ namespace Wave
   {
     this->model_transform.set_scale(x, y, z);
     this->update_model_matrix();
-  }
-  
-  void Object_3D::move(const Vector_3f &position_)
-  {
-    this->translate(position_ - this->origin);
   }
   
   void Object_3D::set_model_matrix(const Matrix_4f &mat)

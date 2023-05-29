@@ -22,7 +22,7 @@ namespace Wave
     void unbind() const override;
     [[nodiscard]] int32_t get_id() const override;
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     void source(uint32_t count, const char *source, int *length) const override;
     void compile(int32_t shader_id) const override;

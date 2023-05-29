@@ -7,8 +7,8 @@
 /************************* Core ********************************/
 #include <Core/core.h>
 #include <Core/interfaces.h>
-#include <Core/layer_stack.h>
-#include <Core/text_layer.h>
+#include <Layer/layer_stack.h>
+#include <Layer/text_layer.h>
 #include <Core/settings.h>
 #include <Core/engine_time.h>
 #include <Core/engine.h>
@@ -46,7 +46,7 @@
 
 /************************* Entities ********************************/
 #include <Objects/object.h>
-#include <Objects/text.h>
+#include <Text/text.h>
 
 /************************* Window ********************************/
 #include <Window/window.h>

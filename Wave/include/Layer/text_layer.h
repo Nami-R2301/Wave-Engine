@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <Core/layer.h>
+#include <Layer/layer.h>
 #include <Renderer/renderer.h>
-#include <Objects/gl_text.h>
+#include <Text/gl_text.h>
 #include <Scene/camera.h>
 #include <Renderer/shader.h>
 

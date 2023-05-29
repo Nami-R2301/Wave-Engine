@@ -29,7 +29,7 @@ namespace Wave
   
   void open_stream();
   
-  void alert(int info_type = WAVE_INFO, const char *format = "", ...);
+  void alert(int info_type = WAVE_LOG_INFO, const char *format = "", ...);
   
   void print_logs();
   

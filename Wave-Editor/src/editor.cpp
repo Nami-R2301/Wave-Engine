@@ -53,22 +53,21 @@ namespace Wave
     
     // Add text strings
     this->demo_texts.emplace_back(Text::create());
+    this->demo_texts.back()->set_offset_y(this->viewport_resolution.get_y() - 25.0f);
+    this->demo_texts.back()->set_color('?', Color(0xFF0000FF));
     
-    Wave::Text_format format_2 = {25.0f + this->demo_texts.back()->get_total_horizontal_text_size(),
-                                  this->viewport_resolution.get_y() - 25.0f,  // Inverted y (Top = max y value).
-                                  1.0f,
-                                  26.0f,
-                                  Wave::Text_style::REGULAR,
-                                  Wave::Color(1.0f, 0.0f, 0.0f, 1.0f, true)};
     this->demo_texts.emplace_back(Text::create());
-    this->demo_texts.back()->set_format(format_2);
+    this->demo_texts.back()->set_offset_x(this->demo_texts[0]->get_text_box_size().get_x());
+    this->demo_texts.back()->set_offset_y(this->demo_texts[0]->get_offset_y());
+    this->demo_texts.back()->set_color('?', Color(0xFF0000FF));
     
+    
+    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution,
+                              true));
     push_layer(new Editor_layer(this->editor_camera,
                                 this->demo_shaders,
                                 this->demo_objects,
                                 this->viewport_framebuffer));
-    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution,
-                              true));
     push_layer(new ImGui_layer());
   }
   

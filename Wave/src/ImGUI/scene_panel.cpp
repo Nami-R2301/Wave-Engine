@@ -16,10 +16,22 @@ namespace Wave
     this->scene_ui_data = scene_ui_data_;
   }
   
-  void Scene_ui_panel::move(const Vector_3f &position)
+  void Scene_ui_panel::translate(const Vector_3f &position)
   {
     this->scene_ui_data.origin = (Vector_2f) position;
     this->moved = true;
+  }
+  
+  void Scene_ui_panel::translate(float x, float y, [[maybe_unused]] float z)
+  {
+    this->scene_ui_data.origin = Vector_2f(x, y);
+    this->moved = true;
+  }
+  
+  void *Scene_ui_panel::copy() const
+  {
+    auto copy = std::make_shared<Scene_ui_panel>(*this);
+    return (void *) &(*copy);
   }
   
   void Scene_ui_panel::on_render()
@@ -42,7 +54,7 @@ namespace Wave
       
       if (current_position != this->scene_ui_data.origin)
       {
-        this->move(Vector_3f(current_position));
+        this->translate(Vector_3f(current_position));
         
         scene_dock_node->Pos = ImVec2(this->scene_ui_data.origin.get_x(), this->scene_ui_data.origin.get_y());
       }

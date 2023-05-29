@@ -13,8 +13,8 @@ namespace Wave
                                        nullptr,
                                        WAVE_RENDERER_INIT};
   std::vector<Renderer::Draw_command *> Gl_renderer::draw_commands;
-  std::shared_ptr<Camera> Gl_renderer::scene_camera;
-  std::vector<std::shared_ptr<Texture>> Gl_renderer::textures;
+  Camera *Gl_renderer::scene_camera;
+  std::vector<Texture *> Gl_renderer::textures;
   std::vector<std::shared_ptr<Uniform_buffer>> Gl_renderer::uniform_buffers;
   std::function<void(Event &)> Gl_renderer::event_callback_function;
   
@@ -211,18 +211,18 @@ namespace Wave
     // Get GLFW and OpenGL version.
     int32_t num_ext;
     CHECK_GL_CALL(glGetIntegerv(GL_NUM_EXTENSIONS, &num_ext));
-    Wave::alert(WAVE_INFO, "[GL renderer] --> Api (Glew) version : %d.%d.%d",
+    Wave::alert(WAVE_LOG_INFO, "[GL renderer] --> Api (Glew) version : %d.%d.%d",
                 GLEW_VERSION_MAJOR, GLEW_VERSION_MINOR, GLEW_VERSION_MICRO);
-    Wave::alert(WAVE_INFO, "[GL renderer] --> Graphics renderer : %s", glGetString(GL_RENDERER));
-    Wave::alert(WAVE_INFO, "[GL renderer] --> Extensions available : %d", num_ext);
-    Wave::alert(WAVE_INFO, "[GL renderer] --> OpenGL Vendor : %s", glGetString(GL_VENDOR));
-    Wave::alert(WAVE_INFO, "[GL renderer] --> OpenGL version : %s", get_api_version());
-    Wave::alert(WAVE_INFO, "[GL renderer] --> Shading language version : %s", get_api_shader_version());
+    Wave::alert(WAVE_LOG_INFO, "[GL renderer] --> Graphics renderer : %s", glGetString(GL_RENDERER));
+    Wave::alert(WAVE_LOG_INFO, "[GL renderer] --> Extensions available : %d", num_ext);
+    Wave::alert(WAVE_LOG_INFO, "[GL renderer] --> OpenGL Vendor : %s", glGetString(GL_VENDOR));
+    Wave::alert(WAVE_LOG_INFO, "[GL renderer] --> OpenGL version : %s", get_api_version());
+    Wave::alert(WAVE_LOG_INFO, "[GL renderer] --> Shading language version : %s", get_api_shader_version());
   }
   
   void Gl_renderer::begin(std::shared_ptr<Camera> &camera)
   {
-    Gl_renderer::scene_camera = camera;
+    Gl_renderer::scene_camera = camera.get();
     
     // View and projection for objects.
     Gl_renderer::uniform_buffers[0]->set_data(0, Buffer_data_type_size(Buffer_data_type::Matrix_4f),
@@ -257,15 +257,31 @@ namespace Wave
     }
   }
   
-  void Gl_renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index)
+  void Gl_renderer::load_dynamic_vbo_data(const void *vertices, uint64_t count, uint64_t size, uint64_t command_index,
+                                          uint64_t vbo_index)
   {
-    if (!vertices || size == 0) return;
+    if (!vertices || size == 0 || count == 0) return;
     Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[vbo_index]->set_data(vertices,
+                                                                                                              count *
                                                                                                               size,
-                                                                                                              0);
+                                                                                                              Gl_renderer::draw_commands[command_index]->vbo_offset);
+    // Update vbo count.
+    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_vertex_buffers()[0]->set_count(count);
+    Gl_renderer::draw_commands[1]->vbo_offset += count * size;
   }
   
-  void Gl_renderer::send_object(Object &object, Shader &linked_shader)
+  void Gl_renderer::load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index)
+  {
+    if (!faces || size == 0 || count == 0) return;
+    Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->set_data(faces,
+                                                                                                 count * size,
+                                                                                                 Gl_renderer::draw_commands[command_index]->ibo_offset);
+    // Update ibo count.
+    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_index_buffer()->set_count(count);
+    Gl_renderer::draw_commands[1]->ibo_offset += count * size;
+  }
+  
+  void Gl_renderer::send_object(const Object &object, Shader &linked_shader)
   {
     Gl_renderer::draw_commands[1]->associated_shader = &linked_shader;
     Gl_renderer::draw_commands[1]->associated_shader->bind();
@@ -277,31 +293,13 @@ namespace Wave
                                         u_camera_block,
                                         3));
     
-    uint64_t object_vbo_data_size, object_ibo_data_size, object_vbo_data_count, object_ibo_data_count;
     // If we reached the max batch memory limit (2 MB).
-    object_vbo_data_count = object.get_vertex_count();
-    object_ibo_data_count = object.get_face_count();
-    object_vbo_data_size = object_vbo_data_count * object.get_vertex_size();
-    object_ibo_data_size = object_ibo_data_count * sizeof(uint32_t);
+    if (Gl_renderer::draw_commands[1]->vbo_offset + (object.get_vertex_count() * object.get_vertex_size()) >= 5'000'000)
+      flush();
     
-    if (Gl_renderer::draw_commands[1]->vbo_offset + object_vbo_data_size >= 5'000'000) flush();
-    
-    // Set data in vbo with offset.
-    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_vertex_buffers()[0]->set_data(
-      object.get_vertices(),
-      object_vbo_data_size,
-      Gl_renderer::draw_commands[1]->vbo_offset);
-    
-    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_index_buffer()->set_data(
-      object.get_faces(),
-      object_ibo_data_size,
-      Gl_renderer::draw_commands[1]->ibo_offset);
-    
-    // Set number of elements for current object.
-    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_vertex_buffers()[0]->set_count(
-      object_vbo_data_count);
-    Gl_renderer::draw_commands[1]->vertex_array_buffer->get_index_buffer()->set_count(
-      object_ibo_data_count);
+    // Set data in vbo and ibo with offset.
+    load_dynamic_vbo_data(object.get_vertices(), object.get_vertex_count(), object.get_vertex_size(), 1);
+    load_dynamic_ibo_data(object.get_faces(), object.get_face_count(), sizeof(uint32_t), 1);
     
     auto object_textures = object.get_textures();
     if (!object_textures.empty())
@@ -309,20 +307,17 @@ namespace Wave
       if (*object_textures[0])
       {
         Gl_renderer::draw_commands[1]->associated_shader->set_uniform("u_has_texture", true);
-        Gl_renderer::textures = object_textures;
+        for (const auto &texture: object.get_textures())
+          Gl_renderer::textures.emplace_back(texture.get());
       }
     }
     
     Gl_renderer::draw_commands[1]->associated_shader->set_uniform("u_model",
                                                                   &object.get_model_matrix().get_matrix()[0][0],
                                                                   false);
-    
-    Gl_renderer::draw_commands[1]->vbo_offset += object_vbo_data_size;
-    Gl_renderer::draw_commands[1]->ibo_offset += object_ibo_data_size;
-    draw_cmd_count++;
   }
   
-  void Gl_renderer::send_text(Text &text, Shader &linked_shader)
+  void Gl_renderer::send_text(const Text &text, Shader &linked_shader)
   {
     Gl_renderer::draw_commands[0]->associated_shader = &linked_shader;
     Gl_renderer::draw_commands[0]->associated_shader->bind();
@@ -330,34 +325,35 @@ namespace Wave
     
     Gl_renderer::draw_commands[0]->vertex_array_buffer->bind();
     
-    std::string string = text.get_string();
-    float offset_x = text.get_offset_x(), offset_y = text.get_offset_y(), scale = text.get_scale();
-    float red = text.get_format().color.get_red(), green = text.get_format().color.get_green(),
-      blue = text.get_format().color.get_blue(), alpha = text.get_format().color.get_alpha();
+    const std::string &string = text.get_string();
+    float offset_x = text.get_offset_x(), offset_y = text.get_offset_y();
+    const Vector_2f &scale = text.get_scale();
     
     // Iterate through all characters
-    std::string::const_iterator c;
-    for (c = string.begin(); c != string.end(); c++)
+    for (const char &c: string)
     {
-      Glyph ch = text[*c];
+      Glyph ch = text.get_characters().at(c);
       
-      float x_pos = offset_x + ch.bearing.get_x() * scale;
-      float y_pos = offset_y - (ch.size.get_y() - ch.bearing.get_y()) * scale;
-      float w = ch.size.get_x() * scale;
-      float h = ch.size.get_y() * scale;
+      float red = text.get_characters().at(c).color.get_red(),
+        green = text.get_characters().at(c).color.get_green(),
+        blue = text.get_characters().at(c).color.get_blue(),
+        alpha = text.get_characters().at(c).color.get_alpha();
+      
+      float texture_offset_x = ch.texture_offset.get_x(), texture_offset_y = ch.texture_offset.get_y();
+      float x_pos = offset_x + ch.bearing.get_x() * scale.get_x();
+      float y_pos = offset_y - (ch.size.get_y() - ch.bearing.get_y()) * scale.get_y();
+      float w = ch.size.get_x() * scale.get_x();
+      float h = ch.size.get_y() * scale.get_y();
       // Update VBO for each character
       float vertices[6][8] = {
-        {x_pos,     y_pos + h, red, green, blue, alpha, 0.0f, 0.0f},
-        {x_pos,     y_pos,     red, green, blue, alpha, 0.0f, 1.0f},
-        {x_pos + w, y_pos,     red, green, blue, alpha, 1.0f, 1.0f},
+        {x_pos,     y_pos + h, red, green, blue, alpha, texture_offset_x,     texture_offset_y},
+        {x_pos,     y_pos,     red, green, blue, alpha, texture_offset_x,     texture_offset_y + h},
+        {x_pos + w, y_pos,     red, green, blue, alpha, texture_offset_x + w, texture_offset_y + h},
         
-        {x_pos,     y_pos + h, red, green, blue, alpha, 0.0f, 0.0f},
-        {x_pos + w, y_pos,     red, green, blue, alpha, 1.0f, 1.0f},
-        {x_pos + w, y_pos + h, red, green, blue, alpha, 1.0f, 0.0f}
+        {x_pos,     y_pos + h, red, green, blue, alpha, texture_offset_x,     texture_offset_y},
+        {x_pos + w, y_pos,     red, green, blue, alpha, texture_offset_x + w, texture_offset_y + h},
+        {x_pos + w, y_pos + h, red, green, blue, alpha, texture_offset_x + w, texture_offset_y}
       };
-      // Render glyph texture over quad
-      
-      Gl_renderer::textures.emplace_back(ch.texture);
       
       // Update content of VBO memory
       Gl_renderer::draw_commands[0]->vertex_array_buffer->get_vertex_buffers().back()->set_data(vertices,
@@ -367,8 +363,10 @@ namespace Wave
       
       // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
       offset_x += static_cast<float>((ch.advance >> 6)) *
-                  scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+                  scale.get_x(); // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }
+    Gl_renderer::textures.emplace_back(text.get_texture_atlas());  // Load glyph texture atlas.
+    
     Gl_renderer::draw_commands[0]->vertex_array_buffer->get_vertex_buffers().back()->set_count(
       Gl_renderer::draw_commands[0]->vbo_offset / (sizeof(float) * 8));
     Gl_renderer::draw_commands[0]->vertex_array_buffer->unbind();
@@ -377,28 +375,27 @@ namespace Wave
   
   void Gl_renderer::flush()
   {
-    for (const auto &texture: Gl_renderer::textures)
-      if (texture) texture->bind(texture->get_texture_slot());
+    for (const auto &texture: Gl_renderer::textures) texture->bind(texture->get_texture_slot());
     
-    for (uint64_t i = 0; i < draw_cmd_count; ++i)
+    for (auto &draw_command: Gl_renderer::draw_commands)
     {
-      Gl_renderer::draw_commands[i]->associated_shader->bind();
-      Gl_renderer::draw_commands[i]->vertex_array_buffer->bind();
-      if (Gl_renderer::draw_commands[i]->vertex_array_buffer->get_index_buffer())  // Has an index_buffer
+      draw_command->associated_shader->bind();
+      draw_command->vertex_array_buffer->bind();
+      if (draw_command->vertex_array_buffer->get_index_buffer())  // Has an index_buffer
       {
-        Gl_renderer::draw_commands[i]->vertex_array_buffer->get_index_buffer()->bind();
+        draw_command->vertex_array_buffer->get_index_buffer()->bind();
         CHECK_GL_CALL(glDrawRangeElementsBaseVertex(GL_TRIANGLES, 0, max_indices,
-                                                    Gl_renderer::draw_commands[i]->vertex_array_buffer->get_index_buffer()->get_count(),
+                                                    draw_command->vertex_array_buffer->get_index_buffer()->get_count(),
                                                     GL_UNSIGNED_INT,
-                                                    (const void *) Gl_renderer::draw_commands[i]->ibo_offset,
-                                                    Gl_renderer::draw_commands[i]->ibo_offset));
+                                                    (const void *) draw_command->ibo_offset,
+                                                    draw_command->ibo_offset));
       } else
       {
         CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, 0,
-                                   Gl_renderer::draw_commands[i]->vertex_array_buffer->get_vertex_buffers()[0]->get_count()));  // Draw everything.
+                                   draw_command->vertex_array_buffer->get_vertex_buffers()[0]->get_count()));  // Draw everything.
       }
-      Gl_renderer::draw_commands[i]->vbo_offset = 0;
-      Gl_renderer::draw_commands[i]->ibo_offset = 0;
+      draw_command->vbo_offset = 0;
+      draw_command->ibo_offset = 0;
     }
   }
   
@@ -411,7 +408,7 @@ namespace Wave
   {
     Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_SHUTDOWN});
     
-    for (const auto draw_command: Gl_renderer::draw_commands) delete draw_command;
+    for (const auto &draw_command: Gl_renderer::draw_commands) delete draw_command;
     
     free(glsl_version);
   }
@@ -589,7 +586,7 @@ namespace Wave
       
       if (snprintf_result < 0)
       {
-        Wave::alert(WAVE_ERROR, "%s[SNPRINTF]%s IN FUNCTION %s IN CASE %d",
+        Wave::alert(WAVE_LOG_ERROR, "%s[SNPRINTF]%s IN FUNCTION %s IN CASE %d",
                     RED, DEFAULT, __FUNCTION__, error_code);
         temp.description = std::string("Unknown error").c_str();
       } else if (snprintf(output, sizeof(output),

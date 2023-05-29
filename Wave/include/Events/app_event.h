@@ -19,7 +19,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
   };
   
   class On_engine_update : public Event
@@ -31,7 +31,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
   };
   
   class On_engine_render : public Event
@@ -43,7 +43,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_APPLICATION)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
   };
   
   class On_window_close : public Event
@@ -56,7 +56,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_CONTEXT)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
   };
   
   class On_window_resize : public Event
@@ -70,7 +70,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_CONTEXT);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] float get_width() const;
     [[nodiscard]] float get_height() const;
@@ -98,7 +98,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_CONTEXT);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] Context_state_s get_context_state() const;
     [[nodiscard]] Context_api_e get_context_api() const;

@@ -110,32 +110,32 @@ namespace Wave
     this->matrix.get()[0][3] = vector_3f.get_x(), this->matrix.get()[1][3] = vector_3f.get_y(), this->matrix.get()[2][3] = vector_3f.get_z();
   }
   
-  void Matrix_4f::init_rotation(Vector_3f vector_3f)
+  void Matrix_4f::init_rotation(const Vector_3f &vector_3f)
   {
     Matrix_4f rotation_x, rotation_y, rotation_z; // Init rotation matrices.
-    
+    Vector_3f temp_angle = vector_3f;
     // Get angles and convert to radiant.
-    vector_3f.set_x((float) (vector_3f.get_x() * (M_PI / 180)));
-    vector_3f.set_y((float) (vector_3f.get_y() * (M_PI / 180)));
-    vector_3f.set_z((float) (vector_3f.get_z() * (M_PI / 180)));
+    temp_angle.set_x((float) (temp_angle.get_x() * (M_PI / 180)));
+    temp_angle.set_y((float) (temp_angle.get_y() * (M_PI / 180)));
+    temp_angle.set_z((float) (temp_angle.get_z() * (M_PI / 180)));
     
     // Set angles for rotation matrix z.
-    rotation_z.set_value(0, 0, cosf(vector_3f.get_z()));
-    rotation_z.set_value(0, 1, -(sinf(vector_3f.get_z())));
-    rotation_z.set_value(1, 0, sinf(vector_3f.get_z()));
-    rotation_z.set_value(1, 1, cosf(vector_3f.get_z()));
+    rotation_z.set_value(0, 0, cosf(temp_angle.get_z()));
+    rotation_z.set_value(0, 1, -(sinf(temp_angle.get_z())));
+    rotation_z.set_value(1, 0, sinf(temp_angle.get_z()));
+    rotation_z.set_value(1, 1, cosf(temp_angle.get_z()));
     
     // Set angles for rotation matrix x.
-    rotation_x.set_value(1, 1, cosf(vector_3f.get_x()));
-    rotation_x.set_value(1, 2, -(sinf(vector_3f.get_x())));
-    rotation_x.set_value(2, 1, sinf(vector_3f.get_x()));
-    rotation_x.set_value(2, 2, cosf(vector_3f.get_x()));
+    rotation_x.set_value(1, 1, cosf(temp_angle.get_x()));
+    rotation_x.set_value(1, 2, -(sinf(temp_angle.get_x())));
+    rotation_x.set_value(2, 1, sinf(temp_angle.get_x()));
+    rotation_x.set_value(2, 2, cosf(temp_angle.get_x()));
     
     // Set angles for rotation matrix y.
-    rotation_y.set_value(0, 0, cosf(vector_3f.get_y()));
-    rotation_y.set_value(0, 2, -(sinf(vector_3f.get_y())));
-    rotation_y.set_value(2, 0, sinf(vector_3f.get_y()));
-    rotation_y.set_value(2, 2, cosf(vector_3f.get_y()));
+    rotation_y.set_value(0, 0, cosf(temp_angle.get_y()));
+    rotation_y.set_value(0, 2, -(sinf(temp_angle.get_y())));
+    rotation_y.set_value(2, 0, sinf(temp_angle.get_y()));
+    rotation_y.set_value(2, 2, cosf(temp_angle.get_y()));
     
     this->matrix = (rotation_z * (rotation_y * rotation_x)).get_matrix();  // Init current matrix instance.
   }

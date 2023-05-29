@@ -39,9 +39,12 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   
   // Add text strings
   this->demo_text.emplace_back(Wave::Text::create());
+  this->demo_text.back()->set_offset_y(Wave::Engine::get_main_window()->get_height() - 25.0f);
+  
   this->demo_text.emplace_back(Wave::Text::create());
-  this->demo_text.back()->set_offset_x(25.0f + this->demo_text.back()->get_total_horizontal_text_size());
-  this->demo_text.back()->set_color(Wave::Color(0xFF0000FF));
+  this->demo_text.back()->set_offset_x(25.0f + this->demo_text.back()->get_text_box_size().get_x());
+  this->demo_text.back()->set_offset_y(this->demo_text[0]->get_offset_y());
+  this->demo_text.back()->set_every_color(Wave::Color(0xFF0000FF));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));
   push_layer(new Wave::Text_layer(this->demo_text, this->demo_shaders,

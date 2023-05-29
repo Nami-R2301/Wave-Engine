@@ -39,7 +39,7 @@ namespace Wave
     T &get_component()
     {
       if (!has_component<T>())
-        alert(WAVE_ERROR, "[Entity] --> Entity does not have component!");
+        alert(WAVE_LOG_ERROR, "[Entity] --> Entity does not have component!");
       return scene->registry.get<T>(entity_handle);
     }
     
@@ -53,7 +53,7 @@ namespace Wave
     void remove_component()
     {
       if (!has_component<T>())
-        alert(WAVE_ERROR, "[Entity] --> Entity does not have component!");
+        alert(WAVE_LOG_ERROR, "[Entity] --> Entity does not have component!");
       scene->registry.remove<T>(entity_handle);
     }
     

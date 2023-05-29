@@ -192,7 +192,7 @@ namespace Wave
     void look_at(const Vector_3f &direction);
     void look_at(float x, float y, float z);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] const char *get_type() const override;
     void on_update(float time_step) override;
@@ -219,7 +219,7 @@ namespace Wave
     void update_view_matrix() override;
     void update_projection_matrix() override;
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] const char *get_type() const override;
     void on_update(float time_step) override;

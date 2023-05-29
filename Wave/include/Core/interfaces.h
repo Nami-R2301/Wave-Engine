@@ -29,7 +29,26 @@ namespace Wave
   {
     public:
     virtual ~Movable() = default;
-    virtual void move(const Vector_3f &position) = 0;
+    virtual void translate(const Vector_3f &position) = 0;
+    virtual void translate(float x, float y, float z) = 0;
+  };
+  
+  // Able to be rotated on the x and y-axis.
+  class Rotatable
+  {
+    public:
+    virtual ~Rotatable() = default;
+    virtual void rotate(const Vector_3f &position) = 0;
+    virtual void rotate(float x, float y, float z) = 0;
+  };
+  
+  // Able to get its size scaled on the x, y and z-axis.
+  class Scalable
+  {
+    public:
+    virtual ~Scalable() = default;
+    virtual void scale(const Vector_3f &scalar) = 0;
+    virtual void scale(float x, float y, float z) = 0;
   };
   
   // Transfer data from one entity onto the other, useful for duplication and testing of various similar entities.
@@ -37,7 +56,7 @@ namespace Wave
   {
     public:
     virtual ~Copiable() = default;
-    virtual void *copy() = 0;
+    [[nodiscard]] virtual void *copy() const = 0;
   };
   
   

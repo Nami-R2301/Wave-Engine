@@ -194,62 +194,7 @@ namespace Wave
     }
   }
   
-  void Renderer::load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::load_dynamic_data(vertices, size, command_index, vbo_index);
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::init_text_buffers()
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::init_text_buffers();
-        break;
-      }
-      default:
-      {
-        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
-                                                   "[Renderer] --> API currently not supported or active, auto selecting OpenGL API renderer...",
-                                                   __FUNCTION__,
-                                                   "renderer.cpp",
-                                                   __LINE__ - 6);
-        Gl_renderer::init_text_buffers();
-      }
-    }
-  }
-  
-  void Renderer::init_object_buffers()
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::init_object_buffers();
-        break;
-      }
-      default:
-      {
-        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
-                                                   "[Renderer] --> API currently not supported or active, auto selecting OpenGL API renderer...",
-                                                   __FUNCTION__,
-                                                   "renderer.cpp",
-                                                   __LINE__ - 6);
-        Gl_renderer::init_object_buffers();
-      }
-    }
-  }
-  
-  void Renderer::send_object(Object &object, Shader &linked_shader)
+  void Renderer::send_object(const Object &object, Shader &linked_shader)
   {
     switch (Renderer::api_in_use)
     {
@@ -262,7 +207,7 @@ namespace Wave
     }
   }
   
-  void Renderer::send_text(Text &text, Shader &linked_shader)
+  void Renderer::send_text(const Text &text, Shader &linked_shader)
   {
     switch (Renderer::api_in_use)
     {

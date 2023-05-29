@@ -34,7 +34,7 @@ namespace Wave
     
     EVENT_CLASS_TYPE(Event_type::On_key_press);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] int get_current_key_code() const;
     private:
@@ -49,7 +49,7 @@ namespace Wave
     
     EVENT_CLASS_TYPE(Event_type::On_key_hold);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] int get_current_key_code() const;
     private:
@@ -64,7 +64,7 @@ namespace Wave
     
     EVENT_CLASS_TYPE(Event_type::On_key_release);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] int get_current_key_code() const;
     private:

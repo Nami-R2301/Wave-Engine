@@ -85,7 +85,7 @@ namespace Wave
   
   void Color::print() const
   {
-    Wave::alert(WAVE_WARN, "%s", to_string().c_str());
+    Wave::alert(WAVE_LOG_WARN, "%s", to_string().c_str());
   }
   
   float Color::get_red() const

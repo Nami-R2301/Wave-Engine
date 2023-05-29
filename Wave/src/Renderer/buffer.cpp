@@ -11,21 +11,21 @@ namespace Wave
     switch (Renderer::get_api())
     {
       case Renderer_api::None:
-        alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
       case Renderer_api::OpenGL:return std::make_shared<Gl_vertex_buffer>(size, count);
       case Renderer_api::Vulkan:
-        alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
       case Renderer_api::Directx:
-        alert(WAVE_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
     }
     
-    alert(WAVE_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
+    alert(WAVE_LOG_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
     return nullptr;
   }
   
@@ -35,23 +35,23 @@ namespace Wave
     switch (Renderer::get_api())
     {
       case Renderer_api::None:
-        alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
       case Renderer_api::OpenGL:
         return std::make_shared<Gl_vertex_buffer>(vertices, size,
                                                   count, buffer_type);
       case Renderer_api::Vulkan:
-        alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
       case Renderer_api::Directx:
-        alert(WAVE_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
     }
     
-    alert(WAVE_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
+    alert(WAVE_LOG_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
     return nullptr;
   }
   
@@ -60,21 +60,21 @@ namespace Wave
     switch (Renderer::get_api())
     {
       case Renderer_api::None:
-        alert(WAVE_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
       case Renderer_api::OpenGL:return std::make_shared<Gl_index_buffer>(indices, size);
       case Renderer_api::Vulkan:
-        alert(WAVE_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
       case Renderer_api::Directx:
-        alert(WAVE_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
     }
     
-    alert(WAVE_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
+    alert(WAVE_LOG_ERROR, "[BUFFER] --> Unknown renderer API! (on line %d in file %s) !", __LINE__, __FILE__);
     return nullptr;
   }
 }

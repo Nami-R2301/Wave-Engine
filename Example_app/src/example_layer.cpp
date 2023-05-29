@@ -16,12 +16,8 @@ Example_scene_3D::Example_scene_3D(const std::shared_ptr<Wave::Camera> &demo_cam
 
 void Example_scene_3D::on_attach()
 {
-  this->objects[0]->add_texture(Wave::Texture::create("../Wave/res/Textures/tiles.png",
-                                                      {Wave::Texture_type::Texture_2D,
-                                                       WAVE_VALUE_DONT_CARE,
-                                                       WAVE_VALUE_DONT_CARE,
-                                                       WAVE_VALUE_DONT_CARE,
-                                                       1, 1}));
+  this->objects[0]->add_texture(Wave::Texture_2D::create("../Wave/res/Textures/tiles.png"));
+  this->objects[0]->get_textures().back()->set_texture_slot(1);
   
   // Setup objects in scene.
   this->objects[0]->translate(10, -10, 20);

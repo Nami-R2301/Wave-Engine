@@ -45,7 +45,7 @@ namespace Wave
       case Buffer_data_type::Bool:return 1;
     }
     
-    alert(WAVE_ERROR, "[BUFFER] --> Unknown Shader_data_type on line %d in file %d!", __LINE__, __FILE__);
+    alert(WAVE_LOG_ERROR, "[BUFFER] --> Unknown Shader_data_type on line %d in file %d!", __LINE__, __FILE__);
     return 0;
   }
   
@@ -78,7 +78,7 @@ namespace Wave
         case Buffer_data_type::Bool:return 1;
       }
       
-      alert(WAVE_ERROR, "[BUFFER] --> Unknown Shader_data_type on line %d in file %d!", __LINE__, __FILE__);
+      alert(WAVE_LOG_ERROR, "[BUFFER] --> Unknown Shader_data_type on line %d in file %d!", __LINE__, __FILE__);
       return 0;
     }
     

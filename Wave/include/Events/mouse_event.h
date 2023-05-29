@@ -20,7 +20,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_MOUSE_BUTTON | EVENT_CATEGORY_INPUT)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] int get_current_mouse_button() const;
     private:
@@ -37,7 +37,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_MOUSE_BUTTON | EVENT_CATEGORY_INPUT)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] int get_current_mouse_button() const;
     private:
@@ -54,7 +54,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(None)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] int get_current_mouse_button() const;
     private:
@@ -71,7 +71,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_INPUT)
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     // MOUSE MOVEMENT INSTANCE FUNCTIONS.
     [[nodiscard]] const Vector_2f &get_mouse_cursor_position() const;
@@ -89,7 +89,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_MOUSE | EVENT_CATEGORY_INPUT);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     // MOUSE MOVEMENT INSTANCE FUNCTIONS.
     [[nodiscard]] const Vector_2f &get_mouse_wheel_offset() const;

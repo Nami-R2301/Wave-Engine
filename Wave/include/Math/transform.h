@@ -29,7 +29,7 @@ namespace Wave
     void set_scale(const Vector_3f &scale_);
     void set_scale(float x, float y, float z);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     Transform operator+(const Transform &transform) const;
     Transform operator-(const Transform &transform) const;

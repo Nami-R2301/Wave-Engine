@@ -21,7 +21,7 @@ namespace Wave
       case Buffer_data_type::None:break;
     }
     
-    alert(WAVE_ERROR, "[GL vao] --> Unknown Buffer data type (on line %d, in file %s) !",
+    alert(WAVE_LOG_ERROR, "[GL vao] --> Unknown Buffer data type (on line %d, in file %s) !",
           __LINE__, __FILE__);
     return 0;
   }
@@ -73,7 +73,7 @@ namespace Wave
   {
     if (vertex_buffer_->get_layout().get_elements().empty())
     {
-      alert(WAVE_ERROR, "[GL vao] --> Vertex Buffer has no layout! (n line %d, in file %s)",
+      alert(WAVE_LOG_ERROR, "[GL vao] --> Vertex Buffer has no layout! (n line %d, in file %s)",
             __LINE__, __FILE__);
       return;
     }
@@ -136,7 +136,7 @@ namespace Wave
           break;
         }
         default:
-          alert(WAVE_ERROR, "[GL vao] --> Unknown Buffer_data_type! (on line %d, in file %s)",
+          alert(WAVE_LOG_ERROR, "[GL vao] --> Unknown Buffer_data_type! (on line %d, in file %s)",
                 __LINE__, __FILE__);
       }
     }

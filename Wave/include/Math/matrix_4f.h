@@ -21,7 +21,7 @@ namespace Wave
     void init_identity();
     void init_translation(const Vector_3f &vector_3f);
     void init_translation(float x, float y, float z);
-    void init_rotation(Vector_3f vector_3f);
+    void init_rotation(const Vector_3f &vector_3f);
     void init_rotation(float x, float y, float z);
     void init_scale(Vector_3f vector_3f);
     void init_scale(float x, float y, float z);
@@ -35,7 +35,7 @@ namespace Wave
     [[nodiscard]] int get_num_rows() const;
     [[nodiscard]] int get_num_cols() const;
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     void set_value(int row, int col, float value);
     void transpose();

@@ -67,7 +67,7 @@ namespace Wave
     Object_3D
   };
   
-  class Object : public Printable, Movable
+  class Object : public Printable, public Movable, public Rotatable, public Copiable, public Scalable
   {
     public:
     static std::shared_ptr<Object> create();
@@ -95,13 +95,6 @@ namespace Wave
     virtual void set_model_transform(const Transform &model_transform_) = 0;
     virtual void set_model_matrix(const Matrix_4f &mat) = 0;
     
-    virtual void rotate(const Vector_3f &rotation_) = 0;
-    virtual void rotate(float x, float y, float z) = 0;
-    virtual void translate(const Vector_3f &translation_) = 0;
-    virtual void translate(float x, float y, float z) = 0;
-    virtual void scale(const Vector_3f &scalar_) = 0;
-    virtual void scale(float x, float y, float z_) = 0;
-    
     virtual void normalize() = 0;
     virtual void update_model_matrix() = 0;
   };
@@ -117,11 +110,13 @@ namespace Wave
     ~Object_2D() override = default;
     
     // Interfaces.
-    [[nodiscard]] Object_2D clone() const;
-    void move(const Vector_3f &vector) override;
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
+    INTERFACE_COPIABLE
+    INTERFACE_MOVABLE
+    INTERFACE_ROTATABLE
+    INTERFACE_SCALABLE
     
-    [[nodiscard]] static Object_type_e get_type();
+    [[nodiscard]] Object_type_e get_type() const;
     [[nodiscard]] const Vector_2f &get_position() const;
     [[nodiscard]] const void *get_vertices() const override;
     [[nodiscard]] const Vertex_2D &get_vertex(uint64_t index) const;
@@ -160,13 +155,6 @@ namespace Wave
     void set_texture_coords(const std::vector<Vector_2f> &tex_coords_) override;
     void set_model_transform(const Transform &model_transform_) override;
     void set_model_matrix(const Matrix_4f &mat) override;
-    
-    void rotate(const Vector_3f &rotation_) override;
-    void rotate(float x, float y, float z) override;
-    void translate(const Vector_3f &translation_) override;
-    void translate(float x, float y, float z) override;
-    void scale(const Vector_3f &scalar_) override;
-    void scale(float x, float y, float z_) override;
     
     void normalize() override;
     void update_model_matrix() override;
@@ -252,11 +240,13 @@ namespace Wave
     ~Object_3D() override = default;
     
     // Interfaces.
-    [[nodiscard]] Object_3D clone() const;
-    void move(const Vector_3f &vector) override;
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
+    INTERFACE_COPIABLE
+    INTERFACE_MOVABLE
+    INTERFACE_ROTATABLE
+    INTERFACE_SCALABLE
     
-    [[nodiscard]] static Object_type_e get_type();
+    [[nodiscard]] Object_type_e get_type() const;
     [[nodiscard]] const Vector_3f &get_position() const;
     [[nodiscard]] const void *get_vertices() const override;
     [[nodiscard]] const Vertex_3D &get_vertex(uint64_t index) const;
@@ -295,13 +285,6 @@ namespace Wave
     void set_texture_coords(const std::vector<Vector_2f> &tex_coords_) override;
     void set_model_transform(const Transform &model_transform_) override;
     void set_model_matrix(const Matrix_4f &mat) override;
-    
-    void rotate(const Vector_3f &rotation_) override;
-    void rotate(float x, float y, float z) override;
-    void translate(const Vector_3f &translation_) override;
-    void translate(float x, float y, float z) override;
-    void scale(const Vector_3f &scalar_) override;
-    void scale(float x, float y, float z_) override;
     
     void convert_in_2D();
     void normalize() override;

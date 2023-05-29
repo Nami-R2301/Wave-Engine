@@ -148,10 +148,10 @@ namespace Wave
     auto error = printed.find("ERROR");
     if (error)
     {
-      alert(WAVE_WARN, "%s", printed.c_str());
+      alert(WAVE_LOG_WARN, "%s", printed.c_str());
       return;
     }
-    alert(WAVE_INFO, "%s", this->to_string().c_str());
+    alert(WAVE_LOG_INFO, "%s", this->to_string().c_str());
   }
   
   /*************************** 3D *******************************/
@@ -265,10 +265,10 @@ namespace Wave
     auto error = printed.find("ERROR");
     if (error)
     {
-      alert(WAVE_WARN, "%s", printed.c_str());
+      alert(WAVE_LOG_WARN, "%s", printed.c_str());
       return;
     }
-    alert(WAVE_INFO, "%s", this->to_string().c_str());
+    alert(WAVE_LOG_INFO, "%s", this->to_string().c_str());
   }
   
   Vector_3f Vertex_3D::get_position() const

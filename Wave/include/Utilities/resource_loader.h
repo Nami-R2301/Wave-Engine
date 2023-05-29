@@ -20,6 +20,7 @@ namespace Wave
     static std::string load_shader_source(const char *file_path);
     static Object_2D_data_s load_object_2D_source(const char *file_path);
     static Object_3D_data_s load_object_3D_source(const char *file_path);
+//    static Font_data_s load_font_source(const char *file_path);
     static std::shared_ptr<Texture> load_texture_source(const char *file_path);
     
     private:

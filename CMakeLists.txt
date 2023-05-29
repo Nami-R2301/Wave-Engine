@@ -46,12 +46,12 @@ add_library(Wave STATIC
         Wave/src/Events/mouse_event.cpp
         Wave/src/Events/app_event.cpp
         Wave/src/Input/input.cpp
-        Wave/src/Objects/text.cpp
-        Wave/src/Objects/gl_text.cpp
-        Wave/src/Core/text_layer.cpp
+        Wave/src/Text/text.cpp
+        Wave/src/Text/gl_text.cpp
+        Wave/src/Layer/text_layer.cpp
         Wave/src/Objects/object.cpp
-        Wave/src/Core/layer.cpp
-        Wave/src/Core/layer_stack.cpp
+        Wave/src/Layer/layer.cpp
+        Wave/src/Layer/layer_stack.cpp
         Wave/src/Renderer/buffer.cpp
         Wave/src/Renderer/gl_buffer.cpp
         Wave/src/Renderer/framebuffer.cpp

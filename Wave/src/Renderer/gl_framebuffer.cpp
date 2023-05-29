@@ -23,46 +23,29 @@ namespace Wave
     int64_t texture_enum = opt.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
     
     // Creating the 2D texture of our viewport.
-    CHECK_GL_CALL(glCreateTextures(texture_enum, 1, &this->color_attachment));
-    CHECK_GL_CALL(glBindTexture(texture_enum, this->color_attachment));
-    if (opt.samples > 1)
-    {
-      CHECK_GL_CALL(glTexImage2DMultisample(texture_enum, opt.samples, GL_RGBA8, opt.width, opt.height,
-                                            GL_FALSE));
-    } else
-    {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      CHECK_GL_CALL(glTexImage2D(texture_enum, 0, GL_RGBA8, opt.width, opt.height,
-                                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-    }
+    this->color_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                         Texture::Texture_internal_format_e::Rgba8,
+                                                         static_cast<int32_t>(opt.width),
+                                                         static_cast<int32_t>(opt.height),
+                                                         0,
+                                                         2,
+                                                         static_cast<int32_t>(opt.samples),
+                                                         nullptr});
     
     // Depth attachment.
-    CHECK_GL_CALL(glCreateTextures(texture_enum, 1, &this->depth_attachment));
-    CHECK_GL_CALL(glBindTexture(texture_enum, this->depth_attachment));
-    
-    if (opt.samples > 1)
-    {
-      CHECK_GL_CALL(glTexImage2DMultisample(texture_enum, opt.samples, GL_DEPTH24_STENCIL8, opt.width,
-                                            opt.height, GL_FALSE));
-    } else
-    {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      CHECK_GL_CALL(glTexImage2D(texture_enum, 0, GL_DEPTH24_STENCIL8, opt.width, opt.height,
-                                 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr));
-    }
+    this->depth_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                         Texture::Texture_internal_format_e::Depth_stencil,
+                                                         static_cast<int32_t>(opt.width),
+                                                         static_cast<int32_t>(opt.height),
+                                                         0,
+                                                         3,
+                                                         static_cast<int32_t>(opt.samples),
+                                                         nullptr});
     
     CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
-                                         this->color_attachment, 0));
+                                         this->color_attachment->get_id(), 0));
     CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
-                                         this->depth_attachment, 0));
+                                         this->depth_attachment->get_id(), 0));
     
     int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -97,9 +80,11 @@ namespace Wave
     if (this->renderer_id)
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      CHECK_GL_CALL(glDeleteTextures(1, &this->color_attachment));
-      CHECK_GL_CALL(glDeleteTextures(1, &this->depth_attachment));
+      if (this->color_attachment) this->color_attachment->remove();
+      if (this->depth_attachment) this->depth_attachment->remove();
     }
+    delete this->color_attachment;
+    delete this->depth_attachment;
     delete[] this->data.ibo_data;
     delete[] this->data.vbo_data;
   }
@@ -109,9 +94,12 @@ namespace Wave
     if (this->renderer_id)
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      CHECK_GL_CALL(glDeleteTextures(1, &this->color_attachment));
-      CHECK_GL_CALL(glDeleteTextures(1, &this->depth_attachment));
+      this->color_attachment->remove();
+      this->depth_attachment->remove();
+      delete this->color_attachment;
+      delete this->depth_attachment;
     }
+    
     
     CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
@@ -119,46 +107,29 @@ namespace Wave
     int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
     
     // Creating the 2D texture of our viewport.
-    CHECK_GL_CALL(glCreateTextures(texture_enum, 1, &this->color_attachment));
-    CHECK_GL_CALL(glBindTexture(texture_enum, this->color_attachment));
-    if (this->options.samples > 1)
-    {
-      CHECK_GL_CALL(glTexImage2DMultisample(texture_enum, this->options.samples, GL_RGBA8,
-                                            this->options.width, this->options.height, GL_FALSE));
-    } else
-    {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      CHECK_GL_CALL(glTexImage2D(texture_enum, 0, GL_RGBA8, this->options.width, this->options.height,
-                                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-    }
+    this->color_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                         Texture::Texture_internal_format_e::Rgba8,
+                                                         static_cast<int32_t>(this->options.width),
+                                                         static_cast<int32_t>(this->options.height),
+                                                         0,
+                                                         2,
+                                                         static_cast<int32_t>(this->options.samples),
+                                                         nullptr});
     
     // Depth attachment.
-    CHECK_GL_CALL(glCreateTextures(texture_enum, 1, &this->depth_attachment));
-    CHECK_GL_CALL(glBindTexture(texture_enum, this->depth_attachment));
-    
-    if (this->options.samples > 1)
-    {
-      CHECK_GL_CALL(glTexImage2DMultisample(texture_enum, this->options.samples, GL_DEPTH24_STENCIL8,
-                                            this->options.width, this->options.height, GL_FALSE));
-    } else
-    {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      CHECK_GL_CALL(glTexImage2D(texture_enum, 0, GL_DEPTH24_STENCIL8, this->options.width,
-                                 this->options.height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr));
-    }
+    this->depth_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                         Texture::Texture_internal_format_e::Depth_stencil,
+                                                         static_cast<int32_t>(this->options.width),
+                                                         static_cast<int32_t>(this->options.height),
+                                                         0,
+                                                         3,
+                                                         static_cast<int32_t>(this->options.samples),
+                                                         nullptr});
     
     CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
-                                         this->color_attachment, 0));
+                                         this->color_attachment->get_id(), 0));
     CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
-                                         this->depth_attachment, 0));
+                                         this->depth_attachment->get_id(), 0));
     
     int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -183,7 +154,7 @@ namespace Wave
     assert(width > 0 && height > 0);
     if (width != this->options.width || height != this->options.height)
     {
-      alert(WAVE_WARN, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
+      alert(WAVE_LOG_WARN, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
     }
     this->options.width = width;
     this->options.height = height;
@@ -241,8 +212,6 @@ namespace Wave
     if (this->renderer_id)
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      CHECK_GL_CALL(glDeleteTextures(1, &this->color_attachment));
-      CHECK_GL_CALL(glDeleteTextures(1, &this->depth_attachment));
     }
   }
   
@@ -251,12 +220,12 @@ namespace Wave
     return this->options;
   }
   
-  uint32_t Gl_framebuffer::get_color_attachment() const
+  Texture *Gl_framebuffer::get_color_attachment()
   {
     return this->color_attachment;
   }
   
-  uint32_t Gl_framebuffer::get_depth_attachment() const
+  Texture *Gl_framebuffer::get_depth_attachment()
   {
     return this->depth_attachment;
   }

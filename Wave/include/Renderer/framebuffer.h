@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <wave_pch.h>
+#include <Renderer/texture.h>
 
 namespace Wave
 {
@@ -23,8 +23,8 @@ namespace Wave
     static std::shared_ptr<Framebuffer> create(const Framebuffer_options &opt);
     
     [[nodiscard]] virtual const Framebuffer_options &get_options() const = 0;
-    [[nodiscard]] virtual uint32_t get_color_attachment() const = 0;
-    [[nodiscard]] virtual uint32_t get_depth_attachment() const = 0;
+    [[nodiscard]] virtual Texture *get_color_attachment() = 0;
+    [[nodiscard]] virtual Texture *get_depth_attachment() = 0;
     
     virtual void bind() = 0;
     virtual void unbind() = 0;

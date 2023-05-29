@@ -10,9 +10,9 @@
 
 #endif
 
-#include <Core/layer.h>
+#include <Layer/layer.h>
 #include <Objects/object.h>
-#include <Objects/text.h>
+#include <Text//text.h>
 
 #include <Utilities/resource_loader.h>
 #include <Events/renderer_event.h>
@@ -63,19 +63,11 @@ namespace Wave
     // Events
     static void on_event(Event &event);
     
-    // Load assets
-    static void init_text_buffers();
-    static void init_object_buffers();
-    static void add_uniform_buffer(const char *uniform_block_name, uint64_t buffer_size);
-    static void set_uniform_buffer_data();
-    
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void load_dynamic_data(const void *vertices, size_t size, uint64_t command_index, uint64_t vbo_index = 0);
-    static void send_object(Object &object, Shader &linked_shader);
-    static void send_text(Text &text, Shader &linked_shader);
+    static void send_object(const Object &object, Shader &linked_shader);
+    static void send_text(const Text &text, Shader &linked_shader);
     static void flush();
-    
     static void end();
     
     // Shutdown

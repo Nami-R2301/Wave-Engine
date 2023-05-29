@@ -24,7 +24,7 @@ namespace Wave
   } Scene_ui_data_s;
   
   // Active scene hierarchy displayed in the UI for the shown entities in the framebuffer.
-  class Scene_ui_panel : public Movable
+  class Scene_ui_panel : public Movable, public Copiable
   {
     public:
     Scene_ui_panel() = default;
@@ -32,7 +32,9 @@ namespace Wave
     ~Scene_ui_panel() override = default;
     
     // Interfaces implementation.
-    void move(const Vector_3f &position) override;
+    INTERFACE_MOVABLE
+    INTERFACE_COPIABLE
+    
     void on_render();
     
     [[nodiscard]] const Vector_2f &get_position() const;

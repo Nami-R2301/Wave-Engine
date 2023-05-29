@@ -25,8 +25,8 @@ namespace Wave
     ~Gl_framebuffer() override;
     
     [[nodiscard]] const Framebuffer_options &get_options() const override;
-    [[nodiscard]] uint32_t get_color_attachment() const override;
-    [[nodiscard]] uint32_t get_depth_attachment() const override;
+    [[nodiscard]] Texture *get_color_attachment() override;
+    [[nodiscard]] Texture *get_depth_attachment() override;
     void resize(float width, float height, void *data) override;
     void on_resize_draw_data(void *data) override;
     void reset() override;
@@ -38,7 +38,7 @@ namespace Wave
     private:
     uint32_t renderer_id = 0;
     Framebuffer_options options{0};
-    uint32_t color_attachment = 0;
-    uint32_t depth_attachment = 0;
+    Texture *color_attachment = nullptr;
+    Texture *depth_attachment = nullptr;
   };
 }

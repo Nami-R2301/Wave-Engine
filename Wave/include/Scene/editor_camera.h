@@ -23,7 +23,7 @@ namespace Wave
     void calculate_orientation();
     void update_editor_view();
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     
     [[nodiscard]] float get_distance() const;
     [[nodiscard]] Vector_3f get_focal_point() const;

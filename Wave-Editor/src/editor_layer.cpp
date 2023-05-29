@@ -87,7 +87,7 @@ namespace Wave
     
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_F4))
     {
-      Wave::alert(WAVE_WARN, "[SETTING] --> Force shutdown");
+      Wave::alert(WAVE_LOG_WARN, "[SETTING] --> Force shutdown");
       Wave::Engine::get_main_window()->close();
     }
   }
@@ -138,7 +138,7 @@ namespace Wave
     if (this->framebuffer_viewport_data.viewport->get_options().samples == 1)
     {
       // Traditional mono-sampled framebuffer.
-      uint64_t texture_id = this->framebuffer_viewport_data.viewport->get_color_attachment();
+      uint64_t texture_id = this->framebuffer_viewport_data.viewport->get_color_attachment()->get_id();
       ImVec2 viewport_size = ImGui::GetContentRegionAvail();
       ImGui::Image(reinterpret_cast<void *>(texture_id),
                    ImVec2(viewport_size.x, viewport_size.y),
@@ -200,12 +200,12 @@ namespace Wave
                                                                false);
     
     // Bind framebuffer textures
-    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE1));
-    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer_viewport_gl->get_color_attachment()));
-    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE2));
-    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer_viewport_gl->get_depth_attachment()));
+    framebuffer_viewport_gl->get_color_attachment()->bind(
+      framebuffer_viewport_gl->get_color_attachment()->get_texture_slot());
+    framebuffer_viewport_gl->get_depth_attachment()->bind(
+      framebuffer_viewport_gl->get_depth_attachment()->get_texture_slot());
     
-    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler", 1);
+    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler", 2);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_viewport_width", (int) viewport->Size.x);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_viewport_height", (int) viewport->Size.y);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_max_samples",
@@ -213,22 +213,18 @@ namespace Wave
     
     // Draw viewport quad
     framebuffer_viewport_gl->data.vao->bind();
-    framebuffer_viewport_gl->data.vao->get_vertex_buffers().back()->bind();
     framebuffer_viewport_gl->data.vao->get_index_buffer()->bind();
     
     CHECK_GL_CALL(glDrawElements(GL_TRIANGLES, framebuffer_viewport_gl->data.vao->get_index_buffer()->get_count(),
                                  GL_UNSIGNED_INT, nullptr));
     
     framebuffer_viewport_gl->data.vao->unbind();
-    framebuffer_viewport_gl->data.vao->get_vertex_buffers().back()->unbind();
     framebuffer_viewport_gl->data.vao->get_index_buffer()->unbind();
     framebuffer_data->framebuffer_viewport_shader->unbind();
     
     // Unbind all buffers.
-    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE1));
-    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
-    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE2));
-    CHECK_GL_CALL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
+    framebuffer_viewport_gl->get_color_attachment()->unbind();
+    framebuffer_viewport_gl->get_depth_attachment()->unbind();
     
     // Reset Imgui OpenGL buffers for next draw commands.
     CHECK_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_ibo));

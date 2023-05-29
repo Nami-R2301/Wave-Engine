@@ -39,7 +39,7 @@ namespace Wave
     
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_RENDERER);
     
-    INTERFACE_PRINT
+    INTERFACE_PRINTABLE
     private:
     Renderer_state state{};
     Renderer_api api{};

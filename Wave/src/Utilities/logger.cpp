@@ -104,7 +104,7 @@ namespace Wave
     char current_time[sizeof(args) + (LINE_MAX)];
     if (vasprintf(&string, format, args) < 0)
     {
-      std::cerr << "ERROR : " << ERROR_VASPRINTF << std::endl;
+      std::cerr << "ERROR : " << WAVE_INTERNAL_ERROR_VASPRINTF << std::endl;
       free(string);
       return;
     }
@@ -113,7 +113,7 @@ namespace Wave
 #ifdef _POSIX_VERSION
     if (!localtime_r(&time, &time_info))
     {
-      std::cerr << "ERROR : " << ERROR_LOCALTIME << std::endl;
+      std::cerr << "ERROR : " << WAVE_INTERNAL_ERROR_LOCALTIME << std::endl;
       free(string);
       return;
     }
@@ -132,45 +132,45 @@ namespace Wave
     
     switch (info_type)
     {
-      case WAVE_INFO:
+      case WAVE_LOG_INFO:
         
         snprintf_result = snprintf(buffer, max_size, "%s[INFO]%4s [%s] :%10s", DEFAULT,
                                    " ", strlen(current_time) > 1 ? current_time
                                                                  :
                                         "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m", DEFAULT);
         break;
-      case WAVE_STATUS_IN_PROGRESS:
+      case WAVE_LOG_STATUS_IN_PROGRESS:
         snprintf_result = snprintf(buffer, max_size, "%s[PROGRESS] [%s] :%10s", PURPLE,
                                    strlen(current_time) > 1 ? current_time
                                                             : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
                                    DEFAULT);
         break;
-      case WAVE_INSTRUCTION_DONE:snprintf_result = snprintf(buffer, max_size, " -->%10sDONE%s", GREEN, DEFAULT);
+      case WAVE_LOG_INSTRUCTION_DONE:snprintf_result = snprintf(buffer, max_size, " -->%10sDONE%s", GREEN, DEFAULT);
         break;
-      case WAVE_INSTRUCTION_FAIL:snprintf_result = snprintf(buffer, max_size, " -->%10sFAIL%s", RED, DEFAULT);
+      case WAVE_LOG_INSTRUCTION_FAIL:snprintf_result = snprintf(buffer, max_size, " -->%10sFAIL%s", RED, DEFAULT);
         break;
-      case WAVE_TASK_DONE:
+      case WAVE_LOG_TASK_DONE:
         snprintf_result = snprintf(buffer, max_size, "%s[DONE]%4s [%s] :%10s", GREEN, " ",
                                    strlen(current_time) > 1 ? current_time : "ERROR WHILE TRYING TO FETCH LOCALTIME!",
                                    DEFAULT);
         break;
-      case WAVE_TASK_FAIL:
+      case WAVE_LOG_TASK_FAIL:
         snprintf_result = snprintf(buffer, max_size, "%s[FAIL]%4s [%s] :%10s", RED, " ",
                                    strlen(current_time) > 1 ? current_time
                                                             : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
                                    DEFAULT);
         break;
-      case WAVE_WARN:
+      case WAVE_LOG_WARN:
         snprintf_result = snprintf(buffer, max_size, "%s[WARN]%4s [%s] :%10s", YELLOW, " ",
                                    current_time, DEFAULT);
         break;
-      case WAVE_ERROR:
+      case WAVE_LOG_ERROR:
         snprintf_result = snprintf(buffer, max_size, "%s[ERROR]%3s [%s] :%10s", RED, " ",
                                    strlen(current_time) > 1 ? current_time
                                                             : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
                                    DEFAULT);
         break;
-      case WAVE_DEBUG:
+      case WAVE_LOG_DEBUG:
         snprintf_result = snprintf(buffer, max_size, "%s[DEBUG]%3s [%s] :%10s", CYAN, " ",
                                    strlen(current_time) > 1 ? current_time
                                                             : "\033[31mERROR WHILE TRYING TO FETCH LOCALTIME!\033[0m",
@@ -186,7 +186,7 @@ namespace Wave
     }
     if (snprintf_result < 0)
     {
-      std::cerr << "ERROR : " << ERROR_SNPRINTF << std::endl;
+      std::cerr << "ERROR : " << WAVE_INTERNAL_ERROR_SNPRINTF << std::endl;
       free(string);
       return;
     }
@@ -195,7 +195,7 @@ namespace Wave
     // Separate the buffer with the actual message logged in order to let operator overloading take effect for strings
     // passed in (i.e. events).
     output = strcat(buffer, string);
-    if (info_type == WAVE_INSTRUCTION_DONE || info_type == WAVE_INSTRUCTION_FAIL)
+    if (info_type == WAVE_LOG_INSTRUCTION_DONE || info_type == WAVE_LOG_INSTRUCTION_FAIL)
     {
       std::cout << output;
       log_stream << output;
