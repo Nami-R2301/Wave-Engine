@@ -24,9 +24,14 @@ namespace Wave
     explicit Gl_framebuffer(const Framebuffer_options &opt);
     ~Gl_framebuffer() override;
     
+    INTERFACE_LOADABLE
+    INTERFACE_DESTROYABLE
+    INTERFACE_PRINTABLE
+    
     [[nodiscard]] const Framebuffer_options &get_options() const override;
     [[nodiscard]] Texture *get_color_attachment() override;
     [[nodiscard]] Texture *get_depth_attachment() override;
+    
     void resize(float width, float height, void *data) override;
     void on_resize_draw_data(void *data) override;
     void reset() override;

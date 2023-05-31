@@ -16,7 +16,7 @@
 namespace Wave
 {
   
-  class Engine
+  class Engine : public Loadable, public Destroyable
   {
     public:
     enum class App_type
@@ -28,7 +28,7 @@ namespace Wave
     public:
     Engine();
     explicit Engine(Renderer_api renderer_api_choice, Context_api_e context_api_choice, App_type executable_type_);
-    virtual ~Engine();
+    ~Engine() override = default;
     
     [[nodiscard]] static Engine *get_app();
     [[nodiscard]] static Window *get_main_window();  // For glfw purposes, keep this static.
@@ -43,7 +43,9 @@ namespace Wave
     static void set_running_state(bool new_state);
     static void set_exit_status(int32_t code);
     
-    virtual void init();
+    INTERFACE_LOADABLE
+    INTERFACE_DESTROYABLE
+    
     virtual void on_event(Event &event);
     virtual void on_update(float time_step);
     virtual void on_render();
@@ -74,6 +76,7 @@ namespace Wave
     [[nodiscard]] static bool has_crashed();
     static void wait(float start_time, float end_time);
     private:
+    bool loaded = false;
     static Engine *instance;
     static App_type executable_type;
     static bool running_state;

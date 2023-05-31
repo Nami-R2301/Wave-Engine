@@ -16,19 +16,21 @@ namespace Wave
     CHECK_GL_CALL(glGenBuffers(1, &this->vbo_id)); // Create empty buffer for our vertex_source data.
     CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
     CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, size * count, nullptr, GL_DYNAMIC_DRAW));
+    
     this->buffer_size = size;
     this->buffer_count = count;
   }
   
   Gl_vertex_buffer::Gl_vertex_buffer(const void *data, uint64_t size, uint64_t count, Buffer_type buffer_type)
   {
-    CHECK_GL_CALL(glGenBuffers(1, &this->vbo_id)); // Create empty buffer for our vertex_source data.
-    CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
-    CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, size, data,
-                               buffer_type == STATIC_DRAW ? GL_STATIC_DRAW : buffer_type == DYNAMIC_DRAW ?
-                                                                             GL_DYNAMIC_DRAW : GL_STREAM_DRAW));
     this->buffer_size = size;
     this->buffer_count = count;
+    
+    CHECK_GL_CALL(glGenBuffers(1, &this->vbo_id)); // Create empty buffer for our vertex_source data.
+    CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
+    CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, this->buffer_size, data,
+                               buffer_type == STATIC_DRAW ? GL_STATIC_DRAW :
+                               buffer_type == DYNAMIC_DRAW ? GL_DYNAMIC_DRAW : GL_STREAM_DRAW));
   }
   
   Gl_vertex_buffer::~Gl_vertex_buffer()
@@ -55,26 +57,25 @@ namespace Wave
     return this->buffer_size;
   }
   
-  uint32_t Gl_vertex_buffer::get_id() const
-  {
-    return this->vbo_id;
-  }
-  
-  void Gl_vertex_buffer::set_data(const void *data, uint64_t size, uint64_t offset)
-  {
-    Gl_vertex_buffer::bind();
-    CHECK_GL_CALL(glBufferSubData(GL_ARRAY_BUFFER, offset, size, data));
-  }
-  
   bool Gl_vertex_buffer::is_bound() const
   {
     return this->bound;
   }
   
+  uint32_t Gl_vertex_buffer::get_id() const
+  {
+    return this->vbo_id;
+  }
+  
+  void Gl_vertex_buffer::set_data(const void *data_, uint64_t size, uint64_t offset)
+  {
+    Gl_vertex_buffer::bind();
+    CHECK_GL_CALL(glBufferSubData(GL_ARRAY_BUFFER, offset, size, data_));
+  }
+  
   void Gl_vertex_buffer::bind()
   {
     CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
-    Gl_vertex_buffer::bound = true;
   }
   
   void Gl_vertex_buffer::unbind() const
@@ -87,9 +88,8 @@ namespace Wave
   
   void Gl_vertex_buffer::remove()
   {
-    if (this->is_bound()) Gl_vertex_buffer::unbind();
+    Gl_vertex_buffer::unbind();
     CHECK_GL_CALL(glDeleteBuffers(1, &this->vbo_id));
-    this->bound = false;
   }
   
   const Buffer_layout &Gl_vertex_buffer::get_layout() const

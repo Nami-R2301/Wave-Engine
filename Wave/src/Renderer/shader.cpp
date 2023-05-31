@@ -7,8 +7,8 @@
 namespace Wave
 {
   
-  std::shared_ptr<Shader> Shader::create(const std::string &name, const char *vertex_source,
-                                         const char *fragment_source)
+  std::shared_ptr<Shader> Shader::create(const std::string &name, const std::string &vertex_source,
+                                         const std::string &fragment_source)
   {
     switch (Renderer::get_api())
     {

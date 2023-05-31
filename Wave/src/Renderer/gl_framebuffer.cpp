@@ -17,47 +17,39 @@ namespace Wave
   
   Gl_framebuffer::Gl_framebuffer(const Framebuffer_options &opt)
   {
-    CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
-    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
-    
-    int64_t texture_enum = opt.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+    this->options = opt;
     
     // Creating the 2D texture of our viewport.
     this->color_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
                                                          Texture::Texture_internal_format_e::Rgba8,
-                                                         static_cast<int32_t>(opt.width),
-                                                         static_cast<int32_t>(opt.height),
+                                                         this->options.width,
+                                                         this->options.height,
                                                          0,
                                                          2,
-                                                         static_cast<int32_t>(opt.samples),
+                                                         static_cast<int32_t>(this->options.samples),
                                                          nullptr});
     
     // Depth attachment.
     this->depth_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
                                                          Texture::Texture_internal_format_e::Depth_stencil,
-                                                         static_cast<int32_t>(opt.width),
-                                                         static_cast<int32_t>(opt.height),
+                                                         this->options.width,
+                                                         this->options.height,
                                                          0,
                                                          3,
-                                                         static_cast<int32_t>(opt.samples),
+                                                         static_cast<int32_t>(this->options.samples),
                                                          nullptr});
-    
-    CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
-                                         this->color_attachment->get_id(), 0));
-    CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
-                                         this->depth_attachment->get_id(), 0));
-    
-    int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
-      Gl_renderer::gl_synchronous_error_callback(status,
-                                                 "Cannot show framebuffer, framebuffer incomplete!",
-                                                 "Gl_framebuffer()",
-                                                 "gl_framebuffer.cpp",
-                                                 __LINE__ - 5);
-    }
-    this->options = opt;
-    Gl_framebuffer::unbind();
+  }
+  
+  Gl_framebuffer::~Gl_framebuffer()
+  {
+    Gl_framebuffer::destroy();
+  }
+  
+  void Gl_framebuffer::load()
+  {
+    if (this->is_loaded()) return;
+    CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
+    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
     auto vbo = Vertex_buffer::create(sizeof(float), 16);
     std::vector<Buffer_element> b_elements;
@@ -73,58 +65,12 @@ namespace Wave
     auto ibo = Index_buffer::create(this->data.ibo_data, 6);
     this->data.vao->add_vertex_buffer(vbo);
     this->data.vao->set_index_buffer(ibo);
-  }
-  
-  Gl_framebuffer::~Gl_framebuffer()
-  {
-    if (this->renderer_id)
-    {
-      CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      if (this->color_attachment) this->color_attachment->remove();
-      if (this->depth_attachment) this->depth_attachment->remove();
-    }
-    delete this->color_attachment;
-    delete this->depth_attachment;
-    delete[] this->data.ibo_data;
-    delete[] this->data.vbo_data;
-  }
-  
-  void Gl_framebuffer::reset()
-  {
-    if (this->renderer_id)
-    {
-      CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      this->color_attachment->remove();
-      this->depth_attachment->remove();
-      delete this->color_attachment;
-      delete this->depth_attachment;
-    }
     
-    
-    CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
-    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+    this->color_attachment->load();
+    this->depth_attachment->load();
     
     int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
     
-    // Creating the 2D texture of our viewport.
-    this->color_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
-                                                         Texture::Texture_internal_format_e::Rgba8,
-                                                         static_cast<int32_t>(this->options.width),
-                                                         static_cast<int32_t>(this->options.height),
-                                                         0,
-                                                         2,
-                                                         static_cast<int32_t>(this->options.samples),
-                                                         nullptr});
-    
-    // Depth attachment.
-    this->depth_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
-                                                         Texture::Texture_internal_format_e::Depth_stencil,
-                                                         static_cast<int32_t>(this->options.width),
-                                                         static_cast<int32_t>(this->options.height),
-                                                         0,
-                                                         3,
-                                                         static_cast<int32_t>(this->options.samples),
-                                                         nullptr});
     
     CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
                                          this->color_attachment->get_id(), 0));
@@ -140,7 +86,93 @@ namespace Wave
                                                  "gl_framebuffer.cpp",
                                                  __LINE__ - 5);
     }
-    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    Gl_framebuffer::unbind();
+    
+    this->loaded = true;
+  }
+  
+  void Gl_framebuffer::destroy()
+  {
+    if (this->is_loaded())
+    {
+      CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
+      if (this->color_attachment) this->color_attachment->destroy();
+      if (this->depth_attachment) this->depth_attachment->destroy();
+      
+      this->loaded = false;
+    }
+    delete this->color_attachment;
+    delete this->depth_attachment;
+    delete[] this->data.ibo_data;
+    delete[] this->data.vbo_data;
+  }
+  
+  std::string Gl_framebuffer::to_string() const
+  {
+    char buffer[FILENAME_MAX * 4]{0};
+    if (snprintf(buffer, sizeof(buffer), "[Gl framebuffer] :\n%55sID --> %d\n%55sWidth --> %.2f\n"
+                                         "%55sHeight --> %.2f\n%55sSamples --> %d", DEFAULT, this->renderer_id,
+                 DEFAULT, this->options.width, DEFAULT, this->options.height, DEFAULT, this->options.samples) < 0)
+    {
+      return "ERROR : Snprintf failed while trying to print [Gl framebuffer]!";
+    }
+    return buffer;
+  }
+  
+  void Gl_framebuffer::reset()
+  {
+    if (this->renderer_id)
+    {
+      CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
+      this->color_attachment->destroy();
+      this->depth_attachment->destroy();
+      delete this->color_attachment;
+      delete this->depth_attachment;
+      
+      CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
+      CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+      
+      // Creating the 2D texture of our viewport.
+      this->color_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                           Texture::Texture_internal_format_e::Rgba8,
+                                                           this->options.width,
+                                                           this->options.height,
+                                                           0,
+                                                           2,
+                                                           static_cast<int32_t>(this->options.samples),
+                                                           nullptr});
+      
+      // Depth attachment.
+      this->depth_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                           Texture::Texture_internal_format_e::Depth_stencil,
+                                                           this->options.width,
+                                                           this->options.height,
+                                                           0,
+                                                           3,
+                                                           static_cast<int32_t>(this->options.samples),
+                                                           nullptr});
+      this->color_attachment->load();
+      this->depth_attachment->load();
+      
+      int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+      
+      
+      CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
+                                           this->color_attachment->get_id(), 0));
+      CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
+                                           this->depth_attachment->get_id(), 0));
+      
+      int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+      if (status != GL_FRAMEBUFFER_COMPLETE)
+      {
+        Gl_renderer::gl_synchronous_error_callback(status,
+                                                   "Cannot show framebuffer, framebuffer incomplete!",
+                                                   "Gl_framebuffer()",
+                                                   "gl_framebuffer.cpp",
+                                                   __LINE__ - 5);
+      }
+      Gl_framebuffer::unbind();
+    }
   }
   
   void Gl_framebuffer::bind()

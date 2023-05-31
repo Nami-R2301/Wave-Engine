@@ -15,10 +15,10 @@ namespace Wave
     uint32_t samples = 1;
   } Framebuffer_options;
   
-  class Framebuffer
+  class Framebuffer : public Printable, public Loadable, public Destroyable
   {
     public:
-    virtual ~Framebuffer() = default;
+    ~Framebuffer() override = default;
     
     static std::shared_ptr<Framebuffer> create(const Framebuffer_options &opt);
     
@@ -32,5 +32,7 @@ namespace Wave
     virtual void reset() = 0;
     virtual void remove() = 0;
     virtual void on_resize_draw_data(void *data) = 0;
+    protected:
+    bool loaded = false;
   };
 }

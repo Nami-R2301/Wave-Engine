@@ -66,7 +66,7 @@ namespace Wave
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
     static void send_object(const Object &object, Shader &linked_shader);
-    static void send_text(const Text &text, Shader &linked_shader);
+    static void send_text(const Text_box &text, Shader &linked_shader);
     static void flush();
     static void end();
     

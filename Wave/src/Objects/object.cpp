@@ -45,6 +45,21 @@ namespace Wave
     apply_vertex_properties(object_2D_data);
   }
   
+  Object_2D::~Object_2D()
+  {
+    Object_2D::destroy();
+  }
+  
+  void Object_2D::load()
+  {
+    for (const auto &texture: this->textures) texture->load();
+  }
+  
+  void Object_2D::destroy()
+  {
+    for (const auto &texture: this->textures) texture->destroy();
+  }
+  
   void Object_2D::normalize()
   {
     //TODO
@@ -374,6 +389,24 @@ namespace Wave
     this->tex_coords = mesh.tex_coords;
     this->model_matrix = mesh.model_matrix;
     this->model_transform = mesh.model_transform;
+  }
+  
+  Object_3D::~Object_3D()
+  {
+    Object_3D::destroy();
+  }
+  
+  void Object_3D::load()
+  {
+    if (this->is_loaded()) return;
+    for (const auto &texture: this->textures) texture->load();
+    this->loaded = true;
+  }
+  
+  void Object_3D::destroy()
+  {
+    for (const auto &texture: this->textures) texture->destroy();
+    this->loaded = false;
   }
   
   void *Object_3D::copy() const

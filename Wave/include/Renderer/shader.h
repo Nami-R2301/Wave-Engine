@@ -10,10 +10,13 @@
 namespace Wave
 {
   
-  class Shader : public Printable
+  class Shader : public Printable, public Loadable, public Destroyable
   {
     public:
     ~Shader() override = default;
+    static std::shared_ptr<Shader> create(const std::string &name, const std::string &vertex_source,
+                                          const std::string &fragment_source);
+    
     virtual void bind() const = 0;
     virtual void unbind() const = 0;
     
@@ -24,19 +27,18 @@ namespace Wave
     virtual void link() const = 0;
     virtual void validate() const = 0;
     
-    static std::shared_ptr<Shader> create(const std::string &name, const char *vertex_source,
-                                          const char *fragment_source);
-    [[nodiscard]] virtual int32_t get_id() const = 0;
     
-    // Uniform handling.
+    [[nodiscard]] virtual int32_t get_id() const = 0;
     [[nodiscard]] virtual int get_uniform_location(const char *uniform_name) const = 0;
+    
     virtual void set_uniform(const char *uniform_name, const Color &color) const = 0;
     virtual void set_uniform(const char *uniform_name, const float *matrix_4f, bool transpose) const = 0;
-    
     virtual void set_uniform(const char *uniform_name, bool bool_value) const = 0;
     virtual void set_uniform(const char *uniform_name, int32_t int_value) const = 0;
     virtual void set_uniform(const char *uniform_name, uint32_t uint_value) const = 0;
     virtual void set_uniform(const char *uniform_name, float float_value) const = 0;
     [[maybe_unused]] virtual void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const = 0;
+    protected:
+    bool loaded = false;
   };
 }

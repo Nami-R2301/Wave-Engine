@@ -65,11 +65,12 @@ namespace Wave
   
   /********************* TEXTURE 2D ********************/
   
-  Gl_texture_2D::Gl_texture_2D(const char *file_path)
+  Gl_texture_2D::Gl_texture_2D(const char *file_path_)
   {
+    this->file_path = file_path_;
     this->texture_data.type = Texture_type_e::Texture_2D;
     this->texture_data.internal_format = Texture_internal_format_e::Rgba8;
-    this->texture_data.desired_samples = 1;
+    this->texture_data.desired_samples = 1;\
     this->texture_data.desired_slot = 1;
     this->texture_data.data = nullptr;
     this->texture_target = Gl_texture_2D::convert_type_to_api({this->texture_data.type,
@@ -83,33 +84,64 @@ namespace Wave
     this->gl_format = convert_format_to_gl_format(this->texture_data.internal_format);
     this->gl_internal_format = convert_internal_format_to_gl_internal_format(this->texture_data.internal_format);
     this->gl_buffer_type = convert_buffer_type_to_gl_buffer_type(this->texture_data.internal_format);
-    
+  }
+  
+  Gl_texture_2D::Gl_texture_2D(const char *file_path_, Texture_data_s texture_data_)
+  {
+    this->file_path = file_path_;
+    this->texture_data = texture_data_;
+    this->texture_target = Gl_texture_2D::convert_type_to_api(texture_data_);
+    this->gl_format = convert_format_to_gl_format(this->texture_data.internal_format);
+    this->gl_internal_format = convert_internal_format_to_gl_internal_format(this->texture_data.internal_format);
+    this->gl_buffer_type = convert_buffer_type_to_gl_buffer_type(this->texture_data.internal_format);
+  }
+  
+  Gl_texture_2D::~Gl_texture_2D()
+  {
+    Gl_texture_2D::destroy();
+  }
+  
+  void Gl_texture_2D::load()
+  {
+    if (this->loaded) return;
     // Default text glyph texture slot given for renderer.
     // Initialize openGL texture buffers.
     CHECK_GL_CALL(glCreateTextures(this->texture_target, 1, &this->texture_id));
     
-    if (file_path && strcmp(&file_path[strlen(file_path) - 3], "ttf") == 0)  // Generating font textures.
+    if (this->file_path &&
+        strcmp(&this->file_path[strlen(this->file_path) - 3], "ttf") == 0)  // Generating font textures.
     {
       this->texture_data.desired_slot = 0;
-      this->bind(this->texture_data.desired_slot);
+      CHECK_GL_CALL(glActiveTexture(
+        this->texture_data.desired_slot == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 :
+        GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
+      CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
       // set texture options
       CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
       CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
       CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
       CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    } else if (file_path)  // Generating file texture.
+    } else if (this->file_path)  // Generating file texture.
     {
-      this->bind(this->texture_data.desired_slot);
+      CHECK_GL_CALL(glActiveTexture(
+        this->texture_data.desired_slot == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 :
+        GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
+      CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
+      
+      int32_t width, height;
       
       // Load file texture in memory.
       stbi_set_flip_vertically_on_load(1);  // Invert y-axis for opengl matrix coordinates.
-      this->texture_data.data = (stbi_uc *) stbi_load(file_path,
-                                                      &this->texture_data.desired_width,
-                                                      &this->texture_data.desired_height,
+      this->texture_data.data = (stbi_uc *) stbi_load(this->file_path,
+                                                      &width,
+                                                      &height,
                                                       &this->bits_per_pixel,
                                                       4);  // 4 channels (RGBA).
       if (!this->texture_data.data)
         Wave::alert(WAVE_LOG_ERROR, "[Texture] : Could not load image from %s", file_path);
+      
+      this->texture_data.desired_width = (float) width;
+      this->texture_data.desired_height = (float) height;
       
       CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
       CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
@@ -118,115 +150,44 @@ namespace Wave
       CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_R, GL_REPEAT));
     } else  // Generating empty buffer texture.
     {
-      // Initialize openGL texture buffers.
-      CHECK_GL_CALL(glCreateTextures(this->texture_target, 1, &this->texture_id));
-      this->bind(this->texture_data.desired_slot);
+      CHECK_GL_CALL(glActiveTexture(
+        this->texture_data.desired_slot == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 :
+        GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
+      CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
       
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_S, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_T, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_R, GL_REPEAT));
+      if (this->texture_target == GL_TEXTURE_2D_MULTISAMPLE)
+      {
+        CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+        CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+        CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT));
+      } else
+      {
+        CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_S, GL_REPEAT));
+        CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_T, GL_REPEAT));
+        CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_R, GL_REPEAT));
+      }
     }
     
     this->set_data(&this->texture_data, nullptr);
     
     // Assign texture image to texture buffer.
     // Deallocate file texture from CPU since it's loaded onto the GPU.
-    if (file_path && this->texture_data.data) stbi_image_free((stbi_uc *) this->texture_data.data);
+    if (this->file_path && this->texture_data.data) stbi_image_free((stbi_uc *) this->texture_data.data);
+    
+    this->loaded = true;
   }
   
-  Gl_texture_2D::Gl_texture_2D(const char *file_path, Texture_data_s data)
+  void Gl_texture_2D::destroy()
   {
-    this->texture_data.type = data.type;
-    this->texture_data.desired_width = data.desired_width;
-    this->texture_data.desired_height = data.desired_height;
-    this->texture_data.desired_samples = data.desired_samples;
-    this->texture_data.desired_slot = data.desired_slot;
-    this->texture_data.internal_format = data.internal_format;
-    this->texture_data.data = data.data;
-    this->texture_target = Gl_texture_2D::convert_type_to_api(data);
-    this->gl_format = convert_format_to_gl_format(this->texture_data.internal_format);
-    this->gl_internal_format = convert_internal_format_to_gl_internal_format(this->texture_data.internal_format);
-    this->gl_buffer_type = convert_buffer_type_to_gl_buffer_type(this->texture_data.internal_format);
-    
-    CHECK_GL_CALL(glCreateTextures(this->texture_target, 1, &this->texture_id));
-    this->bind(data.desired_slot);
-    
-    // Generating font textures.
-    if (file_path && strcmp(&file_path[strlen(file_path) - 3], "ttf") == 0)
+    if (this->is_loaded())
     {
-      // Set texture options
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      
-      if (data.type == Texture_type_e::Texture_2D_Array)
-      {
-        CHECK_GL_CALL(glTexImage3D(
-          this->texture_target,
-          0,
-          this->gl_internal_format,
-          data.desired_width == WAVE_VALUE_DONT_CARE ? 0 : data.desired_width,
-          data.desired_height == WAVE_VALUE_DONT_CARE ? 0 : data.desired_height,
-          data.desired_depth == WAVE_VALUE_DONT_CARE ? 0 : data.desired_depth,
-          0,
-          this->gl_format,
-          this->gl_buffer_type,
-          nullptr));
-      } else
-      {
-        CHECK_GL_CALL(glTexImage2D(
-          this->texture_target,
-          0,
-          this->gl_internal_format,
-          data.desired_width == WAVE_VALUE_DONT_CARE ? 0 : data.desired_width,
-          data.desired_height == WAVE_VALUE_DONT_CARE ? 0 : data.desired_height,
-          0,
-          this->gl_format,
-          this->gl_buffer_type,
-          data.data));
-      }
-    } else if (file_path)
-    {
-      // Load file texture in memory.
-      stbi_set_flip_vertically_on_load(1);  // Invert y-axis for opengl matrix coordinates.
-      data.data = (stbi_uc *) stbi_load(file_path, &this->texture_data.desired_width,
-                                        &this->texture_data.desired_height, &this->bits_per_pixel,
-                                        4);  // 4 channels (RGBA).
-      this->texture_data.data = data.data;
-      
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_S, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_T, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_R, GL_REPEAT));
-      
-      
-      if (!data.data)
-      {
-        Wave::alert(WAVE_LOG_ERROR, "[Texture] : Could not load image from %s", file_path);
-      }
-    } else
-    {
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT));
+      Gl_texture_2D::remove();
+      this->loaded = false;
     }
-    
-    this->set_data(&data, nullptr);
-    
-    // Assign texture image to texture buffer.
-    // Deallocate file texture from CPU since it's loaded onto the GPU.
-    if (file_path && data.data) stbi_image_free((stbi_uc *) this->texture_data.data);
-  }
-  
-  Gl_texture_2D::~Gl_texture_2D()
-  {
-    Gl_texture_2D::remove();
   }
   
   int32_t Gl_texture_2D::convert_type_to_api(Texture_data_s data_)
@@ -250,21 +211,35 @@ namespace Wave
   
   void Gl_texture_2D::bind(int32_t slot_) const
   {
-    if (*this)
+    if (!this->loaded)
     {
-      CHECK_GL_CALL(glActiveTexture(
-        slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.
-      CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 "Cannot bind texture 2D, OpenGL texture 2D not loaded!"
+                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 __FUNCTION__,
+                                                 __FILE__,
+                                                 __LINE__ - 2);
+      return;
     }
+    CHECK_GL_CALL(glActiveTexture(
+      slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.
+    CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
   }
   
   void Gl_texture_2D::unbind() const
   {
-    if (*this)
+    if (!this->loaded)
     {
-      CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));
-      CHECK_GL_CALL(glBindTexture(this->texture_target, 0));
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 "Cannot bind texture 2D, OpenGL texture 2D not loaded!"
+                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 __FUNCTION__,
+                                                 __FILE__,
+                                                 __LINE__ - 2);
+      return;
     }
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));
+    CHECK_GL_CALL(glBindTexture(this->texture_target, 0));
   }
   
   void Gl_texture_2D::remove()
@@ -274,12 +249,14 @@ namespace Wave
       unbind();
       glDeleteTextures(1, &this->texture_id);
     }
-    this->texture_id = 255;
   }
   
   void Gl_texture_2D::set_data(const Texture_data_s *data_array, uint32_t offset_array[2]) const
   {
-    this->bind(this->texture_data.desired_slot);
+    CHECK_GL_CALL(glActiveTexture(
+      this->texture_data.desired_slot == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 :
+      GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
+    CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
     
     // Supply texture data.
     switch (this->texture_data.type)
@@ -328,7 +305,7 @@ namespace Wave
       }
       default:
       {
-        alert(WAVE_LOG_WARN, "[GL texture] --> Incorrect or undefined data type supplied"
+        alert(WAVE_LOG_WARN, "[GL texture 2D] --> Incorrect or undefined data type supplied"
                              " in function %s, on line %d!", __FUNCTION__, __LINE__);
         
         return;
@@ -346,17 +323,17 @@ namespace Wave
     return this->texture_id;
   }
   
-  int Gl_texture_2D::get_width() const
+  float Gl_texture_2D::get_width() const
   {
     return this->texture_data.desired_width;
   }
   
-  int Gl_texture_2D::get_height() const
+  float Gl_texture_2D::get_height() const
   {
     return this->texture_data.desired_height;
   }
   
-  int32_t Gl_texture_2D::get_depth() const
+  float Gl_texture_2D::get_depth() const
   {
     return 0;
   }
@@ -386,17 +363,17 @@ namespace Wave
     this->texture_id = id_texture;
   }
   
-  void Gl_texture_2D::set_width(int width_)
+  void Gl_texture_2D::set_width(float width_)
   {
     this->texture_data.desired_width = width_;
   }
   
-  void Gl_texture_2D::set_height(int height_)
+  void Gl_texture_2D::set_height(float height_)
   {
     this->texture_data.desired_height = height_;
   }
   
-  void Gl_texture_2D::set_depth([[maybe_unused]] int height_)
+  void Gl_texture_2D::set_depth([[maybe_unused]] float height_)
   {
   }
   
@@ -430,7 +407,7 @@ namespace Wave
   
   Gl_texture_2D::operator bool() const
   {
-    return texture_id != 255;
+    return this->loaded;
   }
   
   std::string Gl_texture_2D::to_string() const
@@ -483,8 +460,8 @@ namespace Wave
       }
     }
     
-    if (snprintf(buffer, sizeof(buffer), "[Texture 2D] :\n%55sID --> %d\n%55sHeight --> %d\n"
-                                         "%55sWidth --> %d\n%55sOpenGL internal format --> %s\n"
+    if (snprintf(buffer, sizeof(buffer), "[Texture 2D] :\n%55sID --> %d\n%55sHeight --> %f\n"
+                                         "%55sWidth --> %f\n%55sOpenGL internal format --> %s\n"
                                          "%55sOpenGL format --> %s\n%55sOpenGL buffer type --> %s"
                                          "\n%55sSlot --> %d\n%55sSamples --> %d",
                  DEFAULT, this->texture_id, DEFAULT, this->texture_data.desired_height, DEFAULT,
@@ -500,8 +477,9 @@ namespace Wave
   
   /********************* TEXTURE 3D ********************/
   
-  Gl_texture_3D::Gl_texture_3D(const char *file_path)
+  Gl_texture_3D::Gl_texture_3D(const char *file_path_)
   {
+    this->file_path = file_path_;
     this->texture_data.type = Texture_type_e::Texture_3D;
     this->texture_data.internal_format = Texture_internal_format_e::Rgba8;
     this->texture_data.desired_samples = 1;
@@ -509,20 +487,41 @@ namespace Wave
     this->gl_format = convert_format_to_gl_format(this->texture_data.internal_format);
     this->gl_internal_format = convert_internal_format_to_gl_internal_format(this->texture_data.internal_format);
     this->gl_buffer_type = convert_buffer_type_to_gl_buffer_type(this->texture_data.internal_format);
+  }
+  
+  Gl_texture_3D::Gl_texture_3D(const char *file_path_, Texture_data_s texture_data_)
+  {
+    this->file_path = file_path_;
+    this->texture_data.type = texture_data_.type;
+    this->texture_data = texture_data_;
+    this->gl_format = convert_format_to_gl_format(this->texture_data.internal_format);
+    this->gl_internal_format = convert_internal_format_to_gl_internal_format(this->texture_data.internal_format);
+    this->gl_buffer_type = convert_buffer_type_to_gl_buffer_type(this->texture_data.internal_format);
+  }
+  
+  Gl_texture_3D::~Gl_texture_3D()
+  {
+    Gl_texture_3D::destroy();
+  }
+  
+  void Gl_texture_3D::load()
+  {
+    if (this->loaded) return;
     stbi_uc *image_buffer{};
-    
-    if (file_path)
+    if (this->file_path)
     {
+      int32_t width, height;
       
       // Load file texture in memory.
       stbi_set_flip_vertically_on_load(1);  // Invert y-axis for opengl matrix coordinates.
-      image_buffer = stbi_load(file_path, &this->texture_data.desired_width, &this->texture_data.desired_height,
-                               &this->bits_per_pixel,
-                               4);  // 4 channels (RGBA).
+      image_buffer = stbi_load(this->file_path, &width, &height, &this->bits_per_pixel, 4);  // 4 channels (RGBA).
       if (!image_buffer)
       {
-        Wave::alert(WAVE_LOG_ERROR, "[Texture] : Could not load image from %s", file_path);
+        Wave::alert(WAVE_LOG_ERROR, "[Texture 3D] : Could not load image from %s", file_path);
+        return;
       }
+      this->texture_data.desired_width = (float) width;
+      this->texture_data.desired_height = (float) height;
     }
     
     this->texture_target = Gl_texture_3D::convert_type_to_api({this->texture_data.type,
@@ -535,52 +534,24 @@ namespace Wave
                                                                this->texture_data.data});
     // Initialize openGL texture buffers.
     CHECK_GL_CALL(glCreateTextures(this->texture_target, 1, &this->texture_id));
+    CHECK_GL_CALL(glActiveTexture(
+      this->texture_data.desired_slot == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 :
+      GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
+    CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
     
     this->set_data(&this->texture_data, nullptr);
     
     // Assign texture image to texture buffer.
     // Deallocate file texture from CPU since it's loaded onto the GPU.
     if (image_buffer) stbi_image_free(image_buffer);
+    
+    this->loaded = true;
   }
   
-  Gl_texture_3D::Gl_texture_3D(const char *file_path, Texture_data_s data)
-  {
-    this->texture_data.type = data.type;
-    this->texture_data.internal_format = data.internal_format;
-    this->texture_data.desired_samples = data.desired_samples;
-    this->texture_data.desired_slot = data.desired_slot;
-    this->gl_format = convert_format_to_gl_format(this->texture_data.internal_format);
-    this->gl_internal_format = convert_internal_format_to_gl_internal_format(this->texture_data.internal_format);
-    this->gl_buffer_type = convert_buffer_type_to_gl_buffer_type(this->texture_data.internal_format);
-    stbi_uc *image_buffer{};
-    if (file_path)
-    {
-      
-      // Load file texture in memory.
-      stbi_set_flip_vertically_on_load(1);  // Invert y-axis for opengl matrix coordinates.
-      image_buffer = stbi_load(file_path, &this->texture_data.desired_width, &this->texture_data.desired_height,
-                               &this->bits_per_pixel,
-                               4);  // 4 channels (RGBA).
-      if (!image_buffer)
-      {
-        Wave::alert(WAVE_LOG_ERROR, "[Texture] : Could not load image from %s", file_path);
-      }
-    }
-    
-    this->texture_target = Gl_texture_3D::convert_type_to_api(data);
-    // Initialize openGL texture buffers.
-    CHECK_GL_CALL(glCreateTextures(this->texture_target, 1, &this->texture_id));
-    
-    this->set_data(&data, nullptr);
-    
-    // Assign texture image to texture buffer.
-    // Deallocate file texture from CPU since it's loaded onto the GPU.
-    if (image_buffer) stbi_image_free(image_buffer);
-  }
-  
-  Gl_texture_3D::~Gl_texture_3D()
+  void Gl_texture_3D::destroy()
   {
     Gl_texture_3D::remove();
+    this->loaded = false;
   }
   
   int32_t Gl_texture_3D::convert_type_to_api(Texture_data_s data_)
@@ -595,7 +566,7 @@ namespace Wave
       case Texture_type_e::Cube_map: return GL_TEXTURE_CUBE_MAP;
       case Texture_type_e::Cube_map_array: return GL_TEXTURE_CUBE_MAP_ARRAY;
       default:
-        Gl_renderer::gl_synchronous_error_callback(GL_INVALID_ENUM, "[GL Texture] --> Invalid texture type given!",
+        Gl_renderer::gl_synchronous_error_callback(GL_INVALID_ENUM, "[GL Texture 3D] --> Invalid texture type given!",
                                                    __FUNCTION__, __FILE__, __LINE__ - 12);
     }
     return 0;
@@ -603,21 +574,35 @@ namespace Wave
   
   void Gl_texture_3D::bind(int32_t slot_) const
   {
-    if (*this)
+    if (!this->loaded)
     {
-      CHECK_GL_CALL(glActiveTexture(
-        slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.
-      CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 "Cannot bind texture 3D, OpenGL texture 3D not loaded!"
+                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 __FUNCTION__,
+                                                 __FILE__,
+                                                 __LINE__ - 2);
+      return;
     }
+    CHECK_GL_CALL(glActiveTexture(
+      slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.
+    CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
   }
   
   void Gl_texture_3D::unbind() const
   {
-    if (*this)
+    if (!this->loaded)
     {
-      CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));
-      CHECK_GL_CALL(glBindTexture(this->texture_target, 0));
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 "Cannot bind texture 3D, OpenGL texture 3D not loaded!"
+                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 __FUNCTION__,
+                                                 __FILE__,
+                                                 __LINE__ - 2);
+      return;
     }
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));
+    CHECK_GL_CALL(glBindTexture(this->texture_target, 0));
   }
   
   void Gl_texture_3D::remove()
@@ -627,12 +612,12 @@ namespace Wave
       unbind();
       glDeleteTextures(1, &this->texture_id);
     }
-    this->texture_id = 255;
   }
   
   void Gl_texture_3D::set_data(const Texture_data_s data_array[6], uint32_t offset_array[3]) const
   {
-    this->bind(this->texture_data.desired_slot);
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));
+    CHECK_GL_CALL(glBindTexture(this->texture_target, 0));
     
     // Supply texture data.
     switch (this->texture_data.type)
@@ -730,17 +715,17 @@ namespace Wave
     return this->texture_id;
   }
   
-  int Gl_texture_3D::get_width() const
+  float Gl_texture_3D::get_width() const
   {
     return this->texture_data.desired_width;
   }
   
-  int Gl_texture_3D::get_height() const
+  float Gl_texture_3D::get_height() const
   {
     return this->texture_data.desired_height;
   }
   
-  int32_t Gl_texture_3D::get_depth() const
+  float Gl_texture_3D::get_depth() const
   {
     return this->texture_data.desired_depth;
   }
@@ -770,17 +755,17 @@ namespace Wave
     this->texture_id = id_texture;
   }
   
-  void Gl_texture_3D::set_width(int width_)
+  void Gl_texture_3D::set_width(float width_)
   {
     this->texture_data.desired_width = width_;
   }
   
-  void Gl_texture_3D::set_height(int height_)
+  void Gl_texture_3D::set_height(float height_)
   {
     this->texture_data.desired_height = height_;
   }
   
-  void Gl_texture_3D::set_depth(int depth_)
+  void Gl_texture_3D::set_depth(float depth_)
   {
     this->texture_data.desired_depth = depth_;
   }
@@ -813,7 +798,7 @@ namespace Wave
   
   Gl_texture_3D::operator bool() const
   {
-    return texture_id != 255;
+    return this->loaded;
   }
   
   std::string Gl_texture_3D::to_string() const
@@ -866,8 +851,8 @@ namespace Wave
       }
     }
     
-    if (snprintf(buffer, sizeof(buffer), "[Texture 3D] :\n%55sID --> %d\n%55sHeight --> %d\n"
-                                         "%55sWidth --> %d\n%55sOpenGL internal format --> %s\n"
+    if (snprintf(buffer, sizeof(buffer), "[Texture 3D]\n%55sID --> %d\n%55sHeight --> %.2f\n"
+                                         "%55sWidth --> %.2f\n%55sOpenGL internal format --> %s\n"
                                          "%55sOpenGL format --> %s\n%55sOpenGL buffer type --> %s"
                                          "\n%55sSlot --> %d\n%55sSamples --> %d",
                  DEFAULT, this->texture_id, DEFAULT, this->texture_data.desired_height, DEFAULT,

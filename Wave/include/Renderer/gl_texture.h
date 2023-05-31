@@ -15,27 +15,29 @@ namespace Wave
   {
     public:
     Gl_texture_2D() = default;
-    explicit Gl_texture_2D(const char *file_path);
-    Gl_texture_2D(const char *file_path, Texture_data_s data);
+    explicit Gl_texture_2D(const char *file_path_);
+    Gl_texture_2D(const char *file_path_, Texture_data_s texture_data_);
     
     ~Gl_texture_2D() override;
-    [[nodiscard]] int32_t convert_type_to_api(Texture_data_s data) override;
+    [[nodiscard]] int32_t convert_type_to_api(Texture_data_s texture_data_) override;
     [[nodiscard]] uint32_t &get_id() override;
     [[nodiscard]] Texture_type_e get_type() override;
-    [[nodiscard]] int32_t get_width() const override;
-    [[nodiscard]] int32_t get_height() const override;
-    [[nodiscard]] int32_t get_depth() const override;
+    [[nodiscard]] float get_width() const override;
+    [[nodiscard]] float get_height() const override;
+    [[nodiscard]] float get_depth() const override;
     [[nodiscard]] int32_t get_texture_slot() const override;
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
     [[nodiscard]] int32_t get_samples() const override;
     
+    INTERFACE_LOADABLE
+    INTERFACE_DESTROYABLE
     INTERFACE_PRINTABLE
     
     [[nodiscard]] void *get_data() const override;
     void set_id(int id_texture) override;
-    void set_width(int width_) override;
-    void set_height(int height_) override;
-    void set_depth(int height_) override;
+    void set_width(float width_) override;
+    void set_height(float height_) override;
+    void set_depth(float height_) override;
     void set_texture_slot(int32_t texture_slot_) override;
     void set_bits_per_pixel(int bits_per_pixel) override;
     
@@ -48,7 +50,8 @@ namespace Wave
     explicit operator bool() const override;
     Gl_texture_2D &operator=(const Gl_texture_2D &other_texture);
     private:
-    uint32_t texture_id = 255;
+    const char *file_path = nullptr;
+    uint32_t texture_id = 0;
     Texture_data_s texture_data{Texture_type_e::Texture_2D,
                                 Texture_internal_format_e::Rgba8,
                                 0, 0, 0, 0, 1,
@@ -73,20 +76,22 @@ namespace Wave
     [[nodiscard]] int32_t convert_type_to_api(Texture_data_s data) override;
     [[nodiscard]] uint32_t &get_id() override;
     [[nodiscard]] Texture_type_e get_type() override;
-    [[nodiscard]] int32_t get_width() const override;
-    [[nodiscard]] int32_t get_height() const override;
-    [[nodiscard]] int32_t get_depth() const override;
+    [[nodiscard]] float get_width() const override;
+    [[nodiscard]] float get_height() const override;
+    [[nodiscard]] float get_depth() const override;
     [[nodiscard]] int32_t get_texture_slot() const override;
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
     [[nodiscard]] int32_t get_samples() const override;
     [[nodiscard]] void *get_data() const override;
     
+    INTERFACE_LOADABLE
+    INTERFACE_DESTROYABLE
     INTERFACE_PRINTABLE
     
     void set_id(int id_texture) override;
-    void set_width(int width_) override;
-    void set_height(int height_) override;
-    void set_depth(int depth_) override;
+    void set_width(float width_) override;
+    void set_height(float height_) override;
+    void set_depth(float depth_) override;
     void set_texture_slot(int32_t texture_slot_) override;
     void set_bits_per_pixel(int bits_per_pixel) override;
     
@@ -99,7 +104,8 @@ namespace Wave
     explicit operator bool() const override;
     Gl_texture_3D &operator=(const Gl_texture_3D &other_texture);
     private:
-    uint32_t texture_id = 255;
+    const char *file_path = nullptr;
+    uint32_t texture_id = 0;
     Texture_data_s texture_data{Texture_type_e::Texture_3D,
                                 Texture_internal_format_e::Rgba8,
                                 0, 0, 0, 0, 1,

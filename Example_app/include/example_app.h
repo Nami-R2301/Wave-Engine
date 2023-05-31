@@ -12,7 +12,7 @@ public:
   Example_app();
   ~Example_app() override = default;
   
-  void init() override;
+  void load() override;
   void on_update(float time_step) override;
   void on_event(Wave::Event &event) override;
   void on_render() override;
@@ -25,6 +25,6 @@ public:
   std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;
   std::shared_ptr<Wave::Camera> demo_perspective_camera;
   std::vector<std::shared_ptr<Wave::Object>> demo_objects;
-  std::vector<std::shared_ptr<Wave::Text>> demo_text;
+  std::vector<std::shared_ptr<Wave::Text_box>> demo_text;
   Wave::Color background_clear_color = Wave::Color(78.0f, 255.0f, false);
 };

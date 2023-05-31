@@ -10,154 +10,169 @@
 namespace Wave
 {
   
-  Gl_text::Gl_text()
+  Gl_text_box::Gl_text_box()
   {
-    this->format = {25.0f,
-                    25.0f,
-                    Vector_2f(1.0f),
-                    Vector_2f(0.0f, 24.0f),
-                    Vector_2f(250.0f),
-                    Wave::Text_style::Regular};
-    this->string = "?Example text?";
-    
-    int32_t result = Gl_text::init("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf");
-    if (result != 0) alert(WAVE_LOG_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
+    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf";
+    this->text = "?Example text?";
+    init_freetype();
   }
   
-  Gl_text::Gl_text(const std::string &string_)
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size)
   {
-    this->format = {25.0f,
-                    25.0f,
-                    Vector_2f(1.0f),
-                    Vector_2f(0.0f, 24.0f),
-                    Vector_2f(250.0f),
-                    Wave::Text_style::Regular};
-    
-    this->string = string_;
-    int32_t result = Gl_text::init("../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf");
-    if (result != 0) alert(WAVE_LOG_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
+    this->format.text_size = pixel_size;
+    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf";
+    this->text = "?Example text?";
+    init_freetype();
   }
   
-  Gl_text::Gl_text(const char *font_file_name, const std::string &string_)
+  Gl_text_box::Gl_text_box(const std::string &text_)
   {
-    this->format = {25.0f,
-                    25.0f,
-                    Vector_2f(1.0f),
-                    Vector_2f(0.0f, 24.0f),
-                    Vector_2f(250.0f),
-                    Wave::Text_style::Regular};
-    
-    this->string = string_;
-    int32_t result = Gl_text::init(font_file_name);
-    if (result != 0) alert(WAVE_LOG_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
+    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf";
+    this->text = text_;
+    init_freetype();
   }
   
-  Gl_text::Gl_text(const char *font_file_name, const std::string &string_, Text_format format_)
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_)
   {
-    int32_t result = Gl_text::init(font_file_name);
-    if (result != 0) alert(WAVE_LOG_ERROR, "[GL Text] --> Error when initializing freetype, error %d", result);
-    this->string = string_;
+    this->format.text_size = pixel_size;
+    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-Regular.ttf";
+    this->text = text_;
+    init_freetype();
+  }
+  
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_, const char *font_file_name)
+  {
+    this->format.text_size = pixel_size;
+    this->font_file_path = font_file_name;
+    this->text = text_;
+    init_freetype();
+  }
+  
+  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_)
+  {
+    this->font_file_path = font_file_name;
+    this->text = text_;
+    init_freetype();
+  }
+  
+  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_, Text_format format_)
+  {
+    this->font_file_path = font_file_name;
+    this->text = text_;
     this->format = std::move(format_);
+    init_freetype();
   }
   
-  Gl_text::~Gl_text()
+  Gl_text_box::~Gl_text_box()
   {
-    delete this->texture_atlas;
+    Gl_text_box::destroy();
   }
   
-  int32_t Gl_text::init(const char *font_file_path)
+  void Gl_text_box::init_freetype()
   {
-    if (FT_Init_FreeType(&this->ft)) return -1;
+    if (FT_Init_FreeType(&this->library)) return;
     
-    if (FT_New_Face(this->ft, font_file_path, 0, &this->face))
+    if (FT_New_Face(this->library, this->font_file_path, 0, &this->face))
     {
-      alert(WAVE_LOG_ERROR, "[TEXT] --> Error loading font file %s!", font_file_path);
-      return -1;
+      alert(WAVE_LOG_ERROR, "[Gl text] --> Error loading font file %s!", this->font_file_path);
+      return;
     }
     
     // Set size to load glyphs as.
-    FT_Set_Pixel_Sizes(this->face, (unsigned int) this->format.text_size.get_x(),
-                       (unsigned int) this->format.text_size.get_y());
-    CHECK_GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
+    FT_Set_Pixel_Sizes(this->face, 0, (unsigned int) this->format.text_size.get_y());
     
-    float atlas_total_width = 0, atlas_row_width = 0, atlas_total_height = 0, atlas_row_height = 0, offset_x = 0, offset_y = 0;
+    float atlas_total_width = 0, atlas_row_width = 0, atlas_total_height = 0, atlas_row_height = 0;
+    Color glyph_color = Color(1.0f, 1.0f, true);
+    int texture_offset_x = 0;
     
     // Load first 128 characters of ASCII set
-    for (unsigned char c = 0; c < 128; c++)
+    for (unsigned char character = 32; character < 128; character++)
     {
       // Load character glyph
-      if (FT_Load_Char(this->face, c, FT_LOAD_RENDER))
+      if (FT_Load_Char(this->face, character, FT_LOAD_RENDER))
       {
         alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to load Glyph");
         continue;
       }
       
-      Color glyph_color = Color(1.0f, 1.0f, true);
-      
-      offset_x = c;
-      // Get atlas total size for the font atlas generation later.
-      if (atlas_row_width + (float) this->face->glyph->bitmap.width + 1 > this->format.box_size.get_x())
-      {
-        atlas_total_width = std::max(atlas_total_width, atlas_row_width);
-        atlas_total_height += atlas_row_height;
-        atlas_row_width = 0, atlas_row_height = 0;
-        offset_x = 0, offset_y += atlas_row_height;
-      }
-      
+      atlas_total_width += (float) this->face->glyph->bitmap.width;  // Add padding to avoid artefacts.
+      atlas_total_height =
+        std::max(atlas_total_height, (float) this->face->glyph->bitmap.rows);  // Add padding to avoid artefacts.
       
       // Store character for later use.
-      Glyph character = {
-        Vector_2f(offset_x, offset_y),
+      Glyph character_glyph = {
+        (float) texture_offset_x,
         glyph_color,
         Vector_2f((float) this->face->glyph->bitmap.width, (float) this->face->glyph->bitmap.rows),
         Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
-        static_cast<unsigned int>(this->face->glyph->advance.x),
-        {Texture::Texture_type_e::Texture_2D,
-         Texture::Texture_internal_format_e::Red,
-         static_cast<int32_t>(this->face->glyph->bitmap.width),
-         static_cast<int32_t>(this->face->glyph->bitmap.rows),
-         WAVE_VALUE_DONT_CARE,
-         0,
-         WAVE_VALUE_DONT_CARE,
-         this->face->glyph->bitmap.buffer}
+        // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+        Vector_2f((float) (this->face->glyph->advance.x >> 6), (float) (this->face->glyph->advance.y >> 6))
       };
+      this->characters.insert(std::pair<char, Glyph>(character, character_glyph));
       
-      atlas_row_width += (float) this->face->glyph->bitmap.width + 1;
-      atlas_row_height = std::max(atlas_row_height, (float) this->face->glyph->bitmap.rows);
-      this->characters.insert(std::pair<char, Glyph>(c, character));
+      texture_offset_x += (int) this->face->glyph->bitmap.width;
     }
     
-    atlas_total_width = std::max(atlas_total_width, atlas_row_width);
-    atlas_total_height += atlas_row_height;
+    atlas_total_width = std::max(atlas_total_width, atlas_row_width + 5);
+    atlas_total_height += atlas_row_height + 5;
     
     alert(WAVE_LOG_ERROR, "Total atlas texture size : (%.2f, %.2f)", atlas_total_width, atlas_total_height);
     
     // Create texture atlas for all glyphs of the current face.
-    this->texture_atlas = new Gl_texture_2D(font_file_path, {Texture::Texture_type_e::Texture_2D,
-                                                             Texture::Texture_internal_format_e::Red,
-                                                             static_cast<int32_t>(atlas_total_width),
-                                                             static_cast<int32_t>(atlas_total_height),
-                                                             WAVE_VALUE_DONT_CARE,
-                                                             0,
-                                                             WAVE_VALUE_DONT_CARE,
-                                                             nullptr});
+    this->texture_atlas = new Gl_texture_2D(this->font_file_path, {Texture::Texture_type_e::Texture_2D,
+                                                                   Texture::Texture_internal_format_e::Red,
+                                                                   atlas_total_width,
+                                                                   atlas_total_height,
+                                                                   WAVE_VALUE_DONT_CARE,
+                                                                   0,
+                                                                   WAVE_VALUE_DONT_CARE,
+                                                                   nullptr});
+  }
+  
+  void Gl_text_box::load()
+  {
+    if (this->is_loaded()) return;
+    
+    CHECK_GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
+    if (!this->texture_atlas) return;
+    this->texture_atlas->load();
+    
+    int texture_offset_x = 0;
     
     // Set texture glyph data for current face.
-    for (const auto &character: this->characters)
+    for (int i = 32; i < 128; i++)
     {
-      uint32_t offset_array[2] = {static_cast<uint32_t>(character.second.texture_offset.get_x()),
-                                  static_cast<uint32_t>(character.second.texture_offset.get_y())};
-      if (this->texture_atlas)
-        this->texture_atlas->set_data(&character.second.texture_data,
-                                      reinterpret_cast<uint32_t *>(&offset_array));
+      if (FT_Load_Char(this->face, i, FT_LOAD_RENDER))
+        continue;
+      
+      this->texture_atlas->bind(this->texture_atlas->get_texture_slot());
+      CHECK_GL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, texture_offset_x, 0,
+                                    (int) this->face->glyph->bitmap.width,
+                                    (int) this->face->glyph->bitmap.rows,
+                                    GL_RED, GL_UNSIGNED_BYTE,
+                                    this->face->glyph->bitmap.buffer));
+      
+      this->characters[i].texture_offset /= (float) this->texture_atlas->get_width();
+      
+      texture_offset_x += (int) this->face->glyph->bitmap.width;
     }
     
     FT_Done_Face(this->face);
-    FT_Done_FreeType(this->ft);
-    return 0;
+    FT_Done_FreeType(this->library);
+    
+    this->loaded = true;
   }
   
-  std::string Gl_text::to_string() const
+  void Gl_text_box::destroy()
+  {
+    if (this->is_loaded())
+    {
+      delete this->texture_atlas;
+      this->loaded = false;
+    }
+  }
+  
+  std::string Gl_text_box::to_string() const
   {
     char buffer[FILENAME_MAX * 4]{0};
     std::string style;
@@ -202,8 +217,8 @@ namespace Wave
     if (snprintf(buffer, sizeof(buffer), "[Gl text] :\n%55sString --> %s\n%55sOffset x --> %.2f\n"
                                          "%55sOffset y --> %.2f\n%55sScale --> (%.2f, %.2f)\n%55sText size --> (%.2f, %.2f)\n"
                                          "%55sText-box size --> (%.2f, %.2f)\n%55sStyle --> %s",
-                 DEFAULT, this->string.c_str(), DEFAULT, this->format.offset_x, DEFAULT, this->format.offset_y, DEFAULT,
-                 this->format.scale.get_x(), this->format.scale.get_y(),
+                 DEFAULT, this->text.c_str(), DEFAULT, this->format.offset.get_x(), DEFAULT,
+                 this->format.offset.get_y(), DEFAULT, this->format.scale.get_x(), this->format.scale.get_y(),
                  DEFAULT, this->format.text_size.get_x(), this->format.text_size.get_y(), DEFAULT,
                  this->format.box_size.get_x(), this->format.box_size.get_y(), DEFAULT, style.c_str()) < 0)
     {
@@ -212,19 +227,17 @@ namespace Wave
     return buffer;
   }
   
-  void Gl_text::translate(const Wave::Vector_3f &position)
+  void Gl_text_box::translate(const Wave::Vector_3f &position)
   {
-    this->format.offset_x += position.get_x();
-    this->format.offset_y += position.get_y();
+    this->format.offset += (Vector_2f) position;
   }
   
-  void Gl_text::translate(float x, float y, [[maybe_unused]] float z)
+  void Gl_text_box::translate(float x, float y, [[maybe_unused]] float z)
   {
-    this->format.offset_x += x;
-    this->format.offset_y += y;
+    this->format.offset += Vector_2f(x, y);
   }
   
-  void Gl_text::rotate(const Wave::Vector_3f &angle)
+  void Gl_text_box::rotate(const Wave::Vector_3f &angle)
   {
     Vector_3f temp_angle = angle;
     // Get angles and convert to radiant.
@@ -232,127 +245,32 @@ namespace Wave
     temp_angle.set_y((float) (angle.get_y() * (M_PI / 180)));
     temp_angle.set_z((float) (angle.get_z() * (M_PI / 180)));
     
-    this->format.offset_x = cosf(temp_angle.get_x()) - sinf(temp_angle.get_y());
-    this->format.offset_y = cosf(temp_angle.get_y()) + sinf(temp_angle.get_x());
+    this->format.offset.set_x(cosf(temp_angle.get_x()) - sinf(temp_angle.get_y()));
+    this->format.offset.set_y(cosf(temp_angle.get_y()) + sinf(temp_angle.get_x()));
   }
   
-  void Gl_text::rotate(float x, float y, [[maybe_unused]] float z)
+  void Gl_text_box::rotate(float x, float y, [[maybe_unused]] float z)
   {
     // Get angles and convert to radiant.
     float angle_x = x * (float) (M_PI / 180), angle_y = y * (float) (M_PI / 180);
     
-    this->format.offset_x = cosf(angle_x) - sinf(angle_y);
-    this->format.offset_y = cosf(angle_y) + sinf(angle_x);
+    this->format.offset.set_x(cosf(angle_x) - sinf(angle_y));
+    this->format.offset.set_y(cosf(angle_y) + sinf(angle_x));
   }
   
-  void Gl_text::scale(const Wave::Vector_3f &scalar)
+  void Gl_text_box::scale(const Wave::Vector_3f &scalar)
   {
     this->format.scale *= (Vector_2f) scalar;
   }
   
-  void Gl_text::scale(float x, float y, [[maybe_unused]] float z)
+  void Gl_text_box::scale(float x, float y, [[maybe_unused]] float z)
   {
     this->format.scale *= Vector_2f(x, y);
   }
   
-  void *Gl_text::copy() const
+  void *Gl_text_box::copy() const
   {
-    std::shared_ptr<Text> copy = std::make_shared<Gl_text>(*this);
+    std::shared_ptr<Text_box> copy = std::make_shared<Gl_text_box>(*this);
     return (void *) &(*copy);
-  }
-  
-  const std::string &Gl_text::get_string() const
-  {
-    return this->string;
-  }
-  
-  const Text_format &Gl_text::get_format() const
-  {
-    return this->format;
-  }
-  
-  float Gl_text::get_offset_x() const
-  {
-    return this->format.offset_x;
-  }
-  
-  float Gl_text::get_offset_y() const
-  {
-    return this->format.offset_y;
-  }
-  
-  const Color &Gl_text::get_color(char character) const
-  {
-    return this->characters.at(character).color;
-  }
-  
-  const Vector_2f &Gl_text::get_scale() const
-  {
-    return this->format.scale;
-  }
-  
-  const FT_Face &Gl_text::get_face() const
-  {
-    return this->face;
-  }
-  
-  const Glyph &Gl_text::get_character(uint8_t character_code)
-  {
-    return this->characters[character_code];
-  }
-  
-  Texture *Gl_text::get_texture_atlas() const
-  {
-    return this->texture_atlas;
-  }
-  
-  const Vector_2f &Gl_text::get_text_box_size()
-  {
-    return this->format.box_size;
-  }
-  
-  const std::map<uint8_t, Glyph> &Gl_text::get_characters() const
-  {
-    return this->characters;
-  }
-  
-  void Gl_text::set_character(uint8_t character_code, const Glyph &character)
-  {
-    this->characters[character_code] = character;
-  }
-  
-  Glyph &Gl_text::operator[](uint8_t index)
-  {
-    return index < this->characters.size() ? this->characters[index] : this->characters[0];
-  }
-  
-  void Gl_text::set_format(const Text_format &format_)
-  {
-    this->format = format_;
-  }
-  
-  void Gl_text::set_offset_x(float offset)
-  {
-    this->format.offset_x = offset;
-  }
-  
-  void Gl_text::set_offset_y(float offset)
-  {
-    this->format.offset_y = offset;
-  }
-  
-  void Gl_text::set_every_color(const Color &uniform)
-  {
-    for (const auto &c: this->characters) this->characters[c.first].color = uniform;
-  }
-  
-  void Gl_text::set_color(char character, const Color &color)
-  {
-    this->characters[character].color = color;
-  }
-  
-  void Gl_text::set_scale(const Vector_2f &scale)
-  {
-    this->format.scale = scale;
   }
 }

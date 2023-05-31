@@ -207,7 +207,7 @@ namespace Wave
     }
   }
   
-  void Renderer::send_text(const Text &text, Shader &linked_shader)
+  void Renderer::send_text(const Text_box &text, Shader &linked_shader)
   {
     switch (Renderer::api_in_use)
     {

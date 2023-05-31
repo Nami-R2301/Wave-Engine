@@ -42,12 +42,12 @@ namespace Wave
   
   TEST_F(Object_tests, check_object_integrity)
   {
-    auto dummy_cube_to_object_3D = *((Object_3D * )(this->dummy_cube));
+    auto dummy_cube_to_object_3D = *((Object_3D *) (this->dummy_cube));
     EXPECT_TRUE(dummy_cube_to_object_3D == *this->dummy_cube);
     
-    auto dummy_cube_2 = this->dummy_cube->clone();
-    dummy_cube_2.convert_in_2D();
+    auto dummy_cube_2 = (Object_3D *) this->dummy_cube->copy();
+    dummy_cube_2->convert_in_2D();
     
-    ASSERT_NE(sizeof(this->dummy_2d->get_vertex(0).get_position()), sizeof(dummy_cube_2.get_vertex(0).get_position()));
+    ASSERT_NE(sizeof(this->dummy_2d->get_vertex(0).get_position()), sizeof(dummy_cube_2->get_vertex(0).get_position()));
   }
 }

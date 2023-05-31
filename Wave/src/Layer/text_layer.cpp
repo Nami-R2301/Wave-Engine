@@ -8,13 +8,13 @@
 namespace Wave
 {
   
-  Text_layer::Text_layer(const std::vector<std::shared_ptr<Text>> &strings_,
+  Text_layer::Text_layer(const std::vector<std::shared_ptr<Text_box>> &text_boxes_,
                          const std::vector<std::shared_ptr<Shader>> &shaders_,
                          const Vector_2f &viewport_size_,
                          bool imgui_render)
   {
     this->imgui_enabled = imgui_render;
-    this->strings = strings_;
+    this->text_boxes = text_boxes_;
     this->shaders = shaders_;
     this->viewport_size = viewport_size_;
     this->projection = Orthographic_camera(this->viewport_size.get_x(), this->viewport_size.get_y(), -1.0f, 1.0f);
@@ -27,13 +27,15 @@ namespace Wave
   
   void Text_layer::on_attach()
   {
-    for (auto &string: this->strings)
+    for (auto &text_box: this->text_boxes)
     {
+      this->shaders[1]->load();
       this->shaders[1]->bind();
       this->shaders[1]->set_uniform("u_projection",
                                     &(this->projection.get_projection_matrix().get_matrix()[0][0]),
                                     false);
-      Renderer::send_text(*string, *this->shaders[1]);
+      text_box->load();
+      Renderer::send_text(*text_box, *this->shaders[1]);
       this->shaders[1]->unbind();
     }
   }
@@ -52,7 +54,7 @@ namespace Wave
       {
         auto resize_event = dynamic_cast<On_window_resize &>(event);
         this->projection = Orthographic_camera(resize_event.get_width(), resize_event.get_height(), -1.0f, 1.0f);
-        this->strings[0]->set_offset_y(this->viewport_size.get_y() - 25.0f);
+        this->text_boxes[0]->set_text_offset_y(this->viewport_size.get_y() - 25.0f);
         break;
       }
       default:break;
@@ -80,9 +82,9 @@ namespace Wave
         ImGui::PushFont(bold);
         ImGui::Separator();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 20.0f));
-        if (ImGui::TreeNodeEx("Text", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
+        if (ImGui::TreeNodeEx("Text_box", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
         {
-          ImGui::Text("String : %s", this->strings.back()->get_string().c_str());
+          ImGui::Text("String : %s", this->text_boxes.back()->get_text_string().c_str());
           if (ImGui::TreeNodeEx("Projection", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
           {
             ImGui::PushFont(regular);
@@ -94,7 +96,7 @@ namespace Wave
             ImGui::PopFont();
             ImGui::TreePop();
           }
-          ImGui::TreePop();  // Text.
+          ImGui::TreePop();  // Text_box.
         }
         ImGui::PopFont();
         ImGui::PopStyleVar();  // Window padding.

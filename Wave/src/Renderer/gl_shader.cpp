@@ -8,21 +8,11 @@
 
 namespace Wave
 {
-  Gl_shader::Gl_shader(const std::string &name_, const char *vertex_source, const char *fragment_source)
+  Gl_shader::Gl_shader(const std::string &name_, const std::string &vertex_source_, const std::string &fragment_source_)
   {
     this->name = name_;
-    CHECK_GL_CALL(this->program_id = glCreateProgram());
-    if (this->program_id == -1)
-    {
-      Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_OTHER,
-                                                 "Either GLEW is not initialized properly or GPU messed up!",
-                                                 "Gl_shader::Gl_shader(const std::string &name_, const char *vertex_source, const char *fragment_source)",
-                                                 "shader.cpp", __LINE__ - 6);
-    }
-    add_shader(GL_VERTEX_SHADER, vertex_source);
-    add_shader(GL_FRAGMENT_SHADER, fragment_source);
-    Gl_shader::link();
-    Gl_shader::validate();
+    this->vertex_source = vertex_source_;
+    this->fragment_source = fragment_source_;
     this->uniform_cache = std::unordered_map<const char *, int32_t>();
   }
 
@@ -33,9 +23,38 @@ namespace Wave
   
   Gl_shader::~Gl_shader()
   {
-    this->detach();
-    WAVE_LOG_INSTRUCTION("Shader", DEFAULT, "Deleting shader program", CHECK_GL_CALL(glDeleteProgram(this->program_id)))
-    this->uniform_cache.clear();
+    Gl_shader::destroy();
+  }
+  
+  void Gl_shader::load()
+  {
+    if (this->loaded) return;
+    CHECK_GL_CALL(this->program_id = glCreateProgram());
+    if (this->program_id == -1)
+    {
+      Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_OTHER,
+                                                 "Either GLEW is not initialized properly or GPU messed up!",
+                                                 "Gl_shader::Gl_shader(const std::string &name_, const char *vertex_source, const char *fragment_source)",
+                                                 "shader.cpp", __LINE__ - 6);
+    }
+    add_shader(GL_VERTEX_SHADER, this->vertex_source.c_str());
+    add_shader(GL_FRAGMENT_SHADER, this->fragment_source.c_str());
+    Gl_shader::link();
+    Gl_shader::validate();
+    
+    this->loaded = true;
+  }
+  
+  void Gl_shader::destroy()
+  {
+    if (this->is_loaded())
+    {
+      this->detach();
+      WAVE_LOG_INSTRUCTION("Shader", DEFAULT, "Deleting shader program",
+                           CHECK_GL_CALL(glDeleteProgram(this->program_id)))
+      if (!this->uniform_cache.empty()) this->uniform_cache.clear();
+      this->loaded = false;
+    }
   }
   
   void Gl_shader::add_shader(int32_t type, const char *source)
@@ -110,6 +129,16 @@ namespace Wave
   
   void Gl_shader::bind() const
   {
+    if (!this->loaded)
+    {
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 "Cannot use shader program, OpenGL shader not loaded!"
+                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 __FUNCTION__,
+                                                 __FILE__,
+                                                 __LINE__ - 2);
+      return;
+    }
     CHECK_GL_CALL(glUseProgram(this->program_id));
   }
   
@@ -138,9 +167,9 @@ namespace Wave
     if (uniform_location == -1)
     {
       char buffer[FILENAME_MAX * 4]{0};
-      snprintf(buffer, sizeof(buffer), "%s not found in current active program or program is not active",
+      snprintf(buffer, sizeof(buffer), "'%s' not found in current active program or program is not active",
                uniform_name);
-      Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_INVALID_UNIFORM,
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_DEBUG_SOURCE_INVALID_UNIFORM,
                                                  buffer,
                                                  "get_uniform_location(const char *uniform_name)",
                                                  "shader.cpp", __LINE__ - 7);

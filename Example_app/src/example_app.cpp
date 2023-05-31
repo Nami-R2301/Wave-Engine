@@ -12,7 +12,6 @@ static Wave::Color previous_background_color;
 Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Context_api_e::Glfw,
                                           Wave::Engine::App_type::Runtime)
 {
-  Wave::Renderer::init();
   // Add Cameras
   this->demo_perspective_camera = std::make_shared<Wave::Editor_camera>(
     Engine::get_main_window()->get_width(),
@@ -23,14 +22,14 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   // Add shaders
   this->demo_shaders.emplace_back(Wave::Shader::create("Object",
                                                        Wave::Resource_loader::load_shader_source(
-                                                         "../Wave/res/Shaders/default_3D.vert").c_str(),
+                                                         "../Wave/res/Shaders/default_3D.vert"),
                                                        Wave::Resource_loader::load_shader_source(
-                                                         "../Wave/res/Shaders/default_3D.frag").c_str()));
-  this->demo_shaders.emplace_back(Wave::Shader::create("Text",
+                                                         "../Wave/res/Shaders/default_3D.frag")));
+  this->demo_shaders.emplace_back(Wave::Shader::create("Text_box",
                                                        Wave::Resource_loader::load_shader_source(
-                                                         "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                         "../Wave/res/Shaders/text-glyph.vert"),
                                                        Wave::Resource_loader::load_shader_source(
-                                                         "../Wave/res/Shaders/text-glyph.frag").c_str()));
+                                                         "../Wave/res/Shaders/text-glyph.frag")));
   
   
   // Add objects
@@ -38,23 +37,24 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
     Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
   
   // Add text strings
-  this->demo_text.emplace_back(Wave::Text::create());
-  this->demo_text.back()->set_offset_y(Wave::Engine::get_main_window()->get_height() - 25.0f);
+  this->demo_text.emplace_back(Wave::Text_box::create());
+  this->demo_text.back()->set_text_offset_y(Wave::Engine::get_main_window()->get_height() - 25.0f);
   
-  this->demo_text.emplace_back(Wave::Text::create());
-  this->demo_text.back()->set_offset_x(25.0f + this->demo_text.back()->get_text_box_size().get_x());
-  this->demo_text.back()->set_offset_y(this->demo_text[0]->get_offset_y());
-  this->demo_text.back()->set_every_color(Wave::Color(0xFF0000FF));
+  this->demo_text.emplace_back(Wave::Text_box::create());
+  this->demo_text.back()->set_text_offset_x(25.0f + this->demo_text.back()->get_text_box_size().get_x());
+  this->demo_text.back()->set_text_offset_y(this->demo_text[0]->get_text_offset().get_y());
+  this->demo_text.back()->set_text_uniform_color(Wave::Color(0xFF0000FF));
+}
+
+void Example_app::load()
+{
+  Engine::load();
+  Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));
   push_layer(new Wave::Text_layer(this->demo_text, this->demo_shaders,
                                   Wave::Vector_2f(Engine::get_main_window()->get_width(),
                                                   Engine::get_main_window()->get_height()), false));
-}
-
-void Example_app::init()
-{
-  Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
 }
 
 void Example_app::on_event(Wave::Event &event)

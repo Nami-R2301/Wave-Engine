@@ -29,19 +29,26 @@ namespace Wave
     // Setup objects in scene.
     this->objects[0]->translate(10, -10, 20);
     this->objects[0]->rotate(90, -90, 0);
+    this->objects[0]->load();
     
     // Setup framebuffer shader.
     this->framebuffer_viewport_data.framebuffer_viewport_shader = Shader::create("Framebuffer Editor Viewport",
                                                                                  Resource_loader::load_shader_source(
-                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert").c_str(),
+                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert"),
                                                                                  Resource_loader::load_shader_source(
-                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag").c_str());
+                                                                                   "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag"));
+    // Load framebuffer.
+    this->framebuffer_viewport_data.viewport->load();
+    this->framebuffer_viewport_data.framebuffer_viewport_shader->load();
+    
+    // Load and enqueue the object for rendering.
     Renderer::send_object(*this->objects[0], *this->shaders[0]);
   }
   
   void Editor_layer::on_detach()
   {
     for (const std::shared_ptr<Shader> &shader: this->shaders) shader->unbind();
+    this->framebuffer_viewport_data.framebuffer_viewport_shader->destroy();
   }
   
   void Editor_layer::on_event([[maybe_unused]] Event &event)

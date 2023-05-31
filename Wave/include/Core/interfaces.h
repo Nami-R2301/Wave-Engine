@@ -15,6 +15,23 @@ namespace Wave
     Error
   };
   
+  // Able to initialize its members explicitly without relying on the ambiguity of constructors.
+  class Loadable
+  {
+    public:
+    virtual ~Loadable() = default;
+    [[nodiscard]] virtual bool is_loaded() const = 0;
+    virtual void load() = 0;
+  };
+  
+  // Able to clear its members explicitly without relying on the ambiguity of destructors.
+  class Destroyable
+  {
+    public:
+    virtual ~Destroyable() = default;
+    virtual void destroy() = 0;
+  };
+  
   // Display properties applied to entities to debug their states and/or show them in the editor.
   class Printable
   {

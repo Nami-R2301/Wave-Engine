@@ -79,7 +79,7 @@ namespace Wave
   void Gl_renderer::set_viewport(float width, float height)
   {
     if (width <= 0.0f || height <= 0.0f)
-      gl_synchronous_error_callback(GL_INVALID_VIEWPORT_DIMENSIONS, "Invalid viewport size given!", __FUNCTION__,
+      gl_synchronous_error_callback(WAVE_GL_INVALID_VIEWPORT_DIMENSIONS, "Invalid viewport size given!", __FUNCTION__,
                                     __FILE__, __LINE__);
     CHECK_GL_CALL(glViewport(0, 0, width, height));
   }
@@ -284,6 +284,7 @@ namespace Wave
   void Gl_renderer::send_object(const Object &object, Shader &linked_shader)
   {
     Gl_renderer::draw_commands[1]->associated_shader = &linked_shader;
+    Gl_renderer::draw_commands[1]->associated_shader->load();
     Gl_renderer::draw_commands[1]->associated_shader->bind();
     Gl_renderer::draw_commands[1]->associated_shader->set_uniform("u_sampler", 1);
     
@@ -293,6 +294,17 @@ namespace Wave
                                         u_camera_block,
                                         3));
     
+    if (!object.is_loaded())
+    {
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 "Cannot render object, object buffer is not loaded!"
+                                                 " Did you forget to load/reload in your text with 'load() first'?",
+                                                 __FUNCTION__,
+                                                 __FILE__,
+                                                 __LINE__ - 2);
+      return;
+    }
+    
     // If we reached the max batch memory limit (2 MB).
     if (Gl_renderer::draw_commands[1]->vbo_offset + (object.get_vertex_count() * object.get_vertex_size()) >= 5'000'000)
       flush();
@@ -301,15 +313,13 @@ namespace Wave
     load_dynamic_vbo_data(object.get_vertices(), object.get_vertex_count(), object.get_vertex_size(), 1);
     load_dynamic_ibo_data(object.get_faces(), object.get_face_count(), sizeof(uint32_t), 1);
     
-    auto object_textures = object.get_textures();
-    if (!object_textures.empty())
+    if (!object.get_textures().empty())
+      Gl_renderer::draw_commands[1]->associated_shader->set_uniform("u_has_texture", true);
+    
+    for (const auto &texture: object.get_textures())
     {
-      if (*object_textures[0])
-      {
-        Gl_renderer::draw_commands[1]->associated_shader->set_uniform("u_has_texture", true);
-        for (const auto &texture: object.get_textures())
-          Gl_renderer::textures.emplace_back(texture.get());
-      }
+      texture->load();
+      Gl_renderer::textures.emplace_back(texture.get());
     }
     
     Gl_renderer::draw_commands[1]->associated_shader->set_uniform("u_model",
@@ -317,17 +327,29 @@ namespace Wave
                                                                   false);
   }
   
-  void Gl_renderer::send_text(const Text &text, Shader &linked_shader)
+  void Gl_renderer::send_text(const Text_box &text, Shader &linked_shader)
   {
     Gl_renderer::draw_commands[0]->associated_shader = &linked_shader;
+    Gl_renderer::draw_commands[0]->associated_shader->load();
     Gl_renderer::draw_commands[0]->associated_shader->bind();
     Gl_renderer::draw_commands[0]->associated_shader->set_uniform("u_sampler", 0);
     
+    if (!text.is_loaded())
+    {
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 "Cannot render text, text buffer is not loaded!"
+                                                 " Did you forget to load/reload-in your text with 'load() first'?",
+                                                 __FUNCTION__,
+                                                 __FILE__,
+                                                 __LINE__ - 2);
+      return;
+    }
+    
     Gl_renderer::draw_commands[0]->vertex_array_buffer->bind();
     
-    const std::string &string = text.get_string();
-    float offset_x = text.get_offset_x(), offset_y = text.get_offset_y();
-    const Vector_2f &scale = text.get_scale();
+    float offset_x = text.get_text_offset().get_x(), offset_y = text.get_text_offset().get_y();
+    const std::string &string = text.get_text_string();
+    const Vector_2f &scale = text.get_text_scale();
     
     // Iterate through all characters
     for (const char &c: string)
@@ -339,20 +361,44 @@ namespace Wave
         blue = text.get_characters().at(c).color.get_blue(),
         alpha = text.get_characters().at(c).color.get_alpha();
       
-      float texture_offset_x = ch.texture_offset.get_x(), texture_offset_y = ch.texture_offset.get_y();
-      float x_pos = offset_x + ch.bearing.get_x() * scale.get_x();
-      float y_pos = offset_y - (ch.size.get_y() - ch.bearing.get_y()) * scale.get_y();
+      auto texture_offset_x = (float) ch.texture_offset;
+      Vector_2f atlas_size = Vector_2f((float) text.get_texture_atlas()->get_width(),
+                                       (float) text.get_texture_atlas()->get_height());
+      
+      float x_pos = offset_x + (ch.bearing.get_x() * scale.get_x());
+      float y_pos = -offset_y - (ch.bearing.get_y() * scale.get_y());
       float w = ch.size.get_x() * scale.get_x();
       float h = ch.size.get_y() * scale.get_y();
+      
+      // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
+      offset_x += ch.advance.get_x() * scale.get_x();
+      offset_y += ch.advance.get_y() * scale.get_y();
+      
       // Update VBO for each character
       float vertices[6][8] = {
-        {x_pos,     y_pos + h, red, green, blue, alpha, texture_offset_x,     texture_offset_y},
-        {x_pos,     y_pos,     red, green, blue, alpha, texture_offset_x,     texture_offset_y + h},
-        {x_pos + w, y_pos,     red, green, blue, alpha, texture_offset_x + w, texture_offset_y + h},
+        {x_pos,     -y_pos,
+          red, green, blue, alpha,
+          texture_offset_x,                                        0},
         
-        {x_pos,     y_pos + h, red, green, blue, alpha, texture_offset_x,     texture_offset_y},
-        {x_pos + w, y_pos,     red, green, blue, alpha, texture_offset_x + w, texture_offset_y + h},
-        {x_pos + w, y_pos + h, red, green, blue, alpha, texture_offset_x + w, texture_offset_y}
+        {x_pos + w, -y_pos,
+          red, green, blue, alpha,
+          texture_offset_x + ch.size.get_x() / atlas_size.get_x(), 0},
+        
+        {x_pos,     -y_pos - h,
+          red, green, blue, alpha,
+          texture_offset_x,                                        ch.size.get_y() / atlas_size.get_y()},
+        
+        {x_pos + w, -y_pos,
+          red, green, blue, alpha,
+          texture_offset_x + ch.size.get_x() / atlas_size.get_x(), 0},
+        
+        {x_pos,     -y_pos - h,
+          red, green, blue, alpha,
+          texture_offset_x,                                        ch.size.get_y() / atlas_size.get_y()},
+        
+        {x_pos + w, -y_pos - h,
+          red, green, blue, alpha,
+          texture_offset_x + ch.size.get_x() / atlas_size.get_x(), ch.size.get_y() / atlas_size.get_y()}
       };
       
       // Update content of VBO memory
@@ -360,11 +406,8 @@ namespace Wave
                                                                                                 sizeof(vertices),
                                                                                                 Gl_renderer::draw_commands[0]->vbo_offset);
       Gl_renderer::draw_commands[0]->vbo_offset += sizeof(vertices);
-      
-      // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
-      offset_x += static_cast<float>((ch.advance >> 6)) *
-                  scale.get_x(); // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }
+    text.get_texture_atlas()->load();
     Gl_renderer::textures.emplace_back(text.get_texture_atlas());  // Load glyph texture atlas.
     
     Gl_renderer::draw_commands[0]->vertex_array_buffer->get_vertex_buffers().back()->set_count(
@@ -503,7 +546,7 @@ namespace Wave
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid enum");
           break;
         }
-        case GL_INVALID_VIEWPORT_DIMENSIONS:
+        case WAVE_GL_INVALID_VIEWPORT_DIMENSIONS:
         {
           temp.type = "Invalid viewport dimensions";
           temp.severity = "Fatal";
@@ -519,11 +562,19 @@ namespace Wave
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid value");
           break;
         }
-        case GL_DEBUG_SOURCE_INVALID_UNIFORM:
+        case WAVE_GL_BUFFER_NOT_LOADED:
+        {
+          temp.type = "Buffer not loaded";
+          temp.severity = "Fatal";
+          temp.code = WAVE_GL_BUFFER_NOT_LOADED;
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Buffer not loaded");
+          break;
+        }
+        case WAVE_GL_DEBUG_SOURCE_INVALID_UNIFORM:
         {
           temp.type = "Invalid uniform";
           temp.severity = "Warning";
-          temp.code = GL_DEBUG_SOURCE_INVALID_UNIFORM;
+          temp.code = WAVE_GL_DEBUG_SOURCE_INVALID_UNIFORM;
           snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Invalid uniform");
           break;
         }

@@ -22,8 +22,9 @@
 #define WAVE_RENDERER_RUNNING 0x12
 #define WAVE_RENDERER_SHUTDOWN 0x1F
 
-#define GL_DEBUG_SOURCE_INVALID_UNIFORM 0x222
-#define GL_INVALID_VIEWPORT_DIMENSIONS 0x223
+#define WAVE_GL_DEBUG_SOURCE_INVALID_UNIFORM 0x222
+#define WAVE_GL_BUFFER_NOT_LOADED 0x223
+#define WAVE_GL_INVALID_VIEWPORT_DIMENSIONS 0x224
 
 /* ---------------------logger.h-------------------- */
 
@@ -110,3 +111,11 @@
 
 #define INTERFACE_SCALABLE void scale(const Vector_3f &scalar) override; \
                            void scale(float x, float y, float z) override;
+
+#define INTERFACE_LOADABLE void load() override; \
+                           [[nodiscard]] bool is_loaded() const override \
+                           {                     \
+                             return this->loaded;                      \
+                           };
+
+#define INTERFACE_DESTROYABLE void destroy() override;

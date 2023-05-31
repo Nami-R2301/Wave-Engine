@@ -46,9 +46,6 @@ namespace Wave
                                                           WAVE_VALUE_DONT_CARE,
                                                           WAVE_VALUE_DONT_CARE,
                                                           4});
-                    // Set default callbacks.
-                    Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-                    Engine::main_window->bind_api_callbacks();
                   },
                   "Engine launched")
   }
@@ -85,9 +82,6 @@ namespace Wave
                                                                           WAVE_VALUE_DONT_CARE,
                                                                           WAVE_VALUE_DONT_CARE,
                                                                           8});
-                        // Set default callbacks.
-                        Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-                        Engine::main_window->bind_api_callbacks();
                         break;
                       case Renderer_api::Vulkan:
                         alert(WAVE_LOG_WARN,
@@ -107,29 +101,9 @@ namespace Wave
                                                                           WAVE_VALUE_DONT_CARE,
                                                                           WAVE_VALUE_DONT_CARE,
                                                                           8});
-                        // Set default callbacks.
-                        Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
-                        Engine::main_window->bind_api_callbacks();
                     }
                   },
                   "Engine launched")
-  }
-  
-  Engine::~Engine()
-  {
-    WAVE_LOG_TASK("Engine", RED, 1, "--------- Shutting down Wave Engine ---------",
-                  {
-                    if (this->has_crashed())
-                    {
-                      alert(WAVE_LOG_ERROR, "[Engine] --> Engine exited with error code : %s0x%X%s ...",
-                            RED, get_exit_status(), DEFAULT);
-                    }
-                    this->shutdown();
-                  },
-                  "Engine shut down")
-#if defined(DEBUG)
-    Wave::close_stream();  // Close log file stream.
-#endif
   }
   
   Engine *Engine::get_app()
@@ -211,12 +185,19 @@ namespace Wave
     layer->on_detach();
   }
   
-  void Engine::init()
+  void Engine::load()
   {
+    if (this->is_loaded()) return;
+    // Set default callbacks.
+    Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
+    Engine::main_window->bind_api_callbacks();
+    
+    Renderer::init();
     // Default dark mode-like background.
     Renderer::set_clear_color(Wave::Color(0.03f, 1.0f, true));
     Engine::current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
-    Engine::set_exit_status(static_cast<int32_t>(Renderer::get_state().code));
+    
+    this->loaded = true;
   }
   
   void Engine::run()
@@ -341,12 +322,28 @@ namespace Wave
     while (start_time + time_waited.get_time_in_seconds() < end_time) time_waited.stop();  // Update the timer.
   }
   
+  void Engine::destroy()
+  {
+    WAVE_LOG_TASK("Engine", RED, 1, "--------- Shutting down Wave Engine ---------",
+                  {
+                    if (!Engine::main_window->is_closing() || !Renderer::is_running())
+                    {
+                      alert(WAVE_LOG_ERROR, "Engine crashed with exit code %x! Force shutdown...", this->exit_code);
+                    }
+                    Engine::shutdown();
+                  },
+                  "Engine shut down")
+#if defined(DEBUG)
+    Wave::close_stream();  // Close log file stream.
+#endif
+  }
+  
   void Engine::shutdown()
   {
     Engine::set_running_state(false);
     
     Engine::main_window->close();
-    Renderer::shutdown();
+    if (Renderer::is_running()) Renderer::shutdown();
     
     if ((Engine::get_exit_status() >> 4) &
         (WAVE_ENGINE_CONTEXT_CRASH >> 4))  // Shift 4 bits to the right to mask error.

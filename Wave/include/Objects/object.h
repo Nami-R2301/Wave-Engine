@@ -67,13 +67,15 @@ namespace Wave
     Object_3D
   };
   
-  class Object : public Printable, public Movable, public Rotatable, public Copiable, public Scalable
+  class Object : public Printable, public Movable, public Rotatable, public Copiable, public Scalable, public Loadable,
+                 public Destroyable
   {
     public:
+    ~Object() override = default;
+    
     static std::shared_ptr<Object> create();
     static std::shared_ptr<Object> create(const Object_2D_data_s &object_2D_data);
     static std::shared_ptr<Object> create(const Object_3D_data_s &object_3D_data);
-    ~Object() override = default;
     
     [[nodiscard]] virtual const void *get_vertices() const = 0;
     [[nodiscard]] virtual uint64_t get_vertex_count() const = 0;
@@ -107,9 +109,11 @@ namespace Wave
     Object_2D() = default;
     Object_2D(const Object_2D &sprite);
     explicit Object_2D(const Object_2D_data_s &sprite_data);
-    ~Object_2D() override = default;
+    ~Object_2D() override;
     
     // Interfaces.
+    INTERFACE_LOADABLE
+    INTERFACE_DESTROYABLE
     INTERFACE_PRINTABLE
     INTERFACE_COPIABLE
     INTERFACE_MOVABLE
@@ -172,6 +176,7 @@ namespace Wave
     std::vector<std::shared_ptr<Texture>> textures;
     Matrix_4f model_matrix = Matrix_4f(1.0f);
     Transform model_transform{};
+    bool loaded = false;
     protected:
     void apply_vertex_properties(const Object_2D_data_s &sprite);
   };
@@ -237,9 +242,11 @@ namespace Wave
     Object_3D() = default;
     Object_3D(const Object_3D &mesh);
     explicit Object_3D(const Object_3D_data_s &mesh);
-    ~Object_3D() override = default;
+    ~Object_3D() override;
     
     // Interfaces.
+    INTERFACE_LOADABLE
+    INTERFACE_DESTROYABLE
     INTERFACE_PRINTABLE
     INTERFACE_COPIABLE
     INTERFACE_MOVABLE
@@ -304,6 +311,7 @@ namespace Wave
     std::vector<std::shared_ptr<Texture>> textures;
     Matrix_4f model_matrix = Matrix_4f(1.0f);
     Transform model_transform{};
+    bool loaded = false;
     protected:
     void apply_vertex_properties(const Object_3D_data_s &mesh);
   };

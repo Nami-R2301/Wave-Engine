@@ -13,7 +13,6 @@ namespace Wave
   Editor::Editor() : Engine(Renderer_api::OpenGL, Context_api_e::Glfw,
                             Engine::App_type::Editor)
   {
-    Renderer::init();
     // Add Cameras
     this->editor_camera = std::make_shared<Editor_camera>(Engine::get_main_window()->get_width(),
                                                           Engine::get_main_window()->get_height(),
@@ -22,20 +21,25 @@ namespace Wave
     // Add shaders
     this->demo_shaders.emplace_back(Wave::Shader::create("Object",
                                                          Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/default_3D.vert").c_str(),
+                                                           "../Wave/res/Shaders/default_3D.vert"),
                                                          Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/default_3D.frag").c_str()));
-    this->demo_shaders.emplace_back(Wave::Shader::create("Text",
+                                                           "../Wave/res/Shaders/default_3D.frag")));
+    this->demo_shaders.emplace_back(Wave::Shader::create("Text_box",
                                                          Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                           "../Wave/res/Shaders/text-glyph.vert"),
                                                          Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.frag").c_str()));
-    this->demo_shaders.emplace_back(Wave::Shader::create("Text",
+                                                           "../Wave/res/Shaders/text-glyph.frag")));
+    this->demo_shaders.emplace_back(Wave::Shader::create("Text_box",
                                                          Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.vert").c_str(),
+                                                           "../Wave/res/Shaders/text-glyph.vert"),
                                                          Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.frag").c_str()));
+                                                           "../Wave/res/Shaders/text-glyph.frag")));
     
+    // Add objects
+    this->demo_objects.emplace_back(
+      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
+    
+    // Add framebuffer.
     int32_t max_samples = Engine::get_main_window()->get_samples();
     // Setup default viewport framebuffer specs.
     Framebuffer_options fbSpec;
@@ -46,21 +50,25 @@ namespace Wave
                                  fbSpec.height};
     this->viewport_framebuffer = Framebuffer::create(fbSpec);
     
-    
-    // Add objects
-    this->demo_objects.emplace_back(
-      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
-    
     // Add text strings
-    this->demo_texts.emplace_back(Text::create());
-    this->demo_texts.back()->set_offset_y(this->viewport_resolution.get_y() - 25.0f);
-    this->demo_texts.back()->set_color('?', Color(0xFF0000FF));
+    this->demo_texts.emplace_back(Text_box::create(Vector_2f(0.0f, 75.0f)));;
+    this->demo_texts[0]->set_text_offset_y(this->viewport_resolution.get_y() -
+                                           this->demo_texts[0]->get_pixel_size().get_y());
+    this->demo_texts[0]->set_text_color('?', Color(0xFF0000FF));
+    this->demo_texts[0]->set_text_scale(Vector_2f(0.55f));
     
-    this->demo_texts.emplace_back(Text::create());
-    this->demo_texts.back()->set_offset_x(this->demo_texts[0]->get_text_box_size().get_x());
-    this->demo_texts.back()->set_offset_y(this->demo_texts[0]->get_offset_y());
-    this->demo_texts.back()->set_color('?', Color(0xFF0000FF));
+    this->demo_texts.emplace_back(Text_box::create(this->demo_texts[0]->get_pixel_size(),
+                                                   " Namgame222 "));
     
+    this->demo_texts[1]->set_text_scale(this->demo_texts[0]->get_text_scale());
+    this->demo_texts[1]->set_text_offset(this->demo_texts[0]->get_text_length() + 25.0f,
+                                         this->demo_texts[0]->get_text_offset().get_y());
+    this->demo_texts[1]->set_text_uniform_color(Color(0xFF0000FF));
+  }
+  
+  void Editor::load()
+  {
+    Engine::load();
     
     push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution,
                               true));
@@ -69,10 +77,6 @@ namespace Wave
                                 this->demo_objects,
                                 this->viewport_framebuffer));
     push_layer(new ImGui_layer());
-  }
-  
-  void Editor::init()
-  {
   }
   
   void Editor::on_update(float time_step)

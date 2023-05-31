@@ -14,7 +14,7 @@ namespace Wave
     public:
     Gl_shader() = default;
 //    explicit Gl_shader(const char *program_file_path);  // In case the vertex and fragment shaders are written in a single file.
-    Gl_shader(const std::string &name, const char *vertex_source, const char *fragment_source);
+    Gl_shader(const std::string &name, const std::string &vertex_source, const std::string &fragment_source);
     ~Gl_shader() override;
     
     void add_shader(int32_t type, const char *source);
@@ -23,6 +23,8 @@ namespace Wave
     [[nodiscard]] int32_t get_id() const override;
     
     INTERFACE_PRINTABLE
+    INTERFACE_LOADABLE
+    INTERFACE_DESTROYABLE
     
     void source(uint32_t count, const char *source, int *length) const override;
     void compile(int32_t shader_id) const override;
@@ -43,6 +45,7 @@ namespace Wave
     [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
     private:
     std::string name = "No name";
+    std::string vertex_source = "Empty", fragment_source = "Empty";
     int32_t program_id = 0;
     int32_t vertex_shader_id = 0;
     int32_t fragment_shader_id = 0;
