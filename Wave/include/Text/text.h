@@ -88,15 +88,11 @@ namespace Wave
     
     Glyph_s &operator[](uint8_t index);
     protected:
-    const char *font_file_path = nullptr;
-    unsigned char texture_atlas_buffer[128];
     std::string text;
     Text_format_s format;
     Vector_2f atlas_size;
     Texture *texture_atlas = nullptr;
     std::map<uint8_t, Glyph_s> characters;
     bool loaded = false;
-    FT_Face face;
-    FT_Library library;
   };
 }

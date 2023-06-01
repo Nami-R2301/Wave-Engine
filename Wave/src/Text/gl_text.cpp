@@ -7,12 +7,16 @@
 
 #include <utility>
 
+static const char *s_font_file_path = nullptr;
+static FT_Face s_face;
+static FT_Library s_library;
+
 namespace Wave
 {
   
   Gl_text_box::Gl_text_box()
   {
-    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
     this->text = "?Example text?";
     init_freetype();
   }
@@ -20,14 +24,14 @@ namespace Wave
   Gl_text_box::Gl_text_box(const Vector_2f &pixel_size)
   {
     this->format.text_size = pixel_size;
-    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
     this->text = "?Example text?";
     init_freetype();
   }
   
   Gl_text_box::Gl_text_box(const std::string &text_)
   {
-    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
     this->text = text_;
     init_freetype();
   }
@@ -35,7 +39,7 @@ namespace Wave
   Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_)
   {
     this->format.text_size = pixel_size;
-    this->font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
     this->text = text_;
     init_freetype();
   }
@@ -43,20 +47,20 @@ namespace Wave
   Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_, const char *font_file_name)
   {
     this->format.text_size = pixel_size;
-    this->font_file_path = font_file_name;
+    s_font_file_path = font_file_name;
     this->text = text_;
   }
   
   Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_)
   {
-    this->font_file_path = font_file_name;
+    s_font_file_path = font_file_name;
     this->text = text_;
     init_freetype();
   }
   
   Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_, Text_format_s format_)
   {
-    this->font_file_path = font_file_name;
+    s_font_file_path = font_file_name;
     this->text = text_;
     this->format = std::move(format_);
     init_freetype();
@@ -69,52 +73,49 @@ namespace Wave
   
   void Gl_text_box::init_freetype()
   {
-    if (FT_Init_FreeType(&this->library)) return;
+    if (FT_Init_FreeType(&s_library)) return;
     
-    if (FT_New_Face(this->library, this->font_file_path, 0, &this->face))
+    if (FT_New_Face(s_library, s_font_file_path, 0, &s_face))
     {
-      alert(WAVE_LOG_ERROR, "[Gl text] --> Error loading font file %s!", this->font_file_path);
+      alert(WAVE_LOG_ERROR, "[Gl text] --> Error loading font file %s!", s_font_file_path);
       // If the font file is missing, use the callback (default) one.
-      FT_New_Face(this->library, "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf", 0, &this->face);
+      FT_New_Face(s_library, "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf", 0, &s_face);
     }
     
     // Set size to load glyphs as.
-    FT_Set_Pixel_Sizes(this->face, 0, (unsigned int) this->format.text_size.get_y());
+    FT_Set_Pixel_Sizes(s_face, 0, (unsigned int) this->format.text_size.get_y());
     
     unsigned int atlas_total_width = 0, atlas_row_width = 0, atlas_total_height = 0, atlas_row_height = 0;
     Color glyph_color = Color(1.0f, 1.0f, true);
     unsigned int texture_offset_x = 0;
     
-    
-    memset(this->texture_atlas_buffer, 0, sizeof(this->texture_atlas_buffer));
     // Load first 128 characters of ASCII set
     for (unsigned char character = 32; character < 128; character++)
     {
       // Load character glyph
-      if (FT_Load_Char(this->face, character, FT_LOAD_RENDER))
+      if (FT_Load_Char(s_face, character, FT_LOAD_RENDER))
       {
-        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to load Glyph_s");
+        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to load Glyph %c", character);
         continue;
       }
       
-      atlas_total_width += this->face->glyph->bitmap.width;  // Add padding to avoid artefacts.
+      atlas_total_width += s_face->glyph->bitmap.width;  // Add padding to avoid artefacts.
       atlas_total_height =
-        std::max(atlas_total_height, this->face->glyph->bitmap.rows);  // Add padding to avoid artefacts.
+        std::max(atlas_total_height, s_face->glyph->bitmap.rows);  // Add padding to avoid artefacts.
       
       // Store character for later use.
       Glyph_s character_glyph = {
         (float) texture_offset_x,
         glyph_color,
-        this->face->glyph->bitmap.width,
-        this->face->glyph->bitmap.rows,
-        Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
+        s_face->glyph->bitmap.width,
+        s_face->glyph->bitmap.rows,
+        Vector_2f((float) s_face->glyph->bitmap_left, (float) s_face->glyph->bitmap_top),
         // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-        Vector_2f((float) (this->face->glyph->advance.x >> 6), (float) (this->face->glyph->advance.y >> 6))
+        Vector_2f((float) (s_face->glyph->advance.x >> 6), (float) (s_face->glyph->advance.y >> 6))
       };
       this->characters.insert(std::pair<char, Glyph_s>(character, character_glyph));
       
-      if (this->face->glyph->bitmap.buffer) this->texture_atlas_buffer[character] = *this->face->glyph->bitmap.buffer;
-      texture_offset_x += this->face->glyph->bitmap.width;
+      texture_offset_x += s_face->glyph->bitmap.width;
     }
     
     atlas_total_width = std::max(atlas_total_width, atlas_row_width);
@@ -133,14 +134,14 @@ namespace Wave
     CHECK_GL_CALL(glPixelStorei(GL_PACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
     CHECK_GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
     // Create texture atlas for all glyphs of the current face.
-    this->texture_atlas = new Gl_texture_2D(this->font_file_path, {Texture::Texture_type_e::Texture_2D,
-                                                                   Texture::Texture_internal_format_e::Red,
-                                                                   this->atlas_size.get_x(),
-                                                                   this->atlas_size.get_y(),
-                                                                   WAVE_VALUE_DONT_CARE,
-                                                                   0,
-                                                                   WAVE_VALUE_DONT_CARE,
-                                                                   nullptr});
+    this->texture_atlas = new Gl_texture_2D(s_font_file_path, {Texture::Texture_type_e::Texture_2D,
+                                                               Texture::Texture_internal_format_e::Red,
+                                                               this->atlas_size.get_x(),
+                                                               this->atlas_size.get_y(),
+                                                               WAVE_VALUE_DONT_CARE,
+                                                               0,
+                                                               WAVE_VALUE_DONT_CARE,
+                                                               nullptr});
     
     if (!this->texture_atlas) return;
     this->texture_atlas->load();
@@ -148,7 +149,7 @@ namespace Wave
     // Set texture glyph data for current face.
     for (int i = 32; i < 128; i++)
     {
-      if (FT_Load_Char(this->face, i, FT_LOAD_RENDER))
+      if (FT_Load_Char(s_face, i, FT_LOAD_RENDER))
       {
         alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to load Glyph_s");
         continue;
@@ -157,16 +158,16 @@ namespace Wave
       this->texture_atlas->bind(this->texture_atlas->get_texture_slot());
       CHECK_GL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, this->characters[i].texture_offset,
                                     0,
-                                    this->face->glyph->bitmap.width,
-                                    this->face->glyph->bitmap.rows,
+                                    s_face->glyph->bitmap.width,
+                                    s_face->glyph->bitmap.rows,
                                     GL_RED, GL_UNSIGNED_BYTE,
-                                    this->face->glyph->bitmap.buffer));
+                                    s_face->glyph->bitmap.buffer));
       
       this->characters[i].texture_offset /= (float) this->texture_atlas->get_width();
     }
     
-    FT_Done_Face(this->face);
-    FT_Done_FreeType(this->library);
+    FT_Done_Face(s_face);
+    FT_Done_FreeType(s_library);
     
     this->loaded = true;
   }

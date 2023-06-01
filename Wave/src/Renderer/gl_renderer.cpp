@@ -18,8 +18,8 @@ namespace Wave
   std::vector<std::shared_ptr<Uniform_buffer>> Gl_renderer::uniform_buffers;
   std::function<void(Event &)> Gl_renderer::event_callback_function;
   
-  static char *glsl_version = nullptr;
-  static int32_t texture_unit_number_assigned = 0, max_texture_samplers = 4;
+  static char *s_glsl_version = nullptr;
+  static int32_t s_texture_unit_number_assigned = 0, s_max_texture_samplers = 4;
   
   bool Gl_renderer::is_running()
   {
@@ -51,14 +51,14 @@ namespace Wave
   const char *Gl_renderer::get_api_shader_version()
   {
     std::string version_and_name = Renderer::get_api_version();
-    if (snprintf(glsl_version, LINE_MAX, "#version %c%c%c",
+    if (snprintf(s_glsl_version, LINE_MAX, "#version %c%c%c",
                  glGetString(GL_SHADING_LANGUAGE_VERSION)[0],
                  glGetString(GL_SHADING_LANGUAGE_VERSION)[2],
                  glGetString(GL_SHADING_LANGUAGE_VERSION)[3]) < 0)
     {
       return "#version 330";  // Default version.
     }
-    return glsl_version;
+    return s_glsl_version;
   }
   
   [[maybe_unused]] const std::function<void(Event &event)> &Gl_renderer::get_event_callback_function()
@@ -86,7 +86,7 @@ namespace Wave
   
   void Gl_renderer::init()
   {
-    glsl_version = (char *) calloc(1, LINE_MAX);
+    s_glsl_version = (char *) calloc(1, LINE_MAX);
     WAVE_LOG_TASK("GL renderer", CYAN, 1, "Loading openGL renderer ...",
                   {
                     WAVE_LOG_INSTRUCTION("GL renderer", DEFAULT, "Loading GLEW", CHECK_GL_CALL(glewInit()))
@@ -97,7 +97,7 @@ namespace Wave
                     int flags;
                     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
                     // Get max number of simultaneous texture upload to the GPU.
-                    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &max_texture_samplers);
+                    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &s_max_texture_samplers);
                     if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
                     {
                       glEnable(GL_DEBUG_OUTPUT);  // Enable debug output.
@@ -323,7 +323,7 @@ namespace Wave
     int32_t shader_id = linked_shader.get_id();
     Gl_renderer::draw_commands[shader_id]->associated_shader->load();
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
-    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", texture_unit_number_assigned);
+    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
     
     unsigned int u_camera_block = glGetUniformBlockIndex(
       Gl_renderer::draw_commands[shader_id]->associated_shader->get_id(), "u_camera");
@@ -347,10 +347,10 @@ namespace Wave
     
     for (const auto &texture: object.get_textures())
     {
-      texture->set_texture_slot(texture_unit_number_assigned);
+      texture->set_texture_slot(s_texture_unit_number_assigned);
       texture->load();
       Gl_renderer::textures.emplace_back(texture.get());
-      texture_unit_number_assigned++;
+      s_texture_unit_number_assigned++;
     }
     
     Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_model",
@@ -375,7 +375,7 @@ namespace Wave
     int32_t shader_id = linked_shader.get_id();
     Gl_renderer::draw_commands[shader_id]->associated_shader->load();
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
-    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", texture_unit_number_assigned);
+    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
     
     
     float offset_x = text.get_text_offset().get_x(), offset_y = text.get_text_offset().get_y();
@@ -434,20 +434,13 @@ namespace Wave
           texture_offset_x + (float) (ch.size_x - 1) / atlas_size.get_x(), (float) (ch.size_y - 1) / atlas_size.get_y()}
       };
       
-      alert(WAVE_LOG_DEBUG, "Glyph_s character --> %c\n"
-                            "%55sGlyph bearing width --> %.2f, Glyph_s bearing height --> %.2f\n"
-                            "%55sGlyph width --> %d, Glyph_s height --> %d, Texture offset --> %.2f\n",
-            c,
-            DEFAULT, ch.bearing.get_x(), ch.bearing.get_y(),
-            DEFAULT, ch.size_x, ch.size_y, texture_offset_x);
-      
       // Update content of VBO memory
       load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id);
     }
-    text.get_texture_atlas()->set_texture_slot(texture_unit_number_assigned);
+    text.get_texture_atlas()->set_texture_slot(s_texture_unit_number_assigned);
     text.get_texture_atlas()->load();
     Gl_renderer::textures.emplace_back(text.get_texture_atlas());  // Load glyph texture atlas.
-    texture_unit_number_assigned++;
+    s_texture_unit_number_assigned++;
   }
   
   void Gl_renderer::flush()
@@ -487,7 +480,7 @@ namespace Wave
     
     for (const auto &draw_command: Gl_renderer::draw_commands) delete draw_command.second;
     
-    free(glsl_version);
+    free(s_glsl_version);
   }
   
   bool Gl_renderer::has_crashed()
