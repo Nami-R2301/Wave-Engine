@@ -29,6 +29,7 @@ namespace Wave
     
     
     [[nodiscard]] virtual int32_t get_id() const = 0;
+    [[nodiscard]] virtual const std::unordered_map<const char *, int> &get_uniforms() const = 0;
     [[nodiscard]] virtual int get_uniform_location(const char *uniform_name) const = 0;
     
     virtual void set_uniform(const char *uniform_name, const Color &color) const = 0;

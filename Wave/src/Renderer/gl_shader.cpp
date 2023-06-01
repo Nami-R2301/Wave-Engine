@@ -16,11 +16,8 @@ namespace Wave
     this->uniform_cache = std::unordered_map<const char *, int32_t>();
   }
 
-//TODO : Extract vertex shader and fragment shader in one source shader file.
-//  Gl_shader::Gl_shader(const char *program_file_path)
-//  {
 //  }
-  
+
   Gl_shader::~Gl_shader()
   {
     Gl_shader::destroy();
@@ -155,6 +152,14 @@ namespace Wave
       return "ERROR : Snprintf failed while trying to print [Gl_shader]!";
     }
     return buffer;
+  }
+
+//TODO : Extract vertex shader and fragment shader in one source shader file.
+//  Gl_shader::Gl_shader(const char *program_file_path)
+//  {
+  const std::unordered_map<const char *, int> &Gl_shader::get_uniforms() const
+  {
+    return this->uniform_cache;
   }
   
   int Gl_shader::get_uniform_location(const char *uniform_name) const

@@ -51,31 +51,24 @@ namespace Wave
     this->viewport_framebuffer = Framebuffer::create(fbSpec);
     
     // Add text strings
-    this->demo_texts.emplace_back(Text_box::create(Vector_2f(0.0f, 75.0f)));;
+    this->demo_texts.emplace_back(Text_box::create(Vector_2f(0.0f, 250.0f), "~ Wave Engine ~"));
     this->demo_texts[0]->set_text_offset_y(this->viewport_resolution.get_y() -
                                            this->demo_texts[0]->get_pixel_size().get_y());
-    this->demo_texts[0]->set_text_color('?', Color(0xFF0000FF));
-    this->demo_texts[0]->set_text_scale(Vector_2f(0.55f));
-    
-    this->demo_texts.emplace_back(Text_box::create(this->demo_texts[0]->get_pixel_size(),
-                                                   " Namgame222 "));
-    
-    this->demo_texts[1]->set_text_scale(this->demo_texts[0]->get_text_scale());
-    this->demo_texts[1]->set_text_offset(this->demo_texts[0]->get_text_length() + 25.0f,
-                                         this->demo_texts[0]->get_text_offset().get_y());
-    this->demo_texts[1]->set_text_uniform_color(Color(0xFF0000FF));
+    this->demo_texts[0]->set_text_color('~', Color(0xFF0000FF));
+    this->demo_texts[0]->set_text_scale(Vector_2f(0.5f));
+    this->demo_texts[0]->append_text(" SuzyQBouf", Color(0xFF0000FF));
   }
   
   void Editor::load()
   {
     Engine::load();
     
-    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution,
-                              true));
     push_layer(new Editor_layer(this->editor_camera,
                                 this->demo_shaders,
                                 this->demo_objects,
                                 this->viewport_framebuffer));
+    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, this->viewport_resolution,
+                              true));
     push_layer(new ImGui_layer());
   }
   

@@ -37,13 +37,10 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
     Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
   
   // Add text strings
-  this->demo_text.emplace_back(Wave::Text_box::create());
-  this->demo_text.back()->set_text_offset_y(Wave::Engine::get_main_window()->get_height() - 25.0f);
-  
-  this->demo_text.emplace_back(Wave::Text_box::create());
-  this->demo_text.back()->set_text_offset_x(25.0f + this->demo_text.back()->get_text_box_size().get_x());
-  this->demo_text.back()->set_text_offset_y(this->demo_text[0]->get_text_offset().get_y());
-  this->demo_text.back()->set_text_uniform_color(Wave::Color(0xFF0000FF));
+  this->demo_text.emplace_back(Wave::Text_box::create(Wave::Vector_2f(0.0f, 200.0f),
+                                                      " Namgame222 "));
+  this->demo_text[0]->set_text_offset_y(Engine::get_main_window()->get_height() - 200.0f);
+  this->demo_text[0]->set_text_scale(Wave::Vector_2f(0.5f));
 }
 
 void Example_app::load()

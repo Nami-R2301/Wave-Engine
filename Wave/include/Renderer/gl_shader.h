@@ -34,6 +34,7 @@ namespace Wave
     void validate() const override;
     
     // Uniform handling.
+    [[nodiscard]] const std::unordered_map<const char *, int> &get_uniforms() const override;
     [[nodiscard]] int get_uniform_location(const char *uniform_name) const override;
     void set_uniform(const char *uniform_name, const Color &color) const override;
     void set_uniform(const char *uniform_name, const float *matrix_4f, bool transpose) const override;

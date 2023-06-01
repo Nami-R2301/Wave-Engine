@@ -59,7 +59,7 @@ namespace Wave
     [[nodiscard]] static const Renderer_api &get_api();
     [[nodiscard]] static const char *get_api_version();
     [[nodiscard]] static const char *get_api_shader_version();
-    [[nodiscard]] static const std::function<void(Event &event)> &get_event_callback_function();
+    [[maybe_unused]] [[nodiscard]] static const std::function<void(Event &event)> &get_event_callback_function();
     
     // Renderer state and API info.
     static void show_renderer_info();
@@ -100,7 +100,7 @@ namespace Wave
     static Camera *scene_camera;
     static std::vector<Texture *> textures;
     // Map the draw commands to enable querying and overwriting with the name identifier.
-    static std::vector<Renderer::Draw_command *> draw_commands;
+    static std::map<uint32_t, Renderer::Draw_command *> draw_commands;
     static std::vector<std::shared_ptr<Uniform_buffer>> uniform_buffers;
     static std::function<void(Event &event)> event_callback_function;
     private:
@@ -108,8 +108,8 @@ namespace Wave
     static void load_dynamic_vbo_data(const void *vertices, uint64_t count, uint64_t size, uint64_t command_index,
                                       uint64_t vbo_index = 0);
     static void load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index);
-    static void init_object_buffers();
-    static void init_text_buffers();
+    static void init_object_draw_command(Shader &shader_linked);
+    static void init_text_draw_command(Shader &shader_linked);
   };
 }
 

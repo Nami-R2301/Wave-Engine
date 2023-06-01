@@ -182,7 +182,7 @@ namespace Wave
   }
   
   std::shared_ptr<Text_box>
-  Text_box::create(const char *font_file_path, const std::string &string_, const Text_format &format_)
+  Text_box::create(const char *font_file_path, const std::string &string_, const Text_format_s &format_)
   {
     switch (Renderer::get_api())
     {
@@ -220,7 +220,7 @@ namespace Wave
     return this->text;
   }
   
-  const Text_format &Text_box::get_text_format() const
+  const Text_format_s &Text_box::get_text_format() const
   {
     return this->format;
   }
@@ -240,7 +240,7 @@ namespace Wave
     return this->format.scale;
   }
   
-  const Glyph &Text_box::get_character(uint8_t character_code)
+  const Glyph_s &Text_box::get_character(uint8_t character_code)
   {
     return this->characters[character_code];
   }
@@ -255,7 +255,7 @@ namespace Wave
     float length = this->format.offset.get_x() * 2;  // Add padding on both sides.
     for (const auto &character: this->text)
     {
-      length += this->characters.at(character).size.get_x() * this->format.scale.get_x();
+      length += this->characters.at(character).size_x * this->format.scale.get_x();
     }
     return length;
   }
@@ -265,22 +265,22 @@ namespace Wave
     return this->format.box_size;
   }
   
-  const std::map<uint8_t, Glyph> &Text_box::get_characters() const
+  const std::map<uint8_t, Glyph_s> &Text_box::get_characters() const
   {
     return this->characters;
   }
   
-  void Text_box::set_character(uint8_t character_code, const Glyph &character)
+  void Text_box::set_character(uint8_t character_code, const Glyph_s &character)
   {
     this->characters[character_code] = character;
   }
   
-  Glyph &Text_box::operator[](uint8_t index)
+  Glyph_s &Text_box::operator[](uint8_t index)
   {
     return index < this->characters.size() ? this->characters[index] : this->characters[0];
   }
   
-  void Text_box::set_text_format(const Text_format &format_)
+  void Text_box::set_text_format(const Text_format_s &format_)
   {
     this->format = format_;
   }
@@ -310,7 +310,7 @@ namespace Wave
     this->characters[character].color = color;
   }
   
-  void Text_box::set_text_uniform_color(const Color &color)
+  void Text_box::set_text_color(const Color &color)
   {
     for (auto &character: this->text) this->characters.at(character).color = color;
   }
@@ -323,8 +323,12 @@ namespace Wave
   void Text_box::append_text(const std::string &text_)
   {
     this->text += text_;
-    if (get_text_length() > this->format.box_size.get_x())
-      this->format.box_size += Vector_2f((float) text_.size(), 0.0f);
+  }
+  
+  void Text_box::append_text(const std::string &text_, const Color &uniform_color)
+  {
+    this->text += text_;
+    for (const char &character: text_) this->characters[character].color = uniform_color;
   }
   
   void Text_box::set_text_string(const std::string &text_)

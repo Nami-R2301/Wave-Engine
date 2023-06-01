@@ -19,7 +19,7 @@ namespace Wave
     Gl_text_box(const Vector_2f &pixel_size, const std::string &string_);
     Gl_text_box(const char *font_file_name, const std::string &string_);
     Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const char *font_file_path);
-    Gl_text_box(const char *font_file_name, const std::string &string_, Text_format text_format_);
+    Gl_text_box(const char *font_file_name, const std::string &string_, Text_format_s text_format_);
     ~Gl_text_box() override;
     
     // Interfaces.
