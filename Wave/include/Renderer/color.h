@@ -37,6 +37,7 @@ namespace Wave
     
     float &operator[](unsigned int index);
     
+    void operator+=(const Color &added_color);
     Color &operator=(const Color &other_color);
     bool operator!=(const Color &other_color) const;
     bool operator==(const Color &other_color);

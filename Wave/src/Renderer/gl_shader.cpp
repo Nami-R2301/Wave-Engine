@@ -20,12 +20,12 @@ namespace Wave
 
   Gl_shader::~Gl_shader()
   {
-    Gl_shader::destroy();
+    Gl_shader::unbuild();
   }
   
-  void Gl_shader::load()
+  void Gl_shader::build()
   {
-    if (this->loaded) return;
+    
     CHECK_GL_CALL(this->program_id = glCreateProgram());
     if (this->program_id == -1)
     {
@@ -39,18 +39,18 @@ namespace Wave
     Gl_shader::link();
     Gl_shader::validate();
     
-    this->loaded = true;
+    this->built = true;
   }
   
-  void Gl_shader::destroy()
+  void Gl_shader::unbuild()
   {
-    if (this->is_loaded())
+    if (this->is_built())
     {
       this->detach();
       WAVE_LOG_INSTRUCTION("Shader", DEFAULT, "Deleting shader program",
                            CHECK_GL_CALL(glDeleteProgram(this->program_id)))
       if (!this->uniform_cache.empty()) this->uniform_cache.clear();
-      this->loaded = false;
+      this->built = false;
     }
   }
   
@@ -126,11 +126,11 @@ namespace Wave
   
   void Gl_shader::bind() const
   {
-    if (!this->loaded)
+    if (!this->built)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot use shader program, OpenGL shader not loaded!"
-                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 "Cannot use shader program, OpenGL shader not built!"
+                                                 " Did you forget to build/reload in your shader with 'build()'?",
                                                  __FUNCTION__,
                                                  __FILE__,
                                                  __LINE__ - 2);
@@ -231,5 +231,10 @@ namespace Wave
   int32_t Gl_shader::get_id() const
   {
     return this->program_id;
+  }
+  
+  bool Gl_shader::operator==(const Shader &other_shader) const
+  {
+    return this->program_id == other_shader.get_id();
   }
 }

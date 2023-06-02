@@ -12,24 +12,18 @@ namespace Wave
   {
     Default = 0,
     Warn,
-    Error
+    Error,
+    Debug
   };
   
   // Able to initialize its members explicitly without relying on the ambiguity of constructors.
-  class Loadable
+  class Buildable
   {
     public:
-    virtual ~Loadable() = default;
-    [[nodiscard]] virtual bool is_loaded() const = 0;
-    virtual void load() = 0;
-  };
-  
-  // Able to clear its members explicitly without relying on the ambiguity of destructors.
-  class Destroyable
-  {
-    public:
-    virtual ~Destroyable() = default;
-    virtual void destroy() = 0;
+    virtual ~Buildable() = default;
+    [[nodiscard]] virtual bool is_built() const = 0;
+    virtual void build() = 0;
+    virtual void unbuild() = 0;
   };
   
   // Display properties applied to entities to debug their states and/or show them in the editor.

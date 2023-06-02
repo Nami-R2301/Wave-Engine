@@ -12,7 +12,7 @@ public:
   Example_app();
   ~Example_app() override = default;
   
-  void load() override;
+  void build() override;
   void on_update(float time_step) override;
   void on_event(Wave::Event &event) override;
   void on_render() override;

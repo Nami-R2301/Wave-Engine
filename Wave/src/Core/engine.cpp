@@ -185,9 +185,9 @@ namespace Wave
     layer->on_detach();
   }
   
-  void Engine::load()
+  void Engine::build()
   {
-    if (this->is_loaded()) return;
+    
     // Set default callbacks.
     Engine::main_window->set_event_callback_function(BIND_EVENT_FUNCTION(on_event));
     Engine::main_window->bind_api_callbacks();
@@ -197,7 +197,7 @@ namespace Wave
     Renderer::set_clear_color(Wave::Color(0.03f, 1.0f, true));
     Engine::current_time.set_previous_engine_time(std::chrono::high_resolution_clock::now());
     
-    this->loaded = true;
+    this->built = true;
   }
   
   void Engine::run()
@@ -322,7 +322,7 @@ namespace Wave
     while (start_time + time_waited.get_time_in_seconds() < end_time) time_waited.stop();  // Update the timer.
   }
   
-  void Engine::destroy()
+  void Engine::unbuild()
   {
     WAVE_LOG_TASK("Engine", RED, 1, "--------- Shutting down Wave Engine ---------",
                   {

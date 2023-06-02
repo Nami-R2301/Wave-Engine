@@ -14,9 +14,10 @@ namespace Wave
                                        WAVE_RENDERER_INIT};
   std::map<uint32_t, Renderer::Draw_command *> Gl_renderer::draw_commands;
   Camera *Gl_renderer::scene_camera;
-  std::vector<Texture *> Gl_renderer::textures;
+  std::map<uint32_t, Texture *> Gl_renderer::textures;
   std::vector<std::shared_ptr<Uniform_buffer>> Gl_renderer::uniform_buffers;
   std::function<void(Event &)> Gl_renderer::event_callback_function;
+  Renderer::Renderer_stats_s Gl_renderer::stats = {0};
   
   static char *s_glsl_version = nullptr;
   static int32_t s_texture_unit_number_assigned = 0, s_max_texture_samplers = 4;
@@ -34,6 +35,11 @@ namespace Wave
   const Renderer_api &Gl_renderer::get_api()
   {
     return Gl_renderer::api;
+  }
+  
+  Renderer::Renderer_stats_s Gl_renderer::get_stats()
+  {
+    return Gl_renderer::stats;
   }
   
   int32_t Gl_renderer::get_max_texture_units()
@@ -120,7 +126,7 @@ namespace Wave
                     CHECK_GL_CALL(glEnable(GL_MULTISAMPLE));
                     CHECK_GL_CALL(glEnable(GL_BLEND));
                     CHECK_GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-                  }, "GL renderer loaded")
+                  }, "GL renderer built")
     Gl_renderer::set_state({nullptr, nullptr, nullptr, WAVE_RENDERER_RUNNING});
 
 #if defined(OPENGL_VERSION_4_3_PLUS) && defined(DEBUG)
@@ -149,7 +155,7 @@ namespace Wave
                                 b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
                                 
                                 Buffer_layout vbo_layout(b_elements);
-                                auto vbo_ = Vertex_buffer::create(sizeof(float) * 4, max_vertices);
+                                auto vbo_ = Vertex_buffer::create(sizeof(float) * 4, max_vbo_buffer_size);
                                 vbo_->set_layout(vbo_layout);
                                 
                                 initial_command.vertex_array_buffer = Vertex_array_buffer::create();
@@ -185,12 +191,12 @@ namespace Wave
                                 
                                 initial_command.vertex_array_buffer = Vertex_array_buffer::create();
                                 initial_command.vertex_array_buffer->set_index_buffer(
-                                  Index_buffer::create(nullptr, max_indices));
+                                  Index_buffer::create(nullptr, max_ibo_buffer_size));
                                 
                                 // Make sure the buffer is set to 0 in count to prevent fetching the max count with 'get_count()'.
                                 initial_command.vertex_array_buffer->get_index_buffer()->set_count(0);
                                 
-                                auto vbo_ = Vertex_buffer::create(sizeof(Vertex_3D), max_vertices);
+                                auto vbo_ = Vertex_buffer::create(sizeof(Vertex_3D), max_vbo_buffer_size);
                                 Buffer_layout vbo_layout(b_elements);
                                 vbo_->set_layout(vbo_layout);
                                 initial_command.vertex_array_buffer->add_vertex_buffer(vbo_);
@@ -273,29 +279,41 @@ namespace Wave
   }
   
   void Gl_renderer::load_dynamic_vbo_data(const void *vertices, uint64_t count, uint64_t size, uint64_t command_index,
-                                          uint64_t vbo_index)
+                                          int64_t vbo_offset)
   {
     if (!vertices || size == 0 || count == 0) return;
     if (Gl_renderer::draw_commands.contains(command_index))
     {
-      Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[vbo_index]->set_data(
+      if (vbo_offset != WAVE_VALUE_DONT_CARE)
+      {
+        Gl_renderer::draw_commands[command_index]->vbo_offset = vbo_offset;
+        Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->set_count(0);
+      }
+      Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->set_data(
         vertices,
         count *
         size,
         Gl_renderer::draw_commands[command_index]->vbo_offset);
-      // Update vbo count.
-      Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[vbo_index]->set_count(
-        Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[vbo_index]->get_count() +
-        count);
-      Gl_renderer::draw_commands[command_index]->vbo_offset += count * size;
     }
+    
+    // Update vbo count.
+    Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->set_count(
+      Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->get_count() +
+      count);
+    Gl_renderer::draw_commands[command_index]->vbo_offset += count * size;
   }
   
-  void Gl_renderer::load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index)
+  void Gl_renderer::load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index,
+                                          int64_t ibo_offset)
   {
     if (!faces || size == 0 || count == 0) return;
     if (Gl_renderer::draw_commands.contains(command_index))
     {
+      if (ibo_offset != WAVE_VALUE_DONT_CARE)
+      {
+        Gl_renderer::draw_commands[command_index]->ibo_offset = ibo_offset;
+        Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->set_count(0);
+      }
       Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->set_data(faces,
                                                                                                    count * size,
                                                                                                    Gl_renderer::draw_commands[command_index]->ibo_offset);
@@ -306,22 +324,18 @@ namespace Wave
     }
   }
   
-  void Gl_renderer::send_object(const Object &object, Shader &linked_shader)
+  void Gl_renderer::send_object(Object &object, Shader &linked_shader)
   {
-    if (!object.is_loaded())
+    if (!object.is_built()) object.build();
+    if (!Gl_renderer::draw_commands.contains(linked_shader.get_id()))
     {
-      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot render object, object buffer is not loaded!"
-                                                 " Did you forget to load/reload in your text with 'load() first'?",
-                                                 __FUNCTION__,
-                                                 __FILE__,
-                                                 __LINE__ - 2);
-      return;
+      Gl_renderer::stats.object_count++;
+      init_object_draw_command(linked_shader);
     }
-    if (!Gl_renderer::draw_commands.contains(linked_shader.get_id())) init_object_draw_command(linked_shader);
     
     int32_t shader_id = linked_shader.get_id();
-    Gl_renderer::draw_commands[shader_id]->associated_shader->load();
+    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_built())
+      Gl_renderer::draw_commands[shader_id]->associated_shader->build();
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
     Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
     
@@ -334,7 +348,7 @@ namespace Wave
     
     // If we reached the max batch memory limit (2 MB).
     if ((Gl_renderer::draw_commands[shader_id]->vertex_array_buffer->get_vertex_buffers()[0]->get_count() +
-         object.get_vertex_count()) * object.get_vertex_size() >= 5'000'000)
+         object.get_vertex_count()) * object.get_vertex_size() >= max_vbo_buffer_size)
       flush();
     
     // Set data in vbo and ibo.
@@ -345,52 +359,50 @@ namespace Wave
     if (!object.get_textures().empty())
       Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_has_texture", true);
     
-    for (const auto &texture: object.get_textures())
-    {
-      texture->set_texture_slot(s_texture_unit_number_assigned);
-      texture->load();
-      Gl_renderer::textures.emplace_back(texture.get());
-      s_texture_unit_number_assigned++;
-    }
-    
     Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_model",
                                                                           &object.get_model_matrix().get_matrix()[0][0],
                                                                           false);
+    
+    // Link object texture objects to texture units for rendering.
+    for (const auto &texture: object.get_textures())
+    {
+      texture->set_texture_slot(s_texture_unit_number_assigned);
+      if (!texture->is_built()) texture->build();
+      
+      // If this is a new object texture.
+      if (!Gl_renderer::textures.contains(texture->get_id())) s_texture_unit_number_assigned++;
+      Gl_renderer::textures[texture->get_id()] = texture.get();
+    }
   }
   
-  void Gl_renderer::send_text(const Text_box &text, Shader &linked_shader)
+  void Gl_renderer::send_text(Text_box &text, Shader &linked_shader)
   {
-    if (!text.is_loaded())
+    if (!text.is_built()) text.build();
+    if (!Gl_renderer::draw_commands.contains(linked_shader.get_id()))
     {
-      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot render text, text buffer is not loaded!"
-                                                 " Did you forget to load/reload-in your text with 'load() first'?",
-                                                 __FUNCTION__,
-                                                 __FILE__,
-                                                 __LINE__ - 2);
-      return;
+      Gl_renderer::stats.text_glyph_count += text.get_text_string().size();
+      init_text_draw_command(linked_shader);
     }
-    if (!Gl_renderer::draw_commands.contains(linked_shader.get_id())) init_text_draw_command(linked_shader);
     
     int32_t shader_id = linked_shader.get_id();
-    Gl_renderer::draw_commands[shader_id]->associated_shader->load();
+    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_built())
+      Gl_renderer::draw_commands[shader_id]->associated_shader->build();
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
     Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
-    
     
     float offset_x = text.get_text_offset().get_x(), offset_y = text.get_text_offset().get_y();
     const std::string &string = text.get_text_string();
     const Vector_2f &scale = text.get_text_scale();
     
     // Iterate through all characters
-    for (const char &c: string)
+    for (int64_t i = 0; i < (int64_t) string.size(); ++i)
     {
-      Glyph_s ch = text.get_characters().at(c);
+      Glyph_s ch = text.get_characters().at(string[i]);
       
-      float red = text.get_characters().at(c).color.get_red(),
-        green = text.get_characters().at(c).color.get_green(),
-        blue = text.get_characters().at(c).color.get_blue(),
-        alpha = text.get_characters().at(c).color.get_alpha();
+      float red = text.get_characters().at(string[i]).color.get_red(),
+        green = text.get_characters().at(string[i]).color.get_green(),
+        blue = text.get_characters().at(string[i]).color.get_blue(),
+        alpha = text.get_characters().at(string[i]).color.get_alpha();
       
       auto texture_offset_x = (float) ch.texture_offset;
       Vector_2f atlas_size = Vector_2f((float) text.get_texture_atlas()->get_width(),
@@ -434,31 +446,49 @@ namespace Wave
           texture_offset_x + (float) (ch.size_x - 1) / atlas_size.get_x(), (float) (ch.size_y - 1) / atlas_size.get_y()}
       };
       
-      // Update content of VBO memory
-      load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id);
+      // Update content of VBO memory.
+      if (i == 0) load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id, 0);
+      else load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id);
     }
-    text.get_texture_atlas()->set_texture_slot(s_texture_unit_number_assigned);
-    text.get_texture_atlas()->load();
-    Gl_renderer::textures.emplace_back(text.get_texture_atlas());  // Load glyph texture atlas.
-    s_texture_unit_number_assigned++;
+    
+    // Set texture unit for draw command.
+    
+    Texture *atlas = text.get_texture_atlas();
+    if (!atlas->is_built()) text.get_texture_atlas()->build();
+    atlas->set_texture_slot(s_texture_unit_number_assigned);
+    
+    // If this is a new texture.
+    if (!Gl_renderer::textures.contains(atlas->get_id())) s_texture_unit_number_assigned++;
+    
+    Gl_renderer::textures[atlas->get_id()] = atlas;  // Load glyph texture atlas.
   }
   
   void Gl_renderer::flush()
   {
-    for (const auto &texture: Gl_renderer::textures) texture->bind(texture->get_texture_slot());
+    uint64_t index_count = 0, vertex_count = 0;
+    for (const auto &texture: Gl_renderer::textures)
+    {
+      if (texture.second)
+      {
+        texture.second->bind(texture.second->get_texture_slot());
+      }
+    }
+    Gl_renderer::stats.textures_drawn_count = Gl_renderer::textures.size();
     
     for (auto &draw_command: Gl_renderer::draw_commands)
     {
       draw_command.second->associated_shader->bind();
       draw_command.second->vertex_array_buffer->bind();
-      if (draw_command.second->vertex_array_buffer->get_index_buffer())  // Has an index_buffer
+      vertex_count += draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count();
+      if (draw_command.second->vertex_array_buffer->get_index_buffer())  // Has an index buffer
       {
+        index_count += draw_command.second->vertex_array_buffer->get_index_buffer()->get_count();
         draw_command.second->vertex_array_buffer->get_index_buffer()->bind();
-        CHECK_GL_CALL(glDrawRangeElementsBaseVertex(GL_TRIANGLES, 0, max_indices,
-                                                    draw_command.second->vertex_array_buffer->get_index_buffer()->get_count(),
-                                                    GL_UNSIGNED_INT,
-                                                    (const void *) draw_command.second->ibo_offset,
-                                                    draw_command.second->ibo_offset));
+        CHECK_GL_CALL(glDrawElementsBaseVertex(GL_TRIANGLES,
+                                               draw_command.second->vertex_array_buffer->get_index_buffer()->get_count(),
+                                               GL_UNSIGNED_INT,
+                                               (const void *) draw_command.second->ibo_offset,
+                                               draw_command.second->ibo_offset));
       } else
       {
         CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, 0,
@@ -467,6 +497,9 @@ namespace Wave
       draw_command.second->vbo_offset = 0;
       draw_command.second->ibo_offset = 0;
     }
+    Gl_renderer::stats.vertices_drawn_count = vertex_count;
+    Gl_renderer::stats.indices_drawn_count = index_count;
+    Gl_renderer::stats.draw_call_count = Gl_renderer::draw_commands.size();
   }
   
   void Gl_renderer::end()
@@ -591,10 +624,10 @@ namespace Wave
         }
         case WAVE_GL_BUFFER_NOT_LOADED:
         {
-          temp.type = "Buffer not loaded";
+          temp.type = "Buffer not built";
           temp.severity = "Fatal";
           temp.code = WAVE_GL_BUFFER_NOT_LOADED;
-          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Buffer not loaded");
+          snprintf_result = snprintf(_source, FILENAME_MAX * 4, "Buffer not built");
           break;
         }
         case WAVE_GL_DEBUG_SOURCE_INVALID_UNIFORM:

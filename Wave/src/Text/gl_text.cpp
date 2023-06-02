@@ -8,8 +8,6 @@
 #include <utility>
 
 static const char *s_font_file_path = nullptr;
-static FT_Face s_face;
-static FT_Library s_library;
 
 namespace Wave
 {
@@ -49,6 +47,15 @@ namespace Wave
     this->format.text_size = pixel_size;
     s_font_file_path = font_file_name;
     this->text = text_;
+    init_freetype();
+  }
+  
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format)
+  {
+    this->format.text_size = pixel_size;
+    this->text = string_;
+    this->format = text_format;
+    init_freetype();
   }
   
   Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_)
@@ -68,22 +75,26 @@ namespace Wave
   
   Gl_text_box::~Gl_text_box()
   {
-    Gl_text_box::destroy();
+    Gl_text_box::unbuild();
   }
   
   void Gl_text_box::init_freetype()
   {
-    if (FT_Init_FreeType(&s_library)) return;
+    if (!this->is_built()) if (FT_Init_FreeType(&this->library)) return;
     
-    if (FT_New_Face(s_library, s_font_file_path, 0, &s_face))
+    if (!this->is_built())
     {
-      alert(WAVE_LOG_ERROR, "[Gl text] --> Error loading font file %s!", s_font_file_path);
-      // If the font file is missing, use the callback (default) one.
-      FT_New_Face(s_library, "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf", 0, &s_face);
+      if (FT_New_Face(this->library, s_font_file_path, 0, &this->face))
+      {
+        alert(WAVE_LOG_ERROR, "[Gl text] --> Error loading font file %s!", s_font_file_path);
+        // If the font file is missing, use the callback (default) one.
+        FT_New_Face(this->library, "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf", 0, &this->face);
+      }
     }
     
-    // Set size to load glyphs as.
-    FT_Set_Pixel_Sizes(s_face, 0, (unsigned int) this->format.text_size.get_y());
+    // Set size to build glyphs as.
+    FT_Set_Pixel_Sizes(this->face, ((long) this->format.text_size.get_x() - (long) this->format.text_size.get_x() % 2),
+                       ((long) this->format.text_size.get_y() - (long) this->format.text_size.get_y() % 2));
     
     unsigned int atlas_total_width = 0, atlas_row_width = 0, atlas_total_height = 0, atlas_row_height = 0;
     Color glyph_color = Color(1.0f, 1.0f, true);
@@ -93,29 +104,29 @@ namespace Wave
     for (unsigned char character = 32; character < 128; character++)
     {
       // Load character glyph
-      if (FT_Load_Char(s_face, character, FT_LOAD_RENDER))
+      if (FT_Load_Char(this->face, character, FT_LOAD_RENDER))
       {
-        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to load Glyph %c", character);
+        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to build Glyph %c", character);
         continue;
       }
       
-      atlas_total_width += s_face->glyph->bitmap.width;  // Add padding to avoid artefacts.
+      atlas_total_width += this->face->glyph->bitmap.width;  // Add padding to avoid artefacts.
       atlas_total_height =
-        std::max(atlas_total_height, s_face->glyph->bitmap.rows);  // Add padding to avoid artefacts.
+        std::max(atlas_total_height, this->face->glyph->bitmap.rows);  // Add padding to avoid artefacts.
       
       // Store character for later use.
       Glyph_s character_glyph = {
         (float) texture_offset_x,
         glyph_color,
-        s_face->glyph->bitmap.width,
-        s_face->glyph->bitmap.rows,
-        Vector_2f((float) s_face->glyph->bitmap_left, (float) s_face->glyph->bitmap_top),
+        this->face->glyph->bitmap.width,
+        this->face->glyph->bitmap.rows,
+        Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
         // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-        Vector_2f((float) (s_face->glyph->advance.x >> 6), (float) (s_face->glyph->advance.y >> 6))
+        Vector_2f((float) (this->face->glyph->advance.x >> 6), (float) (this->face->glyph->advance.y >> 6))
       };
-      this->characters.insert(std::pair<char, Glyph_s>(character, character_glyph));
+      this->characters[character] = character_glyph;
       
-      texture_offset_x += s_face->glyph->bitmap.width;
+      texture_offset_x += this->face->glyph->bitmap.width;
     }
     
     atlas_total_width = std::max(atlas_total_width, atlas_row_width);
@@ -127,57 +138,69 @@ namespace Wave
     alert(WAVE_LOG_DEBUG, "Total atlas texture size : (%d, %d)", atlas_total_width, atlas_total_height);
   }
   
-  void Gl_text_box::load()
+  void Gl_text_box::build()
   {
-    if (this->is_loaded()) return;
+    if (!this->is_built())
+    {
+      CHECK_GL_CALL(glPixelStorei(GL_PACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
+      CHECK_GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
+    }
     
-    CHECK_GL_CALL(glPixelStorei(GL_PACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
-    CHECK_GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
-    // Create texture atlas for all glyphs of the current face.
-    this->texture_atlas = new Gl_texture_2D(s_font_file_path, {Texture::Texture_type_e::Texture_2D,
-                                                               Texture::Texture_internal_format_e::Red,
-                                                               this->atlas_size.get_x(),
-                                                               this->atlas_size.get_y(),
-                                                               WAVE_VALUE_DONT_CARE,
-                                                               0,
-                                                               WAVE_VALUE_DONT_CARE,
-                                                               nullptr});
+    // If we are rebuilding.
+    if (this->is_built())
+    {
+      if (this->texture_atlas) this->texture_atlas->unbuild();
+      
+      init_freetype();
+      this->texture_atlas->set_width(this->atlas_size.get_x());
+      this->texture_atlas->set_height(this->atlas_size.get_y());
+    } else  // If we are building for the first time.
+    {
+      // Create texture atlas for all glyphs of the current face.
+      this->texture_atlas = new Gl_texture_2D(s_font_file_path, {Texture::Texture_type_e::Texture_2D,
+                                                                 Texture::Texture_internal_format_e::Red,
+                                                                 this->atlas_size.get_x(),
+                                                                 this->atlas_size.get_y(),
+                                                                 WAVE_VALUE_DONT_CARE,
+                                                                 0,
+                                                                 WAVE_VALUE_DONT_CARE,
+                                                                 nullptr});
+    }
+    this->texture_atlas->build();
     
     if (!this->texture_atlas) return;
-    this->texture_atlas->load();
     
     // Set texture glyph data for current face.
     for (int i = 32; i < 128; i++)
     {
-      if (FT_Load_Char(s_face, i, FT_LOAD_RENDER))
+      if (FT_Load_Char(this->face, i, FT_LOAD_RENDER))
       {
-        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to load Glyph_s");
+        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to build Glyph_s");
         continue;
       }
       
       this->texture_atlas->bind(this->texture_atlas->get_texture_slot());
       CHECK_GL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, this->characters[i].texture_offset,
                                     0,
-                                    s_face->glyph->bitmap.width,
-                                    s_face->glyph->bitmap.rows,
+                                    this->face->glyph->bitmap.width,
+                                    this->face->glyph->bitmap.rows,
                                     GL_RED, GL_UNSIGNED_BYTE,
-                                    s_face->glyph->bitmap.buffer));
+                                    this->face->glyph->bitmap.buffer));
       
       this->characters[i].texture_offset /= (float) this->texture_atlas->get_width();
     }
     
-    FT_Done_Face(s_face);
-    FT_Done_FreeType(s_library);
-    
-    this->loaded = true;
+    this->built = true;
   }
   
-  void Gl_text_box::destroy()
+  void Gl_text_box::unbuild()
   {
-    if (this->is_loaded())
+    if (this->is_built())
     {
+      FT_Done_Face(this->face);
+      FT_Done_FreeType(this->library);
       delete this->texture_atlas;
-      this->loaded = false;
+      this->built = false;
     }
   }
   

@@ -29,8 +29,8 @@ namespace Wave
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
     [[nodiscard]] int32_t get_samples() const override;
     
-    INTERFACE_LOADABLE
-    INTERFACE_DESTROYABLE
+    INTERFACE_BUILDABLE
+    
     INTERFACE_PRINTABLE
     
     [[nodiscard]] void *get_data() const override;
@@ -84,8 +84,8 @@ namespace Wave
     [[nodiscard]] int32_t get_samples() const override;
     [[nodiscard]] void *get_data() const override;
     
-    INTERFACE_LOADABLE
-    INTERFACE_DESTROYABLE
+    INTERFACE_BUILDABLE
+    
     INTERFACE_PRINTABLE
     
     void set_id(int id_texture) override;

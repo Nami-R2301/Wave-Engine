@@ -23,17 +23,25 @@
 #include <Renderer/uniform_buffer.h>
 #include <Scene/camera.h>
 
-constexpr int64_t max_draw_commands = 1000;
-constexpr int64_t max_vertices = 2'000'000;
-constexpr int64_t max_indices = 2'000'000;
-constexpr int32_t max_textures = 32;
-
 namespace Wave
 {
+  
+  constexpr int64_t max_vbo_buffer_size = 5'000'000;
+  constexpr int64_t max_ibo_buffer_size = 5'000'000;
   
   class Renderer
   {
     public:
+    typedef struct Renderer_stats_s
+    {
+      uint64_t vertices_drawn_count = 0;
+      uint64_t indices_drawn_count = 0;
+      uint64_t textures_drawn_count = 0;
+      uint64_t draw_call_count = 0;
+      uint64_t object_count = 0;
+      uint64_t text_glyph_count = 0;
+    } Renderer_stats_s;
+    
     typedef struct Draw_command
     {
       uint64_t vbo_offset = 0, ibo_offset = 0;
@@ -44,10 +52,12 @@ namespace Wave
     public:
     static void create(Renderer_api api);
     static void init();
-    static Renderer_api get_api();
-    static const char *get_api_version();
-    static const char *get_api_shader_version();
-    static bool is_running();
+    
+    [[nodiscard]] static Renderer_stats_s get_stats();
+    [[nodiscard]] static Renderer_api get_api();
+    [[nodiscard]] static const char *get_api_version();
+    [[nodiscard]] static const char *get_api_shader_version();
+    [[nodiscard]] static bool is_running();
     static void set_event_callback_function(const std::function<void(Event &)> &callback);
     
     // Error handling
@@ -65,8 +75,8 @@ namespace Wave
     
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(const Object &object, Shader &linked_shader);
-    static void send_text(const Text_box &text, Shader &linked_shader);
+    static void send_object(Object &object, Shader &linked_shader);
+    static void send_text(Text_box &text, Shader &linked_shader);
     static void flush();
     static void end();
     

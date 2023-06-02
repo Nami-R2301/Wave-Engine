@@ -42,12 +42,11 @@ namespace Wave
   
   Gl_framebuffer::~Gl_framebuffer()
   {
-    Gl_framebuffer::destroy();
+    Gl_framebuffer::unbuild();
   }
   
-  void Gl_framebuffer::load()
+  void Gl_framebuffer::build()
   {
-    if (this->is_loaded()) return;
     CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
@@ -66,8 +65,8 @@ namespace Wave
     this->data.vao->add_vertex_buffer(vbo);
     this->data.vao->set_index_buffer(ibo);
     
-    this->color_attachment->load();
-    this->depth_attachment->load();
+    this->color_attachment->build();
+    this->depth_attachment->build();
     
     int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
     
@@ -88,23 +87,23 @@ namespace Wave
     }
     Gl_framebuffer::unbind();
     
-    this->loaded = true;
+    this->built = true;
   }
   
-  void Gl_framebuffer::destroy()
+  void Gl_framebuffer::unbuild()
   {
-    if (this->is_loaded())
+    if (this->is_built())
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      if (this->color_attachment) this->color_attachment->destroy();
-      if (this->depth_attachment) this->depth_attachment->destroy();
+      if (this->color_attachment) this->color_attachment->unbuild();
+      if (this->depth_attachment) this->depth_attachment->unbuild();
       
-      this->loaded = false;
+      this->built = false;
+      delete this->color_attachment;
+      delete this->depth_attachment;
+      delete[] this->data.ibo_data;
+      delete[] this->data.vbo_data;
     }
-    delete this->color_attachment;
-    delete this->depth_attachment;
-    delete[] this->data.ibo_data;
-    delete[] this->data.vbo_data;
   }
   
   std::string Gl_framebuffer::to_string() const
@@ -124,8 +123,8 @@ namespace Wave
     if (this->renderer_id)
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      this->color_attachment->destroy();
-      this->depth_attachment->destroy();
+      this->color_attachment->unbuild();
+      this->depth_attachment->unbuild();
       delete this->color_attachment;
       delete this->depth_attachment;
       
@@ -151,8 +150,8 @@ namespace Wave
                                                            3,
                                                            static_cast<int32_t>(this->options.samples),
                                                            nullptr});
-      this->color_attachment->load();
-      this->depth_attachment->load();
+      this->color_attachment->build();
+      this->depth_attachment->build();
       
       int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
       

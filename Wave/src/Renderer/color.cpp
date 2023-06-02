@@ -167,4 +167,12 @@ namespace Wave
            this->blue == other_color.blue &&
            this->alpha == other_color.alpha;
   }
+  
+  void Color::operator+=(const Color &added_color)
+  {
+    this->red += added_color.red + this->red <= 1.0f ? added_color.red : 1.0f;
+    this->green += added_color.green + this->green <= 1.0f ? added_color.green : 1.0f;
+    this->blue += added_color.blue + this->blue <= 1.0f ? added_color.blue : 1.0f;
+    this->alpha += added_color.alpha + this->alpha <= 1.0f ? added_color.alpha : 1.0f;
+  }
 }

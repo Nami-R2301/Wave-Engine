@@ -10,7 +10,7 @@
 namespace Wave
 {
   
-  class Shader : public Printable, public Loadable, public Destroyable
+  class Shader : public Printable, public Buildable
   {
     public:
     ~Shader() override = default;
@@ -39,7 +39,10 @@ namespace Wave
     virtual void set_uniform(const char *uniform_name, uint32_t uint_value) const = 0;
     virtual void set_uniform(const char *uniform_name, float float_value) const = 0;
     [[maybe_unused]] virtual void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const = 0;
+    
+    virtual bool operator==(const Shader &other_shader) const = 0;
+    bool operator!=(const Shader &other_shader) const;
     protected:
-    bool loaded = false;
+    bool built = false;
   };
 }

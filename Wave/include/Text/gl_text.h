@@ -18,18 +18,19 @@ namespace Wave
     explicit Gl_text_box(const Vector_2f &pixel_size);
     Gl_text_box(const Vector_2f &pixel_size, const std::string &string_);
     Gl_text_box(const char *font_file_name, const std::string &string_);
+    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format);
     Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const char *font_file_path);
     Gl_text_box(const char *font_file_name, const std::string &string_, Text_format_s text_format_);
     ~Gl_text_box() override;
     
     // Interfaces.
-    INTERFACE_LOADABLE
+    INTERFACE_BUILDABLE
     INTERFACE_PRINTABLE
     INTERFACE_MOVABLE
     INTERFACE_ROTATABLE
     INTERFACE_COPIABLE
     INTERFACE_SCALABLE
-    INTERFACE_DESTROYABLE
+    
     private:
     void init_freetype();
   };

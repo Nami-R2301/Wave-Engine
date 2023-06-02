@@ -124,6 +124,35 @@ namespace Wave
     }
   }
   
+  std::shared_ptr<Text_box>
+  Text_box::create(const Vector_2f &pixel_size_, const std::string &text_, const Text_format_s &format_)
+  {
+    switch (Renderer::get_api())
+    {
+      case Renderer_api::None:
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::OpenGL:return std::make_shared<Gl_text_box>(pixel_size_, text_, format_);
+      case Renderer_api::Vulkan:
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      case Renderer_api::Directx:
+        alert(WAVE_LOG_ERROR, "[BUFFER] --> DirectX is currently not supported! (on line %d in file %s) !",
+              __LINE__, __FILE__);
+        return nullptr;
+      default:
+      {
+        Gl_renderer::gl_synchronous_error_callback(GL_DEBUG_SOURCE_API,
+                                                   "Api not supported at the moment! Auto selecting OpenGL instead.",
+                                                   "Text_box::create()",
+                                                   "text.cpp", __LINE__ - 2);
+        return std::make_shared<Gl_text_box>(pixel_size_, text_, format_);
+      }
+    }
+  }
+  
   std::shared_ptr<Text_box> Text_box::create(const Vector_2f &pixel_size_, const std::string &text_,
                                              const char *font_file_path_)
   {
@@ -215,6 +244,11 @@ namespace Wave
     return this->format.text_size;
   }
   
+  Vector_2f &Text_box::get_pixel_size()
+  {
+    return this->format.text_size;
+  }
+  
   const std::string &Text_box::get_text_string() const
   {
     return this->text;
@@ -230,12 +264,27 @@ namespace Wave
     return this->format.offset;
   }
   
+  const Color &Text_box::get_text_box_color() const
+  {
+    return this->format.text_box_color;
+  }
+  
+  Color &Text_box::get_text_box_color()
+  {
+    return this->format.text_box_color;
+  }
+  
   const Color &Text_box::get_text_color(char character) const
   {
     return this->characters.at(character).color;
   }
   
   const Vector_2f &Text_box::get_text_scale() const
+  {
+    return this->format.scale;
+  }
+  
+  Vector_2f &Text_box::get_text_scale()
   {
     return this->format.scale;
   }
@@ -255,12 +304,17 @@ namespace Wave
     float length = this->format.offset.get_x() * 2;  // Add padding on both sides.
     for (const auto &character: this->text)
     {
-      length += this->characters.at(character).size_x * this->format.scale.get_x();
+      length += (float) this->characters.at(character).advance.get_x() * this->format.scale.get_x();
     }
     return length;
   }
   
   const Vector_2f &Text_box::get_text_box_size() const
+  {
+    return this->format.box_size;
+  }
+  
+  Vector_2f &Text_box::get_text_box_size()
   {
     return this->format.box_size;
   }
@@ -303,6 +357,16 @@ namespace Wave
   void Text_box::set_text_offset(float offset_x, float offset_y)
   {
     this->format.offset = Vector_2f(offset_x, offset_y);
+  }
+  
+  void Text_box::blend_text_color(char character, const Color &character_color)
+  {
+    this->characters[character].color += character_color;
+  }
+  
+  void Text_box::blend_text_color(const Color &uniform_color)
+  {
+    for (auto &character: this->text) this->characters.at(character).color += uniform_color;
   }
   
   void Text_box::set_text_color(char character, const Color &color)
@@ -349,5 +413,10 @@ namespace Wave
   void Text_box::set_pixel_size(float x, float y)
   {
     this->format.text_size = Vector_2f(x, y);
+  }
+  
+  void Text_box::set_text_box_color(const Color &color)
+  {
+    this->format.text_box_color = color;
   }
 }

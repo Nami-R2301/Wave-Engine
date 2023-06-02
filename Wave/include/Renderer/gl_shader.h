@@ -23,8 +23,8 @@ namespace Wave
     [[nodiscard]] int32_t get_id() const override;
     
     INTERFACE_PRINTABLE
-    INTERFACE_LOADABLE
-    INTERFACE_DESTROYABLE
+    INTERFACE_BUILDABLE
+    
     
     void source(uint32_t count, const char *source, int *length) const override;
     void compile(int32_t shader_id) const override;
@@ -44,6 +44,8 @@ namespace Wave
     void set_uniform(const char *uniform_name, uint32_t value) const override;
     void set_uniform(const char *uniform_name, float value) const override;
     [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
+    
+    bool operator==(const Shader &other_shader) const override;
     private:
     std::string name = "No name";
     std::string vertex_source = "Empty", fragment_source = "Empty";

@@ -112,10 +112,9 @@
 #define INTERFACE_SCALABLE void scale(const Vector_3f &scalar) override; \
                            void scale(float x, float y, float z) override;
 
-#define INTERFACE_LOADABLE void load() override; \
-                           [[nodiscard]] bool is_loaded() const override \
+#define INTERFACE_BUILDABLE void build() override; \
+                            void unbuild() override; \
+                           [[nodiscard]] bool is_built() const override \
                            {                     \
-                             return this->loaded;                      \
+                             return this->built;                      \
                            };
-
-#define INTERFACE_DESTROYABLE void destroy() override;

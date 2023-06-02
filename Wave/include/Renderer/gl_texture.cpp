@@ -98,12 +98,12 @@ namespace Wave
   
   Gl_texture_2D::~Gl_texture_2D()
   {
-    Gl_texture_2D::destroy();
+    Gl_texture_2D::unbuild();
   }
   
-  void Gl_texture_2D::load()
+  void Gl_texture_2D::build()
   {
-    if (this->loaded) return;
+    
     // Default text glyph texture slot given for renderer.
     // Initialize openGL texture buffers.
     CHECK_GL_CALL(glCreateTextures(this->texture_target, 1, &this->texture_id));
@@ -138,7 +138,7 @@ namespace Wave
                                                       &this->bits_per_pixel,
                                                       4);  // 4 channels (RGBA).
       if (!this->texture_data.data)
-        Wave::alert(WAVE_LOG_ERROR, "[Texture] : Could not load image from %s", file_path);
+        Wave::alert(WAVE_LOG_ERROR, "[Texture] : Could not build image from %s", file_path);
       
       this->texture_data.desired_width = (float) width;
       this->texture_data.desired_height = (float) height;
@@ -178,15 +178,15 @@ namespace Wave
     // Deallocate file texture from CPU since it's loaded onto the GPU.
     if (this->file_path && this->texture_data.data) stbi_image_free((stbi_uc *) this->texture_data.data);
     
-    this->loaded = true;
+    this->built = true;
   }
   
-  void Gl_texture_2D::destroy()
+  void Gl_texture_2D::unbuild()
   {
-    if (this->is_loaded())
+    if (this->is_built())
     {
       Gl_texture_2D::remove();
-      this->loaded = false;
+      this->built = false;
     }
   }
   
@@ -211,11 +211,11 @@ namespace Wave
   
   void Gl_texture_2D::bind(int32_t slot_) const
   {
-    if (!this->loaded)
+    if (!this->built)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 2D, OpenGL texture 2D not loaded!"
-                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 "Cannot bind texture 2D, OpenGL texture 2D not built!"
+                                                 " Did you forget to build/reload in your shader with 'build()'?",
                                                  __FUNCTION__,
                                                  __FILE__,
                                                  __LINE__ - 2);
@@ -228,11 +228,11 @@ namespace Wave
   
   void Gl_texture_2D::unbind() const
   {
-    if (!this->loaded)
+    if (!this->built)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 2D, OpenGL texture 2D not loaded!"
-                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 "Cannot bind texture 2D, OpenGL texture 2D not built!"
+                                                 " Did you forget to build/reload in your shader with 'build()'?",
                                                  __FUNCTION__,
                                                  __FILE__,
                                                  __LINE__ - 2);
@@ -407,7 +407,7 @@ namespace Wave
   
   Gl_texture_2D::operator bool() const
   {
-    return this->loaded;
+    return this->built;
   }
   
   std::string Gl_texture_2D::to_string() const
@@ -501,12 +501,12 @@ namespace Wave
   
   Gl_texture_3D::~Gl_texture_3D()
   {
-    Gl_texture_3D::destroy();
+    Gl_texture_3D::unbuild();
   }
   
-  void Gl_texture_3D::load()
+  void Gl_texture_3D::build()
   {
-    if (this->loaded) return;
+    
     stbi_uc *image_buffer{};
     if (this->file_path)
     {
@@ -517,7 +517,7 @@ namespace Wave
       image_buffer = stbi_load(this->file_path, &width, &height, &this->bits_per_pixel, 4);  // 4 channels (RGBA).
       if (!image_buffer)
       {
-        Wave::alert(WAVE_LOG_ERROR, "[Texture 3D] : Could not load image from %s", file_path);
+        Wave::alert(WAVE_LOG_ERROR, "[Texture 3D] : Could not build image from %s", file_path);
         return;
       }
       this->texture_data.desired_width = (float) width;
@@ -545,13 +545,13 @@ namespace Wave
     // Deallocate file texture from CPU since it's loaded onto the GPU.
     if (image_buffer) stbi_image_free(image_buffer);
     
-    this->loaded = true;
+    this->built = true;
   }
   
-  void Gl_texture_3D::destroy()
+  void Gl_texture_3D::unbuild()
   {
     Gl_texture_3D::remove();
-    this->loaded = false;
+    this->built = false;
   }
   
   int32_t Gl_texture_3D::convert_type_to_api(Texture_data_s data_)
@@ -574,11 +574,11 @@ namespace Wave
   
   void Gl_texture_3D::bind(int32_t slot_) const
   {
-    if (!this->loaded)
+    if (!this->built)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 3D, OpenGL texture 3D not loaded!"
-                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 "Cannot bind texture 3D, OpenGL texture 3D not built!"
+                                                 " Did you forget to build/reload in your shader with 'build()'?",
                                                  __FUNCTION__,
                                                  __FILE__,
                                                  __LINE__ - 2);
@@ -591,11 +591,11 @@ namespace Wave
   
   void Gl_texture_3D::unbind() const
   {
-    if (!this->loaded)
+    if (!this->built)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 3D, OpenGL texture 3D not loaded!"
-                                                 " Did you forget to load/reload in your shader with 'load()'?",
+                                                 "Cannot bind texture 3D, OpenGL texture 3D not built!"
+                                                 " Did you forget to build/reload in your shader with 'build()'?",
                                                  __FUNCTION__,
                                                  __FILE__,
                                                  __LINE__ - 2);
@@ -798,7 +798,7 @@ namespace Wave
   
   Gl_texture_3D::operator bool() const
   {
-    return this->loaded;
+    return this->built;
   }
   
   std::string Gl_texture_3D::to_string() const

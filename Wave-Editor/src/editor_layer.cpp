@@ -8,6 +8,8 @@ namespace Wave
 {
   
   bool Editor_layer::system_panel_dock_open = true;
+  static float s_imgui_app_performance_stat = 0.0f;
+  static float s_imgui_app_performance_timer = 0.0f;
   
   Editor_layer::Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
                              const std::vector<std::shared_ptr<Wave::Shader>> &shaders_,
@@ -29,7 +31,6 @@ namespace Wave
     // Setup objects in scene.
     this->objects[0]->translate(10, -10, 20);
     this->objects[0]->rotate(90, -90, 0);
-    this->objects[0]->load();
     
     // Setup framebuffer shader.
     this->framebuffer_viewport_data.framebuffer_viewport_shader = Shader::create("Framebuffer Editor Viewport",
@@ -38,8 +39,8 @@ namespace Wave
                                                                                  Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag"));
     // Load framebuffer.
-    this->framebuffer_viewport_data.viewport->load();
-    this->framebuffer_viewport_data.framebuffer_viewport_shader->load();
+    this->framebuffer_viewport_data.viewport->build();
+    this->framebuffer_viewport_data.framebuffer_viewport_shader->build();
     
     // Load and enqueue the object for rendering.
     Renderer::send_object(*this->objects[0], *this->shaders[0]);
@@ -47,8 +48,7 @@ namespace Wave
   
   void Editor_layer::on_detach()
   {
-    for (const std::shared_ptr<Shader> &shader: this->shaders) shader->unbind();
-    this->framebuffer_viewport_data.framebuffer_viewport_shader->destroy();
+    this->framebuffer_viewport_data.framebuffer_viewport_shader->unbuild();
   }
   
   void Editor_layer::on_event([[maybe_unused]] Event &event)
@@ -58,6 +58,8 @@ namespace Wave
   
   void Editor_layer::on_update(float time_step)
   {
+    if (s_imgui_app_performance_timer == 0) s_imgui_app_performance_stat = Engine::get_time_step();
+    s_imgui_app_performance_timer += time_step;
     this->camera->on_update(time_step);  // Update camera.
     
     // Update window.
@@ -117,8 +119,27 @@ namespace Wave
     {
       if (ImGui::Begin("System Info", &(Editor_layer::system_panel_dock_open), ImGuiWindowFlags_None))
       {
-        ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)", 1000.0f * Engine::get_time_step(),
-                    static_cast<int>(Engine::get_engine_framerate()));
+        auto renderer_stats = Renderer::get_stats();
+        ImGui::Text("Renderer stats (per frame) :\n\t\tDraw calls = %ld\n\t\tTotal number of vertices drawn = %ld\t\t"
+                    "Total number of indices drawn = %ld\t\tTotal number of textures drawn = %ld\n\t\t"
+                    "Total number of objects drawn = %ld\t\tTotal number of text characters drawn = %ld",
+                    renderer_stats.draw_call_count, renderer_stats.vertices_drawn_count,
+                    renderer_stats.indices_drawn_count,
+                    renderer_stats.textures_drawn_count, renderer_stats.object_count, renderer_stats.text_glyph_count);
+        
+        // Slow down the refresh rate of the text output by timing it with each second.
+        if (s_imgui_app_performance_timer >= 1.0f)
+        {
+          ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)",
+                      Engine::get_time_step() * 1000.0f,
+                      static_cast<int>(Engine::get_engine_framerate()));
+          s_imgui_app_performance_timer = 0;
+        } else
+        {
+          ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)",
+                      s_imgui_app_performance_stat * 1000.0f,
+                      (int) (1.0f / s_imgui_app_performance_stat));
+        }
         auto framebuffer_viewport_gl = dynamic_cast<Gl_framebuffer *>(this->framebuffer_viewport_data.viewport.get());
         ImGui::Text("Framebuffer size :\t(%.2f, %.2f)", framebuffer_viewport_gl->get_options().width,
                     framebuffer_viewport_gl->get_options().height);

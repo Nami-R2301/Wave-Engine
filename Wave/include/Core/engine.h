@@ -16,7 +16,7 @@
 namespace Wave
 {
   
-  class Engine : public Loadable, public Destroyable
+  class Engine : public Buildable
   {
     public:
     enum class App_type
@@ -43,8 +43,8 @@ namespace Wave
     static void set_running_state(bool new_state);
     static void set_exit_status(int32_t code);
     
-    INTERFACE_LOADABLE
-    INTERFACE_DESTROYABLE
+    INTERFACE_BUILDABLE
+    
     
     virtual void on_event(Event &event);
     virtual void on_update(float time_step);
@@ -76,7 +76,6 @@ namespace Wave
     [[nodiscard]] static bool has_crashed();
     static void wait(float start_time, float end_time);
     private:
-    bool loaded = false;
     static Engine *instance;
     static App_type executable_type;
     static bool running_state;
@@ -88,8 +87,9 @@ namespace Wave
     [[maybe_unused]] static Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
     static std::unique_ptr<Window> main_window;  // Default to OpenGL implementation.
     Layer_stack layer_stack;  // List containing all of our app layers.
-    private:
     std::future<void> demo_futures;  // For async job handling.
+    protected:
+    bool built = false;
   };
   
   Engine *create_app();

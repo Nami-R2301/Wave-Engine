@@ -47,17 +47,17 @@ namespace Wave
   
   Object_2D::~Object_2D()
   {
-    Object_2D::destroy();
+    Object_2D::unbuild();
   }
   
-  void Object_2D::load()
+  void Object_2D::build()
   {
-    for (const auto &texture: this->textures) texture->load();
+    for (const auto &texture: this->textures) texture->build();
   }
   
-  void Object_2D::destroy()
+  void Object_2D::unbuild()
   {
-    for (const auto &texture: this->textures) texture->destroy();
+    for (const auto &texture: this->textures) texture->unbuild();
   }
   
   void Object_2D::normalize()
@@ -393,20 +393,20 @@ namespace Wave
   
   Object_3D::~Object_3D()
   {
-    Object_3D::destroy();
+    Object_3D::unbuild();
   }
   
-  void Object_3D::load()
+  void Object_3D::build()
   {
-    if (this->is_loaded()) return;
-    for (const auto &texture: this->textures) texture->load();
-    this->loaded = true;
+    
+    for (const auto &texture: this->textures) texture->build();
+    this->built = true;
   }
   
-  void Object_3D::destroy()
+  void Object_3D::unbuild()
   {
-    for (const auto &texture: this->textures) texture->destroy();
-    this->loaded = false;
+    for (const auto &texture: this->textures) texture->unbuild();
+    this->built = false;
   }
   
   void *Object_3D::copy() const

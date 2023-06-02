@@ -4,6 +4,7 @@
 
 #include <Renderer/gl_renderer.h>
 
+
 namespace Wave
 {
   
@@ -20,5 +21,10 @@ namespace Wave
                                                    "const char *fragment_source)", "shader.cpp", __LINE__ - 9);
     }
     return std::make_shared<Gl_shader>(name, vertex_source, fragment_source);
+  }
+  
+  bool Shader::operator!=(const Shader &other_shader) const
+  {
+    return !(*this == other_shader);
   }
 }

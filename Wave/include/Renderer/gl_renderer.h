@@ -55,6 +55,7 @@ namespace Wave
     [[nodiscard]] static bool is_running();
     [[nodiscard]] static bool has_crashed();
     [[nodiscard]] static int32_t get_max_texture_units();
+    [[nodiscard]] static Renderer::Renderer_stats_s get_stats();
     [[nodiscard]] static const Renderer_state &get_state();
     [[nodiscard]] static const Renderer_api &get_api();
     [[nodiscard]] static const char *get_api_version();
@@ -79,8 +80,8 @@ namespace Wave
     
     // Rendering objects.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(const Object &object, Shader &linked_shader);
-    static void send_text(const Text_box &text, Shader &linked_shader);
+    static void send_object(Object &object, Shader &linked_shader);
+    static void send_text(Text_box &text, Shader &linked_shader);
     static void flush();
     static void end();
     
@@ -98,7 +99,8 @@ namespace Wave
     static Renderer_state state;
     static Renderer_api api;
     static Camera *scene_camera;
-    static std::vector<Texture *> textures;
+    static Renderer::Renderer_stats_s stats;
+    static std::map<uint32_t, Texture *> textures;
     // Map the draw commands to enable querying and overwriting with the name identifier.
     static std::map<uint32_t, Renderer::Draw_command *> draw_commands;
     static std::vector<std::shared_ptr<Uniform_buffer>> uniform_buffers;
@@ -106,8 +108,9 @@ namespace Wave
     private:
     // Loading assets and buffers.
     static void load_dynamic_vbo_data(const void *vertices, uint64_t count, uint64_t size, uint64_t command_index,
-                                      uint64_t vbo_index = 0);
-    static void load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index);
+                                      int64_t vbo_offset = WAVE_VALUE_DONT_CARE);
+    static void load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index,
+                                      int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
     static void init_object_draw_command(Shader &shader_linked);
     static void init_text_draw_command(Shader &shader_linked);
   };

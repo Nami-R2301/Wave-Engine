@@ -128,7 +128,7 @@ namespace Wave
       ImGui_layer::stats_panel_dock_id = ImGui::DockBuilderSplitNode(ImGui_layer::scene_panel_dock_id, ImGuiDir_Down,
                                                                      0.4f, nullptr,
                                                                      &(ImGui_layer::scene_panel_dock_id));
-      ImGui_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.1f, nullptr,
+      ImGui_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.15f, nullptr,
                                                                       &dock_main_id);
       
       ImGui::DockBuilderDockWindow("Viewport", dock_main_id);

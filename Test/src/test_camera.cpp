@@ -15,7 +15,7 @@ namespace Wave
     Camera_tests()
     {
       this->app = new Example_app();
-      this->app->load();
+      this->app->build();
     }
     
     void SetUp() override

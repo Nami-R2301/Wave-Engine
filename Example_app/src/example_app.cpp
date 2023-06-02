@@ -43,9 +43,9 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   this->demo_text[0]->set_text_scale(Wave::Vector_2f(0.5f));
 }
 
-void Example_app::load()
+void Example_app::build()
 {
-  Engine::load();
+  Engine::build();
   Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));

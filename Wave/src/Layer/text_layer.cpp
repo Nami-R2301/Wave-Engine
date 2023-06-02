@@ -8,6 +8,8 @@
 namespace Wave
 {
   
+  static Color s_imgui_text_uniform_color = Color(1.0f, 1.0f, true);
+  
   Text_layer::Text_layer(const std::vector<std::shared_ptr<Text_box>> &text_boxes_,
                          const std::vector<std::shared_ptr<Shader>> &shaders_,
                          const Vector_2f &viewport_size_,
@@ -29,14 +31,12 @@ namespace Wave
   {
     for (auto &text_box: this->text_boxes)
     {
-      this->shaders[1]->load();
+      this->shaders[1]->build();
       this->shaders[1]->bind();
       this->shaders[1]->set_uniform("u_projection",
                                     &(this->projection.get_projection_matrix().get_matrix()[0][0]),
                                     false);
-      text_box->load();
       Renderer::send_text(*text_box, *this->shaders[1]);
-      this->shaders[1]->unbind();
     }
   }
   
@@ -82,21 +82,40 @@ namespace Wave
         ImGui::PushFont(bold);
         ImGui::Separator();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 20.0f));
-        if (ImGui::TreeNodeEx("Text_box", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
+        if (ImGui::TreeNodeEx("Text box", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
         {
-          ImGui::Text("String : %s", this->text_boxes.back()->get_text_string().c_str());
-          if (ImGui::TreeNodeEx("Projection", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding))
+          ImGui::Text("Text : %s", this->text_boxes.back()->get_text_string().c_str());
+          ImGui::PushFont(regular);
+          if (ImGui::Begin("Entity Info"))
           {
-            ImGui::PushFont(regular);
-            if (ImGui::Begin("Entity Info"))
+            ImGui::Text("Text uniform color");
+            Vector_2f text_scale_previous_value = this->text_boxes.back()->get_text_scale();
+            Vector_2f text_box_size_previous_value = this->text_boxes.back()->get_text_box_size();
+            Color text_color_previous_value = s_imgui_text_uniform_color;
+            ImGui::ColorEdit3("##Text uniform color", &s_imgui_text_uniform_color[0]);
+            ImGui::Text("Text box size");
+            ImGui::SliderFloat2("##Text box size", &this->text_boxes.back()->get_text_box_size()[0], 0,
+                                this->viewport_size.get_x(),
+                                "%.3f");
+            ImGui::Text("Text pixel size");
+            ImGui::SliderFloat2("##Text pixel size", &this->text_boxes.back()->get_text_scale()[0], 0.0f, 10.0f,
+                                "%.3f");
+            if (text_scale_previous_value != this->text_boxes.back()->get_text_scale()
+                || text_box_size_previous_value != this->text_boxes.back()->get_text_box_size())
             {
-              ImGui::Text("Projection matrix :\n%s", projection.get_projection_matrix().to_string().c_str());
+              this->text_boxes.back()->build();
+              Renderer::send_text(*this->text_boxes.back(), *this->shaders[1]);
             }
-            ImGui::End();  // Entity Info.
-            ImGui::PopFont();
-            ImGui::TreePop();
+            
+            if (text_color_previous_value != s_imgui_text_uniform_color)
+            {
+              this->text_boxes.back()->set_text_color(s_imgui_text_uniform_color);
+              Renderer::send_text(*this->text_boxes.back(), *this->shaders[1]);
+            }
           }
-          ImGui::TreePop();  // Text_box.
+          ImGui::End();  // Entity Info.
+          ImGui::PopFont();
+          ImGui::TreePop();
         }
         ImGui::PopFont();
         ImGui::PopStyleVar();  // Window padding.

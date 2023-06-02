@@ -98,6 +98,15 @@ namespace Wave
     }
   }
   
+  Renderer::Renderer_stats_s Renderer::get_stats()
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL: return Gl_renderer::get_stats();
+      default:return {0};
+    }
+  }
+  
   const char *Renderer::get_api_version()
   {
     switch (Renderer::api_in_use)
@@ -194,7 +203,7 @@ namespace Wave
     }
   }
   
-  void Renderer::send_object(const Object &object, Shader &linked_shader)
+  void Renderer::send_object(Object &object, Shader &linked_shader)
   {
     switch (Renderer::api_in_use)
     {
@@ -207,7 +216,7 @@ namespace Wave
     }
   }
   
-  void Renderer::send_text(const Text_box &text, Shader &linked_shader)
+  void Renderer::send_text(Text_box &text, Shader &linked_shader)
   {
     switch (Renderer::api_in_use)
     {

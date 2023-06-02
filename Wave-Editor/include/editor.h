@@ -15,9 +15,11 @@ namespace Wave
     Editor();
     ~Editor() override = default;
     
-    void load() override;
     void on_update(float time_step) override;
     void on_render() override;
+    
+    INTERFACE_BUILDABLE
+    
     
     std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;
     std::shared_ptr<Wave::Camera> editor_camera;

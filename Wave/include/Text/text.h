@@ -22,10 +22,11 @@ namespace Wave
   {
     Vector_2f offset = Vector_2f(25.0f);
     Vector_2f scale = Vector_2f(1.0f);
-    Vector_2f text_size = Vector_2f(0.0f, 24.0f);  // Size of all glyphs for a specified string (px).
-    Vector_2f box_size = Vector_2f(250.0f);  // Size of text box containing all glyphs (px).
+    Vector_2f text_size = Vector_2f(0.0f, 48.0f);  // Size of all glyphs for a specified string (px).
+    Vector_2f box_size = Vector_2f(1570.0f, 817.0f);  // Size of text box containing all glyphs (px).
     Text_style_e style = Text_style_e::Regular;
-  } Text_format;
+    Color text_box_color = Color(0.0f, 0.0f, true);
+  } Text_format_s;
   
   typedef struct Glyph_s
   {
@@ -37,7 +38,7 @@ namespace Wave
   } Glyph;
   
   class Text_box : public Printable, public Movable, public Rotatable, public Copiable, public Scalable,
-                   public Loadable, public Destroyable
+                   public Buildable
   {
     public:
     ~Text_box() override = default;
@@ -51,16 +52,21 @@ namespace Wave
                                             const char *font_file_path_);
     static std::shared_ptr<Text_box> create(const char *font_file_path_, const std::string &text_,
                                             const Text_format_s &format_);
+    static std::shared_ptr<Text_box> create(const Vector_2f &pixel_size_, const std::string &text_,
+                                            const Text_format_s &format_);
     
     void append_text(const std::string &text_);
     void append_text(const std::string &text_, const Color &uniform_color);
     void set_text_box_size(const Vector_2f &size);
+    void set_text_box_color(const Color &color);
     
     [[nodiscard]] const Vector_2f &get_pixel_size() const;
+    [[nodiscard]] Vector_2f &get_pixel_size();
     
     [[nodiscard]] const Vector_2f &get_text_offset() const;
     [[nodiscard]] const Color &get_text_color(char character) const;
     [[nodiscard]] const Vector_2f &get_text_scale() const;
+    [[nodiscard]] Vector_2f &get_text_scale();
     [[nodiscard]] const Text_format_s &get_text_format() const;
     [[nodiscard]] const std::string &get_text_string() const;
     [[nodiscard]] float get_text_length() const;
@@ -69,14 +75,19 @@ namespace Wave
     [[nodiscard]] const std::map<uint8_t, Glyph_s> &get_characters() const;
     [[nodiscard]] Texture *get_texture_atlas() const;
     [[nodiscard]] const Vector_2f &get_text_box_size() const;
+    [[nodiscard]] Vector_2f &get_text_box_size();
+    [[nodiscard]] const Color &get_text_box_color() const;
+    [[nodiscard]] Color &get_text_box_color();
     
     void set_text_offset(const Vector_2f &offset_coords);
     void set_text_offset(float offset_x, float offset_y);
     void set_text_offset_x(float offset_x);
     void set_text_offset_y(float offset_y);
     
-    void set_text_color(char character, const Color &color);
-    void set_text_color(const Color &color);
+    void blend_text_color(char character, const Color &character_color);
+    void blend_text_color(const Color &uniform_color);
+    void set_text_color(char character, const Color &character_color);
+    void set_text_color(const Color &uniform_color);
     void set_text_scale(const Vector_2f &scale_);
     
     void set_pixel_size(const Vector_2f &size);
@@ -93,6 +104,8 @@ namespace Wave
     Vector_2f atlas_size;
     Texture *texture_atlas = nullptr;
     std::map<uint8_t, Glyph_s> characters;
-    bool loaded = false;
+    bool built = false;
+    FT_Face face;
+    FT_Library library;
   };
 }

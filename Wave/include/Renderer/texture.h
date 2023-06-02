@@ -11,7 +11,7 @@
 namespace Wave
 {
   
-  class Texture : public Printable, public Loadable, public Destroyable
+  class Texture : public Printable, public Buildable
   {
     public:
     enum class Texture_type_e
@@ -76,7 +76,7 @@ namespace Wave
     
     virtual explicit operator bool() const = 0;
     protected:
-    bool loaded = false;
+    bool built = false;
   };
   
   /********************* TEXTURE 2D ********************/
