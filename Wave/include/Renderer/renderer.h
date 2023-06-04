@@ -6,7 +6,7 @@
 
 #if defined (GLEW_STATIC)
 
-#include <glew.h>
+#include <GL/glew.h>
 
 #endif
 

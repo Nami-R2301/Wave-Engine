@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <memory>
 #include <Math/vector.h>
+#include <Core/core_macros.h>
+#include <Utilities/logger.h>
 #include <Core/interfaces.h>
 
 namespace Wave

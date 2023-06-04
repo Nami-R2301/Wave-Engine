@@ -69,9 +69,9 @@ namespace Wave
       return {};
     }
     
-    char line_c[LINE_MAX]{0};
+    char line_c[FILENAME_MAX]{0};
     std::string line;
-    line.reserve(LINE_MAX);
+    line.reserve(FILENAME_MAX);
     
     while (fscanf(file_ptr, "%s", line_c) != EOF)  // Get current line.
     {
@@ -125,9 +125,9 @@ namespace Wave
       return {};
     }
     
-    char line_c[LINE_MAX]{0};
+    char line_c[FILENAME_MAX]{0};
     std::string line;
-    line.reserve(LINE_MAX);
+    line.reserve(FILENAME_MAX);
     
     while (fscanf(file_ptr, "%s", line_c) != EOF)  // Get current line.
     {
@@ -189,7 +189,7 @@ namespace Wave
   
   Face_2D_s Resource_loader::load_object_2D_face(FILE *file_ptr)
   {
-    char face_data[3][LINE_MAX]{{0},
+    char face_data[3][FILENAME_MAX]{{0},
                                 {0},
                                 {0}};
     if (fscanf(file_ptr, "%s %s %s\n", face_data[0], face_data[1], face_data[2]) == EOF)
@@ -229,7 +229,7 @@ namespace Wave
   
   Face_3D_s Resource_loader::load_object_3D_face(FILE *file_ptr)
   {
-    char face_data[3][LINE_MAX]{{0},
+    char face_data[3][FILENAME_MAX]{{0},
                                 {0},
                                 {0}};
     if (fscanf(file_ptr, "%s %s %s\n", face_data[0], face_data[1], face_data[2]) == EOF)

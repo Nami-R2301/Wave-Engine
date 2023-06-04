@@ -29,7 +29,7 @@ namespace Wave
   
   const std::function<void(Event &event)> &Window::get_event_callback_function()
   {
-    if (glfwGetPlatform() != GLFW_NOT_INITIALIZED) return Glfw_window::get_event_callback_function();
+    if (glfwGetCurrentContext()) return Glfw_window::get_event_callback_function();
     else
     {
       alert(WAVE_LOG_ERROR, "[Window] --> Window context api not initialized, cannot get event callback!");
@@ -40,7 +40,7 @@ namespace Wave
   
   void Window::set_event_callback_function(const std::function<void(Event &)> &callback_function)
   {
-    if (glfwGetPlatform() != GLFW_NOT_INITIALIZED) Glfw_window::set_event_callback_function(callback_function);
+    if (glfwGetCurrentContext()) Glfw_window::set_event_callback_function(callback_function);
     else
     {
       alert(WAVE_LOG_ERROR, "[Window] --> Window context api not initialized, cannot set event callback!");

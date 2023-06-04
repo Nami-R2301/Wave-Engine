@@ -24,15 +24,11 @@
     <ClCompile Include="src\test_camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="example_app.cpp">
+    <ClCompile Include="..\Example_app\src\example_app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="example_layer.cpp">
+    <ClCompile Include="..\Example_app\src\example_layer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="libs\x86\gtest_main.lib" />
-    <Library Include="libs\x86\gtest.lib" />
   </ItemGroup>
 </Project>

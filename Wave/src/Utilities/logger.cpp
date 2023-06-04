@@ -12,6 +12,51 @@
  * MSVC implements this as _vscprintf, thus we just 'symlink' it here
  * GNU-C-compatible compilers do not implement this, thus we implement it here
  */
+#ifdef _MSC_VER
+#ifndef vscprintf
+#define vscprintf _vscprintf
+#endif
+
+ /*
+  * asprintf, vasprintf:
+  * MSVC does not implement these, thus we implement them here
+  * GNU-C-compatible compilers implement these with the same names, thus we
+  * don't have to do anything
+  */
+#ifndef vasprintf
+int vasprintf(char** strp, const char* format, va_list ap)
+{
+    int len = vscprintf(format, ap);
+    if (len == -1)
+    {
+        return -1;
+    }
+    char* str = (char*)malloc((size_t)len + 1);
+    if (!str)
+    {
+        return -1;
+    }
+    int retval = vsnprintf(str, static_cast<size_t>(len) + 1, format, ap);
+    if (retval == -1)
+    {
+        free(str);
+        return -1;
+    }
+    *strp = str;
+    return retval;
+}
+#endif  // VASPRINTF
+#ifndef asprintf
+int asprintf(char** strp, const char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    int retval = vasprintf(strp, format, ap);
+    va_end(ap);
+    return retval;
+}
+#endif  // ASPRINTF
+#endif  // _MSC_VER
 #endif // ASPRINTF_H
 
 namespace Wave
@@ -100,8 +145,7 @@ namespace Wave
     va_start(args, format);
     
     char *string;
-    size_t chars_written;
-    char current_time[sizeof(args) + (LINE_MAX)];
+    char current_time[sizeof(args) + (FILENAME_MAX * 4)];
     if (vasprintf(&string, format, args) < 0)
     {
       std::cerr << "ERROR : " << WAVE_INTERNAL_ERROR_VASPRINTF << std::endl;
@@ -110,20 +154,25 @@ namespace Wave
     }
     auto time = Engine_time::get_real_time();  // Get std::time_t struct.
     struct tm time_info{};
+#ifdef _MSC_VER
+    if (localtime_s(&time_info, &time)) exit(WAVE_INTERNAL_ERROR_LOCALTIME);
+#endif
 #ifdef _POSIX_VERSION
     if (!localtime_r(&time, &time_info))
     {
-      std::cerr << "ERROR : " << WAVE_INTERNAL_ERROR_LOCALTIME << std::endl;
-      free(string);
-      return;
+        std::cerr << "ERROR : " << ERROR_LOCALTIME << std::endl;
+        free(string);
+        return;
     }
-    chars_written = strftime(current_time, LINE_MAX, "%c", &time_info);
+    size_t chars_written = strftime(current_time, FILENAME_MAX, "%c", &time_info);
 #elif defined(__unix__)  // Non POSIX UNIX systems.
-    struct tm *time_info_non_posix = localtime(&time);
+    struct tm* time_info_non_posix = localtime(&time);
     strftime(current_time, FILENAME_MAX, "%c", time_info_non_posix);
 #endif
+
+    uint64_t chars_written = strftime(current_time, FILENAME_MAX * 4, "%c", &time_info);
     
-    int64_t max_size = LINE_MAX;
+    int64_t max_size = FILENAME_MAX;
     auto data_size = static_cast<int64_t>(strlen(string) + chars_written);
     // Avoid allocating a huge amount of memory to account for large inputs by adjusting to the right size.
     if (max_size < data_size) max_size = data_size;

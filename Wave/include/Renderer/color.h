@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Math/vector.h>
+#include <Utilities/logger.h>
 
 namespace Wave
 {

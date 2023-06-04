@@ -57,7 +57,7 @@ namespace Wave
   const char *Gl_renderer::get_api_shader_version()
   {
     std::string version_and_name = Renderer::get_api_version();
-    if (snprintf(s_glsl_version, LINE_MAX, "#version %c%c%c",
+    if (snprintf(s_glsl_version, FILENAME_MAX, "#version %c%c%c",
                  glGetString(GL_SHADING_LANGUAGE_VERSION)[0],
                  glGetString(GL_SHADING_LANGUAGE_VERSION)[2],
                  glGetString(GL_SHADING_LANGUAGE_VERSION)[3]) < 0)
@@ -92,7 +92,7 @@ namespace Wave
   
   void Gl_renderer::init()
   {
-    s_glsl_version = (char *) calloc(1, LINE_MAX);
+    s_glsl_version = (char *) calloc(1, FILENAME_MAX);
     WAVE_LOG_TASK("GL renderer", CYAN, 1, "Loading openGL renderer ...",
                   {
                     WAVE_LOG_INSTRUCTION("GL renderer", DEFAULT, "Loading GLEW", CHECK_GL_CALL(glewInit()))
@@ -699,15 +699,14 @@ namespace Wave
       {
         Wave::alert(WAVE_LOG_ERROR, "%s[SNPRINTF]%s IN FUNCTION %s IN CASE %d",
                     RED, DEFAULT, __FUNCTION__, error_code);
-        temp.description = std::string("Unknown error").c_str();
+        temp.description = "Unknown error";
       } else if (snprintf(output, sizeof(output),
                           "OpenGL call returned an error :\n%52sIn function --> %s,\n%52sIn file --> %s,\n"
                           "%52sAt line --> %zu,\n%52sDetails --> %s%s",
                           DEFAULT, function_name, DEFAULT, file_name, DEFAULT, line_number,
                           DEFAULT, error_message, DEFAULT) < 0)
       {
-        temp.description = std::string(
-          "Error while building string with snprintf() on line 531 in file renderer.cpp!").c_str();
+        temp.description = "Error while building string with snprintf() on line 531 in file renderer.cpp!";
       } else
       {
         temp.description = output;

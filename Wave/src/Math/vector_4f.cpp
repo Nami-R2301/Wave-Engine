@@ -4,6 +4,10 @@
 
 #include <Math/vector.h>
 
+#ifdef _WIN32
+#define _USE_MATH_DEFINES  // For Visual Studio.
+#endif
+
 namespace Wave
 {
   

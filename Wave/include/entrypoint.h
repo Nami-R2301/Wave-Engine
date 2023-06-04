@@ -35,7 +35,7 @@ int WinMain(int argc, char **argv)
   Wave::Engine *app = Wave::create_app();
   int exit_status;
   // Start and run app in engine.
-  log_task("App", RED, 1, "Initialising app ...", app->init(), "App initialised")
+  WAVE_LOG_TASK("App", RED, 1, "Initialising app ...", app->build(), "App initialised");
   app->run();
   exit_status = (int) app->get_exit_status();
   delete app;
