@@ -21,6 +21,6 @@ namespace Wave
   void Display_settings::set_refresh_rate(Window *window, int32_t refresh_rate)
   {
     window->set_refresh_rate(refresh_rate);
-    Wave::alert(WAVE_LOG_INFO, "[SETTING] --> Set on_render rate to %d", refresh_rate);
+    Wave::alert(WAVE_LOG_INFO, "[SETTING] --> Set app framerate to %d", refresh_rate);
   }
 }

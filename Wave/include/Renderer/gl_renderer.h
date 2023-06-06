@@ -80,8 +80,8 @@ namespace Wave
     
     // Rendering objects.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(Object &object, Shader &linked_shader);
-    static void send_text(Text_box &text, Shader &linked_shader);
+    static void send_object(Object &object, Shader &linked_shader, int64_t vbo_offset, int64_t ibo_offset);
+    static void send_text(Text_box &text, Shader &linked_shader, int64_t vbo_offset, int64_t ibo_offset);
     static void flush();
     static void end();
     
@@ -108,9 +108,9 @@ namespace Wave
     private:
     // Loading assets and buffers.
     static void load_dynamic_vbo_data(const void *vertices, uint64_t count, uint64_t size, uint64_t command_index,
-                                      int64_t vbo_offset = WAVE_VALUE_DONT_CARE);
+                                      int64_t vbo_offset);
     static void load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index,
-                                      int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
+                                      int64_t ibo_offset);
     static void init_object_draw_command(Shader &shader_linked);
     static void init_text_draw_command(Shader &shader_linked);
   };

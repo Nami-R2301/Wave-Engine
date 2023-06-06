@@ -24,8 +24,7 @@ namespace Wave
     explicit Gl_framebuffer(const Framebuffer_options &opt);
     ~Gl_framebuffer() override;
     
-    INTERFACE_BUILDABLE
-    
+    INTERFACE_SENDABLE
     INTERFACE_PRINTABLE
     
     [[nodiscard]] const Framebuffer_options &get_options() const override;

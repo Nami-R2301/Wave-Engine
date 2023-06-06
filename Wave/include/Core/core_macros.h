@@ -112,9 +112,9 @@
 #define INTERFACE_SCALABLE void scale(const Vector_3f &scalar) override; \
                            void scale(float x, float y, float z) override;
 
-#define INTERFACE_BUILDABLE void build() override; \
-                            void unbuild() override; \
-                           [[nodiscard]] bool is_built() const override \
+#define INTERFACE_SENDABLE void send_gpu() override; \
+                            void free_gpu() override; \
+                           [[nodiscard]] bool is_sent() const override \
                            {                     \
-                             return this->built;                      \
+                             return this->sent;                      \
                            };

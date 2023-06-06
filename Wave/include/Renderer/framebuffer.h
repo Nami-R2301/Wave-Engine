@@ -15,7 +15,7 @@ namespace Wave
     uint32_t samples = 1;
   } Framebuffer_options;
   
-  class Framebuffer : public Printable, public Buildable
+  class Framebuffer : public Printable, public Sendable
   {
     public:
     ~Framebuffer() override = default;
@@ -33,6 +33,6 @@ namespace Wave
     virtual void remove() = 0;
     virtual void on_resize_draw_data(void *data) = 0;
     protected:
-    bool built = false;
+    bool sent = false;
   };
 }

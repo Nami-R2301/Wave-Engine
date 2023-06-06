@@ -79,7 +79,7 @@ namespace Wave
     [[nodiscard]] virtual int32_t get_max_refresh_rate() const = 0;
     [[nodiscard]] virtual int32_t get_samples() const = 0;
     [[nodiscard]] virtual bool is_vsync() const = 0;
-    [[nodiscard]] virtual bool is_minimized() const = 0;
+    [[nodiscard]] virtual bool is_minimized() = 0;
     [[nodiscard]] virtual bool is_focused() const = 0;
     [[nodiscard]] virtual bool is_hovered() const = 0;
     

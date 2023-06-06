@@ -75,14 +75,14 @@ namespace Wave
   
   Gl_text_box::~Gl_text_box()
   {
-    Gl_text_box::unbuild();
+    Gl_text_box::free_gpu();
   }
   
   void Gl_text_box::init_freetype()
   {
-    if (!this->is_built()) if (FT_Init_FreeType(&this->library)) return;
+    if (!this->is_sent()) if (FT_Init_FreeType(&this->library)) return;
     
-    if (!this->is_built())
+    if (!this->is_sent())
     {
       if (FT_New_Face(this->library, s_font_file_path, 0, &this->face))
       {
@@ -97,7 +97,7 @@ namespace Wave
                        ((long) this->format.text_size.get_y() - (long) this->format.text_size.get_y() % 2));
     
     unsigned int atlas_total_width = 0, atlas_row_width = 0, atlas_total_height = 0, atlas_row_height = 0;
-    Color glyph_color = Color(1.0f, 1.0f, true);
+    Color glyph_default_color = Color(1.0f, 1.0f, true);
     unsigned int texture_offset_x = 0;
     
     // Load first 128 characters of ASCII set
@@ -117,7 +117,7 @@ namespace Wave
       // Store character for later use.
       Glyph_s character_glyph = {
         (float) texture_offset_x,
-        glyph_color,
+        this->characters.contains(character) ? this->characters.at(character).color : glyph_default_color,
         this->face->glyph->bitmap.width,
         this->face->glyph->bitmap.rows,
         Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
@@ -134,22 +134,20 @@ namespace Wave
     
     this->atlas_size.set_x((float) atlas_total_width);
     this->atlas_size.set_y((float) atlas_total_height);
-    
-    alert(WAVE_LOG_DEBUG, "Total atlas texture size : (%d, %d)", atlas_total_width, atlas_total_height);
   }
   
-  void Gl_text_box::build()
+  void Gl_text_box::send_gpu()
   {
-    if (!this->is_built())
+    if (!this->is_sent())
     {
       CHECK_GL_CALL(glPixelStorei(GL_PACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
       CHECK_GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));  // Disable byte-alignment restriction.
     }
     
     // If we are rebuilding.
-    if (this->is_built())
+    if (this->is_sent())
     {
-      if (this->texture_atlas) this->texture_atlas->unbuild();
+      if (this->texture_atlas) this->texture_atlas->free_gpu();
       
       init_freetype();
       this->texture_atlas->set_width(this->atlas_size.get_x());
@@ -166,7 +164,7 @@ namespace Wave
                                                                  WAVE_VALUE_DONT_CARE,
                                                                  nullptr});
     }
-    this->texture_atlas->build();
+    this->texture_atlas->send_gpu();
     
     if (!this->texture_atlas) return;
     
@@ -180,7 +178,9 @@ namespace Wave
       }
       
       this->texture_atlas->bind(this->texture_atlas->get_texture_slot());
-      CHECK_GL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, this->characters[i].texture_offset,
+      CHECK_GL_CALL(glTexSubImage2D(GL_TEXTURE_2D,
+                                    0,
+                                    this->characters[i].texture_offset,
                                     0,
                                     this->face->glyph->bitmap.width,
                                     this->face->glyph->bitmap.rows,
@@ -190,17 +190,17 @@ namespace Wave
       this->characters[i].texture_offset /= (float) this->texture_atlas->get_width();
     }
     
-    this->built = true;
+    this->sent = true;
   }
   
-  void Gl_text_box::unbuild()
+  void Gl_text_box::free_gpu()
   {
-    if (this->is_built())
+    if (this->is_sent())
     {
       FT_Done_Face(this->face);
       FT_Done_FreeType(this->library);
       delete this->texture_atlas;
-      this->built = false;
+      this->sent = false;
     }
   }
   

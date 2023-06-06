@@ -8,9 +8,29 @@
 namespace Wave
 {
   
+  On_app_framerate_change::On_app_framerate_change(float new_framerate)
+  {
+    this->framerate = new_framerate;
+  }
+  
+  float On_app_framerate_change::get_framerate() const
+  {
+    return this->framerate;
+  }
+  
+  std::string On_app_framerate_change::to_string() const
+  {
+    char buffer[FILENAME_MAX]{0};
+    if (snprintf(buffer, sizeof(buffer),
+                 "[On app framerate change] : Framerate changed to --> %.2f", this->get_framerate()) < 0)
+    {
+      return "ERROR : Snprintf error when trying to display [On app framerate change] event!";
+    }
+    return buffer;
+  }
+  
   std::string On_window_resize::to_string() const
   {
-    
     char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer),
                  "[On window resize] : Window resized to --> (%.2f, %.2f)", this->get_width(), this->get_height()) < 0)
@@ -36,6 +56,17 @@ namespace Wave
     if (snprintf(buffer, sizeof(buffer), "[On window close] : User request to close app window") < 0)
     {
       return "Snprintf error when trying to display [On_window_resize] event!";
+    }
+    return buffer;
+  }
+  
+  std::string On_framebuffer_resize::to_string() const
+  {
+    char buffer[FILENAME_MAX]{0};
+    if (snprintf(buffer, sizeof(buffer), "[On framebuffer resize] : Framebuffer resized to -->"
+                                         " (%.2f, %.2f)", this->width, this->height) < 0)
+    {
+      return "Snprintf error when trying to display [On framebuffer resize] event!";
     }
     return buffer;
   }

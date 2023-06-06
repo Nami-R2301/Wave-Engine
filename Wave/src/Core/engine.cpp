@@ -141,9 +141,9 @@ namespace Wave
     return Engine::exit_code;
   }
   
-  void Engine::set_engine_framerate(float time_step_)
+  void Engine::set_engine_framerate(float framerate)
   {
-    Engine::engine_framerate = 1.0f / time_step_;  // Get frame time in secs.
+    if (framerate > 0.0f) Engine::engine_framerate = 1.0f / framerate;  // Get frame time in secs.
   }
   
   void Engine::set_frame_drawn_counter(long counter)
@@ -185,7 +185,7 @@ namespace Wave
     layer->on_detach();
   }
   
-  void Engine::build()
+  void Engine::on_init()
   {
     
     // Set default callbacks.
@@ -206,8 +206,8 @@ namespace Wave
     
     float last_frame_time = 0.0f;
     float time_step_;  // Avoid tying game speed to framerate.
-    Timer draw_time;
-    draw_time.start();
+    Timer frame_time;
+    frame_time.start();
     while (!Engine::main_window->is_closing() && Renderer::is_running())
     {
       Engine::current_time.update_engine_run_time();
@@ -218,32 +218,33 @@ namespace Wave
       this->set_engine_framerate(Engine::time_step);
       
       on_update(Engine::time_step);  // Overwritten on_render function gets called here.
-      on_render();
+      on_game_render();
+      on_ui_render(Engine::time_step);
+      frame_time.stop();
+      
+      // Set minimum wait time between each frame to control game speed.
+      Engine::wait(frame_time.get_time_in_seconds(),
+                   Engine::main_window->is_vsync() ? 1.0f / (float) Engine::main_window->get_refresh_rate() :
+                   Engine::time_step);  // Set to NOT wait and to render as many frames as possible (V-Sync off).
+      
       // Refresh window
-      Engine::main_window->on_render(); // Refresh the window screen.
-      draw_time.stop();
+      if (!Engine::main_window->is_minimized()) Engine::main_window->on_render(); // Refresh the window screen.
+      
       //    Engine::last_mouse_position = Input::get_mouse_cursor_position();
       Engine::set_frame_drawn_counter(Engine::frame_drawn_counter + 1);
       
-      // Set minimum wait time between each frame to control game speed.
-      Engine::wait(Engine::time_step,
-                   Engine::main_window->is_vsync() ?
-                   1.0f / static_cast<float>(Engine::main_window->get_refresh_rate()) :
-                   Engine::main_window->is_minimized() ? 1.0f / 30.0f :
-                   0.0f);  // Set to NOT wait and to render as many frames as possible (V-Sync off).
-      
       // Show how many fps were achieved if a second passed or if we rendered enough frames before the second passed.
-      if (draw_time.get_time_in_seconds() >= 1.0f)
+      if (frame_time.get_time_in_seconds() >= 1.0f)
       {
         char title[50];
         const char *current_title = Engine::main_window->get_title();
         alert(WAVE_LOG_INFO, "[Engine] --> Framerate : %ld", get_frame_drawn_counter());
-        if (snprintf(title, sizeof(title), "%s | OpenGL | %ld FPS", current_title, get_frame_drawn_counter()) <
-            0)
+        if (snprintf(title, sizeof(title), "%s | OpenGL | %ld FPS",
+                     current_title, get_frame_drawn_counter()) < 0)
           return;
         Engine::main_window->set_title(title);
         Engine::set_frame_drawn_counter(0);
-        draw_time.start();
+        frame_time.start();
       }
     }
     // In case we call shutdown directly and the renderer is shutdown already.
@@ -294,7 +295,7 @@ namespace Wave
     }
   }
   
-  void Engine::on_render()
+  void Engine::on_game_render()
   {
     if (Engine::executable_type == App_type::Runtime)
     {
@@ -304,14 +305,23 @@ namespace Wave
       }
     } else
     {
-      // Process ImGUI layer first to init dockSpace.
-      if (*(this->layer_stack.end() - 1)) (*(this->layer_stack.end() - 1))->on_render();
-      
       // Skip ImGUI layer.
       for (auto it = this->layer_stack.begin(); it != this->layer_stack.end() - 1; ++it)
       {
         (*it)->on_render();
       }
+    }
+  }
+  
+  void Engine::on_ui_render(float time_step_)
+  {
+    // Process ImGUI layer first to init dockSpace.
+    if (*(this->layer_stack.end() - 1)) (*(this->layer_stack.end() - 1))->on_ui_render(time_step_);
+    
+    // Skip ImGUI layer.
+    for (auto it = this->layer_stack.begin(); it != this->layer_stack.end() - 1; ++it)
+    {
+      (*it)->on_ui_render(time_step_);
     }
   }
   
@@ -322,7 +332,7 @@ namespace Wave
     while (start_time + time_waited.get_time_in_seconds() < end_time) time_waited.stop();  // Update the timer.
   }
   
-  void Engine::unbuild()
+  void Engine::on_destroy()
   {
     WAVE_LOG_TASK("Engine", RED, 1, "--------- Shutting down Wave Engine ---------",
                   {
@@ -474,7 +484,7 @@ namespace Wave
       return true;
     }
     
-    resize_event.print(Print_type::Warn);
+    resize_event.print(Print_type::Default);
     if (resize_event.get_width() <= 0.0f || resize_event.get_height() <= 0.0f) return false;
     Engine::main_window->resize(resize_event.get_width(), resize_event.get_height());
     Renderer::on_event(resize_event);

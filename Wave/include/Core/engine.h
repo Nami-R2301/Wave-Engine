@@ -16,7 +16,7 @@
 namespace Wave
 {
   
-  class Engine : public Buildable
+  class Engine
   {
     public:
     enum class App_type
@@ -28,7 +28,7 @@ namespace Wave
     public:
     Engine();
     explicit Engine(Renderer_api renderer_api_choice, Context_api_e context_api_choice, App_type executable_type_);
-    ~Engine() override = default;
+    virtual ~Engine() = default;
     
     [[nodiscard]] static Engine *get_app();
     [[nodiscard]] static Window *get_main_window();  // For glfw purposes, keep this static.
@@ -43,13 +43,14 @@ namespace Wave
     static void set_running_state(bool new_state);
     static void set_exit_status(int32_t code);
     
-    INTERFACE_BUILDABLE
     
-    
+    virtual void on_init();
     virtual void on_event(Event &event);
     virtual void on_update(float time_step);
-    virtual void on_render();
+    virtual void on_game_render();
+    virtual void on_ui_render(float time_step_);
     void run();
+    virtual void on_destroy();
     
     void push_overlay(Layer *layer);
     void pop_overlay(Layer *layer);

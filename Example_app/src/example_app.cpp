@@ -43,9 +43,9 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   this->demo_text[0]->set_text_scale(Wave::Vector_2f(0.5f));
 }
 
-void Example_app::build()
+void Example_app::send()
 {
-  Engine::build();
+  Engine::send();
   Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));
@@ -107,11 +107,11 @@ void Example_app::on_update(float time_step)
   Engine::on_update(time_step);
 }
 
-void Example_app::on_render()
+void Example_app::on_game_render()
 {
   Wave::Renderer::begin(this->demo_perspective_camera);
   Wave::Renderer::clear_bg();
-  Engine::on_render();
+  Engine::on_game_render();
   Wave::Renderer::end();
 }
 

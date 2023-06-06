@@ -27,6 +27,7 @@ namespace Wave
     void on_detach() override;
     void on_update(float time_step) override;
     void on_render() override;
+    void on_ui_render(float time_step) override;
     void on_event(Event &e) override;
     
     static void begin();

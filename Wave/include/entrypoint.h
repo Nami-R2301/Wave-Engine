@@ -72,10 +72,10 @@ int main(int argc, char **argv)
   Wave::Engine *app = Wave::create_app();
   int exit_status;
   // Start and run app in engine.
-  WAVE_LOG_TASK("App", RED, 1, "Building app ...", app->build(), "App built")
+  WAVE_LOG_TASK("App", RED, 1, "Initialising app ...", app->on_init(), "App built")
   app->run();
   exit_status = Wave::Engine::get_exit_status();
-  WAVE_LOG_TASK("App", RED, 1, "Destroying app ...", app->unbuild(), "Cleaning up")
+  WAVE_LOG_TASK("App", RED, 1, "Destroying app ...", app->on_destroy(), "Cleaning up")
   delete app;
   return exit_status;
 }

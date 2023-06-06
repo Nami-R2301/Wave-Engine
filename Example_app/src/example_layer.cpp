@@ -23,7 +23,7 @@ void Example_scene_3D::on_attach()
   this->objects[0]->translate(10, -10, 20);
   this->objects[0]->rotate(90, -90, 0);
   
-  this->objects[0]->build();
+  this->objects[0]->send_gpu();
   Wave::Renderer::send_object(*this->objects[0], *this->shaders[0]);
 }
 

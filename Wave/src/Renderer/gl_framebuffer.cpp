@@ -42,10 +42,10 @@ namespace Wave
   
   Gl_framebuffer::~Gl_framebuffer()
   {
-    Gl_framebuffer::unbuild();
+    Gl_framebuffer::free_gpu();
   }
   
-  void Gl_framebuffer::build()
+  void Gl_framebuffer::send_gpu()
   {
     CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
@@ -65,8 +65,8 @@ namespace Wave
     this->data.vao->add_vertex_buffer(vbo);
     this->data.vao->set_index_buffer(ibo);
     
-    this->color_attachment->build();
-    this->depth_attachment->build();
+    this->color_attachment->send_gpu();
+    this->depth_attachment->send_gpu();
     
     int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
     
@@ -87,18 +87,18 @@ namespace Wave
     }
     Gl_framebuffer::unbind();
     
-    this->built = true;
+    this->sent = true;
   }
   
-  void Gl_framebuffer::unbuild()
+  void Gl_framebuffer::free_gpu()
   {
-    if (this->is_built())
+    if (this->is_sent())
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      if (this->color_attachment) this->color_attachment->unbuild();
-      if (this->depth_attachment) this->depth_attachment->unbuild();
+      if (this->color_attachment) this->color_attachment->free_gpu();
+      if (this->depth_attachment) this->depth_attachment->free_gpu();
       
-      this->built = false;
+      this->sent = false;
       delete this->color_attachment;
       delete this->depth_attachment;
       delete[] this->data.ibo_data;
@@ -123,8 +123,8 @@ namespace Wave
     if (this->renderer_id)
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      this->color_attachment->unbuild();
-      this->depth_attachment->unbuild();
+      this->color_attachment->free_gpu();
+      this->depth_attachment->free_gpu();
       delete this->color_attachment;
       delete this->depth_attachment;
       
@@ -150,8 +150,8 @@ namespace Wave
                                                            3,
                                                            static_cast<int32_t>(this->options.samples),
                                                            nullptr});
-      this->color_attachment->build();
-      this->depth_attachment->build();
+      this->color_attachment->send_gpu();
+      this->depth_attachment->send_gpu();
       
       int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
       
@@ -185,7 +185,7 @@ namespace Wave
     assert(width > 0 && height > 0);
     if (width != this->options.width || height != this->options.height)
     {
-      alert(WAVE_LOG_WARN, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
+      alert(WAVE_LOG_INFO, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
     }
     this->options.width = width;
     this->options.height = height;

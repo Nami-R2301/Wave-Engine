@@ -64,8 +64,10 @@ namespace Wave
     ImGui_ImplOpenGL3_Init(Renderer::get_api_shader_version());
   }
   
-  void ImGui_layer::on_update([[maybe_unused]] float time_step)
+  void ImGui_layer::on_update(float time_step)
   {
+    ImGuiIO &io = ImGui::GetIO();
+    io.DeltaTime = time_step > (1.0f / 60.0f) ? (1.0f / 60.0f) : time_step;
   }
   
   void ImGui_layer::on_detach()
@@ -85,8 +87,13 @@ namespace Wave
   
   void ImGui_layer::on_render()
   {
+  }
+  
+  void ImGui_layer::on_ui_render(float time_step)
+  {
 #ifndef RUNTIME
     ImGuiIO &io = ImGui::GetIO();
+    io.DeltaTime = time_step;
     auto bold = io.Fonts->Fonts[1];
     // Note: Switch this to true to enable dockspace
     static bool opt_fullscreen_persistant = true;
@@ -123,12 +130,12 @@ namespace Wave
                                                                       Engine::get_main_window()->get_height()));
       
       ImGuiID dock_main_id = ImGui_layer::dockSpace_id;
-      ImGui_layer::scene_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.15f, nullptr,
+      ImGui_layer::scene_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.20f, nullptr,
                                                                      &dock_main_id);
       ImGui_layer::stats_panel_dock_id = ImGui::DockBuilderSplitNode(ImGui_layer::scene_panel_dock_id, ImGuiDir_Down,
                                                                      0.4f, nullptr,
                                                                      &(ImGui_layer::scene_panel_dock_id));
-      ImGui_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.15f, nullptr,
+      ImGui_layer::events_panel_dock_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.20f, nullptr,
                                                                       &dock_main_id);
       
       ImGui::DockBuilderDockWindow("Viewport", dock_main_id);

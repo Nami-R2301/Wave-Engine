@@ -158,6 +158,7 @@ namespace Wave
     
     [[nodiscard]] virtual const char *get_type() const = 0;
     virtual void on_window_resize(On_window_resize &resize_event) = 0;
+    virtual void on_framebuffer_resize(On_framebuffer_resize &resize_event) = 0;
     virtual void on_update(float time_step) = 0;
     virtual void on_event(Event &event) = 0;
     virtual void move(const Vector_3f &direction, float amount) = 0;
@@ -187,6 +188,7 @@ namespace Wave
     ~Perspective_camera() override = default;
     
     void on_window_resize(On_window_resize &resize_event) override;
+    void on_framebuffer_resize(On_framebuffer_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;
     void look_at(const Vector_3f &direction);
@@ -216,6 +218,7 @@ namespace Wave
     
     void on_event(Event &event) override;
     void on_window_resize(On_window_resize &resize_event) override;
+    void on_framebuffer_resize(On_framebuffer_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;
     

@@ -47,17 +47,17 @@ namespace Wave
   
   Object_2D::~Object_2D()
   {
-    Object_2D::unbuild();
+    Object_2D::free_gpu();
   }
   
-  void Object_2D::build()
+  void Object_2D::send_gpu()
   {
-    for (const auto &texture: this->textures) texture->build();
+    for (const auto &texture: this->textures) texture->send_gpu();
   }
   
-  void Object_2D::unbuild()
+  void Object_2D::free_gpu()
   {
-    for (const auto &texture: this->textures) texture->unbuild();
+    for (const auto &texture: this->textures) texture->free_gpu();
   }
   
   void Object_2D::normalize()
@@ -393,20 +393,20 @@ namespace Wave
   
   Object_3D::~Object_3D()
   {
-    Object_3D::unbuild();
+    Object_3D::free_gpu();
   }
   
-  void Object_3D::build()
+  void Object_3D::send_gpu()
   {
     
-    for (const auto &texture: this->textures) texture->build();
-    this->built = true;
+    for (const auto &texture: this->textures) texture->send_gpu();
+    this->sent = true;
   }
   
-  void Object_3D::unbuild()
+  void Object_3D::free_gpu()
   {
-    for (const auto &texture: this->textures) texture->unbuild();
-    this->built = false;
+    for (const auto &texture: this->textures) texture->free_gpu();
+    this->sent = false;
   }
   
   void *Object_3D::copy() const

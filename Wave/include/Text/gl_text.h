@@ -24,7 +24,7 @@ namespace Wave
     ~Gl_text_box() override;
     
     // Interfaces.
-    INTERFACE_BUILDABLE
+    INTERFACE_SENDABLE
     INTERFACE_PRINTABLE
     INTERFACE_MOVABLE
     INTERFACE_ROTATABLE

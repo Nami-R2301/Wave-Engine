@@ -67,7 +67,7 @@ namespace Wave
     Object_3D
   };
   
-  class Object : public Printable, public Movable, public Rotatable, public Copiable, public Scalable, public Buildable
+  class Object : public Printable, public Movable, public Rotatable, public Copiable, public Scalable, public Sendable
   {
     public:
     ~Object() override = default;
@@ -111,7 +111,7 @@ namespace Wave
     ~Object_2D() override;
     
     // Interfaces.
-    INTERFACE_BUILDABLE
+    INTERFACE_SENDABLE
     
     INTERFACE_PRINTABLE
     INTERFACE_COPIABLE
@@ -175,7 +175,7 @@ namespace Wave
     std::vector<std::shared_ptr<Texture>> textures;
     Matrix_4f model_matrix = Matrix_4f(1.0f);
     Transform model_transform{};
-    bool built = false;
+    bool sent = false;
     protected:
     void apply_vertex_properties(const Object_2D_data_s &sprite);
   };
@@ -244,7 +244,7 @@ namespace Wave
     ~Object_3D() override;
     
     // Interfaces.
-    INTERFACE_BUILDABLE
+    INTERFACE_SENDABLE
     
     INTERFACE_PRINTABLE
     INTERFACE_COPIABLE
@@ -310,7 +310,7 @@ namespace Wave
     std::vector<std::shared_ptr<Texture>> textures;
     Matrix_4f model_matrix = Matrix_4f(1.0f);
     Transform model_transform{};
-    bool built = false;
+    bool sent = false;
     protected:
     void apply_vertex_properties(const Object_3D_data_s &mesh);
   };

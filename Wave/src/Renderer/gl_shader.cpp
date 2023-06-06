@@ -20,10 +20,10 @@ namespace Wave
 
   Gl_shader::~Gl_shader()
   {
-    Gl_shader::unbuild();
+    Gl_shader::free_gpu();
   }
   
-  void Gl_shader::build()
+  void Gl_shader::send_gpu()
   {
     
     CHECK_GL_CALL(this->program_id = glCreateProgram());
@@ -39,18 +39,18 @@ namespace Wave
     Gl_shader::link();
     Gl_shader::validate();
     
-    this->built = true;
+    this->sent = true;
   }
   
-  void Gl_shader::unbuild()
+  void Gl_shader::free_gpu()
   {
-    if (this->is_built())
+    if (this->is_sent())
     {
       this->detach();
       WAVE_LOG_INSTRUCTION("Shader", DEFAULT, "Deleting shader program",
                            CHECK_GL_CALL(glDeleteProgram(this->program_id)))
       if (!this->uniform_cache.empty()) this->uniform_cache.clear();
-      this->built = false;
+      this->sent = false;
     }
   }
   
@@ -126,7 +126,7 @@ namespace Wave
   
   void Gl_shader::bind() const
   {
-    if (!this->built)
+    if (!this->sent)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
                                                  "Cannot use shader program, OpenGL shader not built!"

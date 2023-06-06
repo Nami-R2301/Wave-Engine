@@ -15,10 +15,13 @@ namespace Wave
     Editor();
     ~Editor() override = default;
     
+    void on_init() override;
+    void on_event(Event &event) override;
+    bool on_viewport_resize(On_framebuffer_resize &resize);
     void on_update(float time_step) override;
-    void on_render() override;
-    
-    INTERFACE_BUILDABLE
+    void on_game_render() override;
+    void on_ui_render(float time_step) override;
+    void on_destroy() override;
     
     
     std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;

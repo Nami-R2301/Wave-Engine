@@ -13,13 +13,14 @@ namespace Wave
   {
     public:
     explicit Layer(const std::string &name = "Layer");
-    virtual ~Layer();
+    virtual ~Layer() = default;
     
-    virtual void on_attach();
-    virtual void on_detach();
-    virtual void on_update(float time_step);
-    virtual void on_event(Event &event);
-    virtual void on_render();
+    virtual void on_attach() = 0;
+    virtual void on_detach() = 0;
+    virtual void on_update(float time_step) = 0;
+    virtual void on_event(Event &event) = 0;
+    virtual void on_render() = 0;
+    virtual void on_ui_render(float time_step) = 0;
     
     [[nodiscard]] inline const std::string &get_name() const
     { return this->layer_name; };
