@@ -56,3 +56,7 @@ void Example_scene_3D::on_event(Wave::Event &event)
 void Example_scene_3D::on_render()
 {
 }
+
+void Example_scene_3D::on_ui_render(float time_step)
+{
+}

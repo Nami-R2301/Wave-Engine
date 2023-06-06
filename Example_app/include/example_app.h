@@ -12,7 +12,7 @@ public:
   Example_app();
   ~Example_app() override = default;
   
-  void send() override;
+  void on_init() override;
   void on_update(float time_step) override;
   void on_event(Wave::Event &event) override;
   void on_game_render() override;
@@ -27,4 +27,5 @@ public:
   std::vector<std::shared_ptr<Wave::Object>> demo_objects;
   std::vector<std::shared_ptr<Wave::Text_box>> demo_text;
   Wave::Color background_clear_color = Wave::Color(78.0f, 255.0f, false);
+  Wave::Vector_2f viewport = Wave::Vector_2f(0.0f);
 };

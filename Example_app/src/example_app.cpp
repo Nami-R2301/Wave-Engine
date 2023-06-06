@@ -12,6 +12,8 @@ static Wave::Color previous_background_color;
 Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Context_api_e::Glfw,
                                           Wave::Engine::App_type::Runtime)
 {
+  
+  this->viewport = {Wave::Engine::get_main_window()->get_width(), Wave::Engine::get_main_window()->get_height()};
   // Add Cameras
   this->demo_perspective_camera = std::make_shared<Wave::Editor_camera>(
     Engine::get_main_window()->get_width(),
@@ -43,15 +45,13 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   this->demo_text[0]->set_text_scale(Wave::Vector_2f(0.5f));
 }
 
-void Example_app::send()
+void Example_app::on_init()
 {
-  Engine::send();
+  Engine::on_init();
   Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));
-  push_layer(new Wave::Text_layer(this->demo_text, this->demo_shaders,
-                                  Wave::Vector_2f(Engine::get_main_window()->get_width(),
-                                                  Engine::get_main_window()->get_height()), false));
+  push_layer(new Wave::Text_layer(this->demo_text, this->demo_shaders, &this->viewport, false));
 }
 
 void Example_app::on_event(Wave::Event &event)
