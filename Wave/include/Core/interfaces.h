@@ -17,13 +17,13 @@ namespace Wave
   };
   
   // Able to initialize its members explicitly without relying on the ambiguity of constructors.
-  class Buildable
+  class Sendable
   {
     public:
-    virtual ~Buildable() = default;
-    [[nodiscard]] virtual bool is_built() const = 0;
-    virtual void build() = 0;
-    virtual void unbuild() = 0;
+    virtual ~Sendable() = default;
+    [[nodiscard]] virtual bool is_sent() const = 0;
+    virtual void send_gpu() = 0;
+    virtual void free_gpu() = 0;
   };
   
   // Display properties applied to entities to debug their states and/or show them in the editor.

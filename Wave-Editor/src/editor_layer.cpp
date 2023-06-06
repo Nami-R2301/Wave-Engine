@@ -26,11 +26,11 @@ namespace Wave
   void Editor_layer::on_attach()
   {
     // Setup object shaders.
-    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
+//    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
     
     // Setup objects in scene.
-    this->objects[0]->translate(10, -10, 20);
-    this->objects[0]->rotate(90, -90, 0);
+    this->objects[0]->translate(0, 0, 5.);
+    this->objects[0]->rotate(45, 0, 0);
     
     // Setup framebuffer shader.
     this->framebuffer_viewport_data.framebuffer_viewport_shader = Shader::create("Framebuffer Editor Viewport",
@@ -39,8 +39,8 @@ namespace Wave
                                                                                  Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag"));
     // Load framebuffer.
-    this->framebuffer_viewport_data.viewport->build();
-    this->framebuffer_viewport_data.framebuffer_viewport_shader->build();
+    this->framebuffer_viewport_data.viewport->send_gpu();
+    this->framebuffer_viewport_data.framebuffer_viewport_shader->send_gpu();
     
     // Load and enqueue the object for rendering.
     Renderer::send_object(*this->objects[0], *this->shaders[0]);
@@ -48,12 +48,11 @@ namespace Wave
   
   void Editor_layer::on_detach()
   {
-    this->framebuffer_viewport_data.framebuffer_viewport_shader->unbuild();
+    this->framebuffer_viewport_data.framebuffer_viewport_shader->free_gpu();
   }
   
   void Editor_layer::on_event([[maybe_unused]] Event &event)
   {
-    this->camera->on_event(event);
   }
   
   void Editor_layer::on_update(float time_step)
@@ -103,8 +102,12 @@ namespace Wave
   
   void Editor_layer::on_render()
   {
+  }
+  
+  void Editor_layer::on_ui_render(float time_step)
+  {
     ImGuiIO io = ImGui::GetIO();
-    
+    io.DeltaTime = time_step;
     ImGuiViewport *viewport_ = ImGui::GetMainViewport();
     
     /* Important to set next viewport window, because otherwise a window node will clip out of the main viewport when
@@ -132,7 +135,7 @@ namespace Wave
         {
           ImGui::Text("Application performance :\t%.3f ms/frame (%d FPS)",
                       Engine::get_time_step() * 1000.0f,
-                      static_cast<int>(Engine::get_engine_framerate()));
+                      (int) (1.0f / s_imgui_app_performance_stat));
           s_imgui_app_performance_timer = 0;
         } else
         {

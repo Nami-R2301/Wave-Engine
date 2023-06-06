@@ -275,8 +275,9 @@ namespace Wave
     }
   }
   
-  bool Glfw_window::is_minimized() const
+  bool Glfw_window::is_minimized()
   {
+    this->window_properties.refresh_rate = 30.0f;
     return glfwGetWindowAttrib(static_cast<GLFWwindow *>(this->get_native_window()), GLFW_ICONIFIED);
   }
   
@@ -517,7 +518,12 @@ namespace Wave
   
   void Glfw_window::set_refresh_rate(int32_t refresh_rate_)
   {
-    this->window_properties.refresh_rate = refresh_rate_;
+    if (refresh_rate_ == WAVE_VALUE_DONT_CARE)
+    {
+      this->window_properties.refresh_rate = 0;
+      return;
+    }
+    if (refresh_rate_ > 0) this->window_properties.refresh_rate = refresh_rate_;
   }
   
   void Glfw_window::set_max_refresh_rate(int32_t refresh_rate_)
@@ -527,6 +533,13 @@ namespace Wave
   
   void Glfw_window::set_vsync(bool vsync_)
   {
+    if (!vsync_) Glfw_window::set_refresh_rate(WAVE_VALUE_DONT_CARE);
+    else
+    {
+      const GLFWvidmode *mode =
+        glfwGetVideoMode((GLFWmonitor *) this->get_native_monitor()); // Get video specs of monitor.
+      Glfw_window::set_refresh_rate(mode->refreshRate);
+    }
     this->window_properties.vsync = vsync_;
   }
   

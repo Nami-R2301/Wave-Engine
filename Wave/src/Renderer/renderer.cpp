@@ -203,26 +203,28 @@ namespace Wave
     }
   }
   
-  void Renderer::send_object(Object &object, Shader &linked_shader)
+  void Renderer::send_object(Object &object, Shader &linked_shader, int64_t vbo_offset,
+                             int64_t ibo_offset)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_object(object, linked_shader);
+        Gl_renderer::send_object(object, linked_shader, vbo_offset, ibo_offset);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::send_text(Text_box &text, Shader &linked_shader)
+  void Renderer::send_text(Text_box &text, Shader &linked_shader, int64_t vbo_offset,
+                           int64_t ibo_offset)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_text(text, linked_shader);
+        Gl_renderer::send_text(text, linked_shader, vbo_offset, ibo_offset);
         break;
       }
       default:break;

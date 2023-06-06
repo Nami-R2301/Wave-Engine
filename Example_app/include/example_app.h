@@ -12,10 +12,10 @@ public:
   Example_app();
   ~Example_app() override = default;
   
-  void build() override;
+  void send() override;
   void on_update(float time_step) override;
   void on_event(Wave::Event &event) override;
-  void on_render() override;
+  void on_game_render() override;
   
   bool window_closed_callback([[maybe_unused]] Wave::On_window_close &window_closed_event) override;
   bool window_resize_callback([[maybe_unused]] Wave::On_window_resize &window_resized_event) override;

@@ -32,8 +32,8 @@ namespace Wave
     *this = new_color;
   }
   
-  // When given a hex value for the desired color. For example : FF2F3F4F --> FF = red bits, 2F = green bits,
-  // 3F = blue bits, and 4F = alpha bits. The bits are then masked with the ceiling value of RGB coloring (255).
+  // When given a hex value for the desired color. For example : FF2F3F4F --> FF = alpha bits, 2F = blue bits,
+  // 3F = green bits, and 4F = red bits. The bits are then masked with the ceiling value of RGB coloring (255).
   Color::Color(unsigned long hex_color)
   {
     this->red = (float) ((hex_color >> 24) & 255); // First 8 bits (left to right).
@@ -150,7 +150,7 @@ namespace Wave
     return *this;
   }
   
-  bool Color::operator==(const Color &other_color)
+  bool Color::operator==(const Color &other_color) const
   {
     if (this == &other_color) return true;
     return (this->red == other_color.red &&
@@ -168,11 +168,33 @@ namespace Wave
            this->alpha == other_color.alpha;
   }
   
+  Color Color::operator+(const Color &added_color) const
+  {
+    Color new_color(*this);
+    new_color.red = added_color.red + this->red <= 1.0f ? added_color.red : 1.0f;
+    new_color.green = added_color.green + this->green <= 1.0f ? added_color.green : 1.0f;
+    new_color.blue = added_color.blue + this->blue <= 1.0f ? added_color.blue : 1.0f;
+    new_color.alpha = added_color.alpha + this->alpha <= 1.0f ? added_color.alpha : 1.0f;
+    return new_color;
+  }
+  
   void Color::operator+=(const Color &added_color)
   {
-    this->red += added_color.red + this->red <= 1.0f ? added_color.red : 1.0f;
-    this->green += added_color.green + this->green <= 1.0f ? added_color.green : 1.0f;
-    this->blue += added_color.blue + this->blue <= 1.0f ? added_color.blue : 1.0f;
-    this->alpha += added_color.alpha + this->alpha <= 1.0f ? added_color.alpha : 1.0f;
+    *this = *this + added_color;
+  }
+  
+  Color Color::operator*(const Color &other_color) const
+  {
+    Color new_color(*this);
+    new_color.red = new_color.red * other_color.red;
+    new_color.green = new_color.green * other_color.green;
+    new_color.blue = new_color.blue * other_color.blue;
+    new_color.alpha = new_color.alpha * other_color.alpha;
+    return new_color;
+  }
+  
+  void Color::operator*=(const Color &other_color)
+  {
+    *this = *this * other_color;
   }
 }

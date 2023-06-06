@@ -68,6 +68,13 @@ namespace Wave
     set_viewport(width_, height);
   }
   
+  void Perspective_camera::on_framebuffer_resize(On_framebuffer_resize &resize_event)
+  {
+    auto width_ = static_cast<float>(resize_event.get_width());
+    auto height = static_cast<float>(resize_event.get_height());
+    set_viewport(width_, height);
+  }
+  
   void Perspective_camera::move(const Vector_3f &direction_, const float amount)
   {
     this->position += (direction_.normalize() * amount);
@@ -168,6 +175,18 @@ namespace Wave
   
   void Orthographic_camera::on_window_resize([[maybe_unused]] On_window_resize &resize_event)
   {
+    auto width_ = static_cast<float>(resize_event.get_width());
+    auto height = static_cast<float>(resize_event.get_height());
+    set_viewport(width_, height);
+  }
+  
+  void Orthographic_camera::on_framebuffer_resize(On_framebuffer_resize &resize_event)
+  {
+    auto width_ = static_cast<float>(resize_event.get_width());
+    auto height = static_cast<float>(resize_event.get_height());
+    set_viewport(width_, height);
+    alert(WAVE_LOG_DEBUG, "Framebuffer resized to (%.2f, %.2f)", resize_event.get_width(),
+          resize_event.get_height());
   }
   
   void Orthographic_camera::move(const Vector_3f &direction_, const float amount)

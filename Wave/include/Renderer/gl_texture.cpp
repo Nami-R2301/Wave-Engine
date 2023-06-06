@@ -98,10 +98,10 @@ namespace Wave
   
   Gl_texture_2D::~Gl_texture_2D()
   {
-    Gl_texture_2D::unbuild();
+    Gl_texture_2D::free_gpu();
   }
   
-  void Gl_texture_2D::build()
+  void Gl_texture_2D::send_gpu()
   {
     
     // Default text glyph texture slot given for renderer.
@@ -178,15 +178,15 @@ namespace Wave
     // Deallocate file texture from CPU since it's loaded onto the GPU.
     if (this->file_path && this->texture_data.data) stbi_image_free((stbi_uc *) this->texture_data.data);
     
-    this->built = true;
+    this->sent = true;
   }
   
-  void Gl_texture_2D::unbuild()
+  void Gl_texture_2D::free_gpu()
   {
-    if (this->is_built())
+    if (this->is_sent())
     {
       Gl_texture_2D::remove();
-      this->built = false;
+      this->sent = false;
     }
   }
   
@@ -211,7 +211,7 @@ namespace Wave
   
   void Gl_texture_2D::bind(int32_t slot_) const
   {
-    if (!this->built)
+    if (!this->sent)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
                                                  "Cannot bind texture 2D, OpenGL texture 2D not built!"
@@ -228,7 +228,7 @@ namespace Wave
   
   void Gl_texture_2D::unbind() const
   {
-    if (!this->built)
+    if (!this->sent)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
                                                  "Cannot bind texture 2D, OpenGL texture 2D not built!"
@@ -407,7 +407,7 @@ namespace Wave
   
   Gl_texture_2D::operator bool() const
   {
-    return this->built;
+    return this->sent;
   }
   
   std::string Gl_texture_2D::to_string() const
@@ -501,10 +501,10 @@ namespace Wave
   
   Gl_texture_3D::~Gl_texture_3D()
   {
-    Gl_texture_3D::unbuild();
+    Gl_texture_3D::free_gpu();
   }
   
-  void Gl_texture_3D::build()
+  void Gl_texture_3D::send_gpu()
   {
     
     stbi_uc *image_buffer{};
@@ -545,13 +545,13 @@ namespace Wave
     // Deallocate file texture from CPU since it's loaded onto the GPU.
     if (image_buffer) stbi_image_free(image_buffer);
     
-    this->built = true;
+    this->sent = true;
   }
   
-  void Gl_texture_3D::unbuild()
+  void Gl_texture_3D::free_gpu()
   {
     Gl_texture_3D::remove();
-    this->built = false;
+    this->sent = false;
   }
   
   int32_t Gl_texture_3D::convert_type_to_api(Texture_data_s data_)
@@ -574,7 +574,7 @@ namespace Wave
   
   void Gl_texture_3D::bind(int32_t slot_) const
   {
-    if (!this->built)
+    if (!this->sent)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
                                                  "Cannot bind texture 3D, OpenGL texture 3D not built!"
@@ -591,7 +591,7 @@ namespace Wave
   
   void Gl_texture_3D::unbind() const
   {
-    if (!this->built)
+    if (!this->sent)
     {
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
                                                  "Cannot bind texture 3D, OpenGL texture 3D not built!"
@@ -798,7 +798,7 @@ namespace Wave
   
   Gl_texture_3D::operator bool() const
   {
-    return this->built;
+    return this->sent;
   }
   
   std::string Gl_texture_3D::to_string() const

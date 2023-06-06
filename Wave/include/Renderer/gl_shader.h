@@ -23,7 +23,7 @@ namespace Wave
     [[nodiscard]] int32_t get_id() const override;
     
     INTERFACE_PRINTABLE
-    INTERFACE_BUILDABLE
+    INTERFACE_SENDABLE
     
     
     void source(uint32_t count, const char *source, int *length) const override;

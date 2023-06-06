@@ -10,7 +10,7 @@
 namespace Wave
 {
   
-  class Shader : public Printable, public Buildable
+  class Shader : public Printable, public Sendable
   {
     public:
     ~Shader() override = default;
@@ -43,6 +43,6 @@ namespace Wave
     virtual bool operator==(const Shader &other_shader) const = 0;
     bool operator!=(const Shader &other_shader) const;
     protected:
-    bool built = false;
+    bool sent = false;
   };
 }

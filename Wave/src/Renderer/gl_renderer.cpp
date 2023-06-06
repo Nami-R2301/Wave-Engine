@@ -324,9 +324,10 @@ namespace Wave
     }
   }
   
-  void Gl_renderer::send_object(Object &object, Shader &linked_shader)
+  void Gl_renderer::send_object(Object &object, Shader &linked_shader, int64_t vbo_offset,
+                                [[maybe_unused]] int64_t ibo_offset)
   {
-    if (!object.is_built()) object.build();
+    if (!object.is_sent()) object.send_gpu();
     if (!Gl_renderer::draw_commands.contains(linked_shader.get_id()))
     {
       Gl_renderer::stats.object_count++;
@@ -334,8 +335,8 @@ namespace Wave
     }
     
     int32_t shader_id = linked_shader.get_id();
-    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_built())
-      Gl_renderer::draw_commands[shader_id]->associated_shader->build();
+    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_sent())
+      Gl_renderer::draw_commands[shader_id]->associated_shader->send_gpu();
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
     Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
     
@@ -353,8 +354,9 @@ namespace Wave
     
     // Set data in vbo and ibo.
     load_dynamic_vbo_data(object.get_vertices(), object.get_vertex_count(), object.get_vertex_size(),
-                          shader_id);
-    load_dynamic_ibo_data(object.get_faces(), object.get_face_count(), sizeof(uint32_t), shader_id);
+                          shader_id, vbo_offset);
+    load_dynamic_ibo_data(object.get_faces(), object.get_face_count(), sizeof(uint32_t),
+                          shader_id, ibo_offset);
     
     if (!object.get_textures().empty())
       Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_has_texture", true);
@@ -367,7 +369,7 @@ namespace Wave
     for (const auto &texture: object.get_textures())
     {
       texture->set_texture_slot(s_texture_unit_number_assigned);
-      if (!texture->is_built()) texture->build();
+      if (!texture->is_sent()) texture->send_gpu();
       
       // If this is a new object texture.
       if (!Gl_renderer::textures.contains(texture->get_id())) s_texture_unit_number_assigned++;
@@ -375,9 +377,17 @@ namespace Wave
     }
   }
   
-  void Gl_renderer::send_text(Text_box &text, Shader &linked_shader)
+  void
+  Gl_renderer::send_text(Text_box &text, Shader &linked_shader, int64_t vbo_offset, [[maybe_unused]] int64_t ibo_offset)
   {
-    if (!text.is_built()) text.build();
+    if (!text.is_sent()) text.send_gpu();
+    if (Gl_renderer::draw_commands.contains(linked_shader.get_id()) && vbo_offset != WAVE_VALUE_DONT_CARE)
+    {
+      Gl_renderer::draw_commands[linked_shader.get_id()]->vbo_offset = vbo_offset;
+      Gl_renderer::draw_commands[linked_shader.get_id()]->vertex_array_buffer->get_vertex_buffers().back()->set_count(
+        0);
+    }
+    
     if (!Gl_renderer::draw_commands.contains(linked_shader.get_id()))
     {
       Gl_renderer::stats.text_glyph_count += text.get_text_string().size();
@@ -385,8 +395,8 @@ namespace Wave
     }
     
     int32_t shader_id = linked_shader.get_id();
-    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_built())
-      Gl_renderer::draw_commands[shader_id]->associated_shader->build();
+    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_sent())
+      Gl_renderer::draw_commands[shader_id]->associated_shader->send_gpu();
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
     Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
     
@@ -395,66 +405,66 @@ namespace Wave
     const Vector_2f &scale = text.get_text_scale();
     
     // Iterate through all characters
-    for (int64_t i = 0; i < (int64_t) string.size(); ++i)
+    for (char character: string)
     {
-      Glyph_s ch = text.get_characters().at(string[i]);
+      Glyph_s glyph = text.get_characters().at(character);
       
-      float red = text.get_characters().at(string[i]).color.get_red(),
-        green = text.get_characters().at(string[i]).color.get_green(),
-        blue = text.get_characters().at(string[i]).color.get_blue(),
-        alpha = text.get_characters().at(string[i]).color.get_alpha();
+      float red = text.get_characters().at(character).color.get_red(),
+        green = text.get_characters().at(character).color.get_green(),
+        blue = text.get_characters().at(character).color.get_blue(),
+        alpha = text.get_characters().at(character).color.get_alpha();
       
-      auto texture_offset_x = (float) ch.texture_offset;
+      auto texture_offset_x = (float) glyph.texture_offset;
       Vector_2f atlas_size = Vector_2f((float) text.get_texture_atlas()->get_width(),
                                        (float) text.get_texture_atlas()->get_height());
       
-      float x_pos = offset_x + (ch.bearing.get_x() * scale.get_x());
-      float y_pos = -offset_y - (ch.bearing.get_y() * scale.get_y());
-      float w = (float) ch.size_x * scale.get_x();
-      float h = (float) ch.size_y * scale.get_y();
+      float x_pos = offset_x + (glyph.bearing.get_x() * scale.get_x());
+      float y_pos = -offset_y - (glyph.bearing.get_y() * scale.get_y());
+      float w = (float) glyph.size_x * scale.get_x();
+      float h = (float) glyph.size_y * scale.get_y();
       
       // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
-      offset_x += ch.advance.get_x() * scale.get_x();
-      offset_y += ch.advance.get_y() * scale.get_y();
+      offset_x += glyph.advance.get_x() * scale.get_x();
+      offset_y += glyph.advance.get_y() * scale.get_y();
       
       // Update VBO for each character
       float vertices[6][8] = {
         {x_pos,     -y_pos,
           red, green, blue, alpha,
-          texture_offset_x + (ch.size_x == 0 ? 0 : 0.0001f),               0},
+          texture_offset_x + (glyph.size_x == 0 ? 0 : 0.0001f),               0},
         
         {x_pos + w, -y_pos,
           red, green, blue, alpha,
-          texture_offset_x + (float) (ch.size_x - 1) / atlas_size.get_x(), 0},
+          texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0},
         
         {x_pos,     (-y_pos - h),
           red, green, blue, alpha,
-          texture_offset_x + (ch.size_x == 0 ? 0 : 0.0001f),               (float) (ch.size_y - 1) /
-                                                                           atlas_size.get_y()},
+          texture_offset_x + (glyph.size_x == 0 ? 0 : 0.0001f),               (float) (glyph.size_y - 1) /
+                                                                              atlas_size.get_y()},
         
         {x_pos + w, -y_pos,
           red, green, blue, alpha,
-          texture_offset_x + (float) (ch.size_x - 1) / atlas_size.get_x(), 0},
+          texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0},
         
         {x_pos,     (-y_pos - h),
           red, green, blue, alpha,
-          texture_offset_x + (ch.size_x == 0 ? 0 : 0.0001f),               (float) (ch.size_y - 1) /
-                                                                           atlas_size.get_y()},
+          texture_offset_x + (glyph.size_x == 0 ? 0 : 0.0001f),               (float) (glyph.size_y - 1) /
+                                                                              atlas_size.get_y()},
         
         {x_pos + w, (-y_pos - h),
           red, green, blue, alpha,
-          texture_offset_x + (float) (ch.size_x - 1) / atlas_size.get_x(), (float) (ch.size_y - 1) / atlas_size.get_y()}
+          texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), (float) (glyph.size_y - 1) /
+                                                                              atlas_size.get_y()}
       };
       
+      
       // Update content of VBO memory.
-      if (i == 0) load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id, 0);
-      else load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id);
+      load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id, WAVE_VALUE_DONT_CARE);
     }
     
     // Set texture unit for draw command.
-    
     Texture *atlas = text.get_texture_atlas();
-    if (!atlas->is_built()) text.get_texture_atlas()->build();
+    if (!atlas->is_sent()) text.get_texture_atlas()->send_gpu();
     atlas->set_texture_slot(s_texture_unit_number_assigned);
     
     // If this is a new texture.

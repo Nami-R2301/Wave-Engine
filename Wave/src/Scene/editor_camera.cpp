@@ -61,12 +61,17 @@ namespace Wave
     {
       case Event_type::On_window_resize:
       {
-        on_window_resize(dynamic_cast<On_window_resize &>(e));
+        Perspective_camera::on_window_resize(dynamic_cast<On_window_resize &>(e));
+        break;
+      }
+      case Wave::Event_type::On_framebuffer_resize:
+      {
+        Perspective_camera::on_framebuffer_resize(dynamic_cast<On_framebuffer_resize &>(e));
         break;
       }
       case Event_type::On_mouse_wheel_scroll:
       {
-        on_mouse_scroll(dynamic_cast<On_mouse_wheel_scroll &>(e));
+        Editor_camera::on_mouse_scroll(dynamic_cast<On_mouse_wheel_scroll &>(e));
         break;
       }
       default:return;

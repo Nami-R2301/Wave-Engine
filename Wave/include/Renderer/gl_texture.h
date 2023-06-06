@@ -29,7 +29,7 @@ namespace Wave
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
     [[nodiscard]] int32_t get_samples() const override;
     
-    INTERFACE_BUILDABLE
+    INTERFACE_SENDABLE
     
     INTERFACE_PRINTABLE
     
@@ -84,7 +84,7 @@ namespace Wave
     [[nodiscard]] int32_t get_samples() const override;
     [[nodiscard]] void *get_data() const override;
     
-    INTERFACE_BUILDABLE
+    INTERFACE_SENDABLE
     
     INTERFACE_PRINTABLE
     

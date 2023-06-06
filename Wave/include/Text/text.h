@@ -23,9 +23,17 @@ namespace Wave
     Vector_2f offset = Vector_2f(25.0f);
     Vector_2f scale = Vector_2f(1.0f);
     Vector_2f text_size = Vector_2f(0.0f, 48.0f);  // Size of all glyphs for a specified string (px).
-    Vector_2f box_size = Vector_2f(1570.0f, 817.0f);  // Size of text box containing all glyphs (px).
+    Vector_2f box_size = Vector_2f(300.0f, 100.0f);  // Size of text box containing all glyphs (px).
     Text_style_e style = Text_style_e::Regular;
+    Color text_uniform_color = Color(1.0f, 1.0f, true);
     Color text_box_color = Color(0.0f, 0.0f, true);
+    
+    inline bool operator==(const Text_format_s &other_format) const
+    {
+      return this->offset == other_format.offset && this->scale == other_format.scale &&
+             this->text_size == other_format.text_size && this->box_size == other_format.box_size &&
+             this->style == other_format.style && this->text_box_color == other_format.text_box_color;
+    };
   } Text_format_s;
   
   typedef struct Glyph_s
@@ -38,7 +46,7 @@ namespace Wave
   } Glyph;
   
   class Text_box : public Printable, public Movable, public Rotatable, public Copiable, public Scalable,
-                   public Buildable
+                   public Sendable
   {
     public:
     ~Text_box() override = default;
@@ -59,11 +67,26 @@ namespace Wave
     void append_text(const std::string &text_, const Color &uniform_color);
     void set_text_box_size(const Vector_2f &size);
     void set_text_box_color(const Color &color);
+    void set_text_uniform_color(const Color &uniform_color);
+    
+    // Events.
+    void on_box_resize(const Vector_2f &new_size);
+    void on_box_resize(float new_width, float new_height);
+    
+    void on_text_resize(const Vector_2f &new_size, const std::string &section_resized);
+    void on_text_resize(float new_width, float new_height, const std::string &section_resized);
+    
+    void on_recolor(const Color &new_color, const std::string &section_recolored);
+    
+    void on_move(const Vector_2f &new_position);
+    void on_move(float new_x_coord, float new_y_coord);
     
     [[nodiscard]] const Vector_2f &get_pixel_size() const;
     [[nodiscard]] Vector_2f &get_pixel_size();
-    
+    [[nodiscard]] const Color &get_uniform_text_color() const;
+    [[nodiscard]] Color &get_text_uniform_color();
     [[nodiscard]] const Vector_2f &get_text_offset() const;
+    [[nodiscard]] Vector_2f &get_text_offset();
     [[nodiscard]] const Color &get_text_color(char character) const;
     [[nodiscard]] const Vector_2f &get_text_scale() const;
     [[nodiscard]] Vector_2f &get_text_scale();
@@ -104,7 +127,7 @@ namespace Wave
     Vector_2f atlas_size;
     Texture *texture_atlas = nullptr;
     std::map<uint8_t, Glyph_s> characters;
-    bool built = false;
+    bool sent = false;
     FT_Face face;
     FT_Library library;
   };

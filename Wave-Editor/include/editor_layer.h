@@ -31,6 +31,7 @@ namespace Wave
     void on_update(float time_step) override;
     void on_event(Wave::Event &e) override;
     void on_render() override;
+    void on_ui_render(float time_step) override;
     private:
     static bool system_panel_dock_open;
     Scene_ui_panel scene_panel = {nullptr, {}};

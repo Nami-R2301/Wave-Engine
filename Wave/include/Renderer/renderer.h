@@ -75,8 +75,10 @@ namespace Wave
     
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(Object &object, Shader &linked_shader);
-    static void send_text(Text_box &text, Shader &linked_shader);
+    static void send_object(Object &object, Shader &linked_shader, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
+                            int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
+    static void send_text(Text_box &text, Shader &linked_shader, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
+                          int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
     static void flush();
     static void end();
     
