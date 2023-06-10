@@ -12,10 +12,11 @@ public:
   Example_app();
   ~Example_app() override = default;
   
-  void send() override;
+  void on_init() override;
   void on_update(float time_step) override;
   void on_event(Wave::Event &event) override;
   void on_game_render() override;
+  void on_destroy() override;
   
   bool window_closed_callback([[maybe_unused]] Wave::On_window_close &window_closed_event) override;
   bool window_resize_callback([[maybe_unused]] Wave::On_window_resize &window_resized_event) override;
@@ -27,4 +28,5 @@ public:
   std::vector<std::shared_ptr<Wave::Object>> demo_objects;
   std::vector<std::shared_ptr<Wave::Text_box>> demo_text;
   Wave::Color background_clear_color = Wave::Color(78.0f, 255.0f, false);
+  Wave::Vector_2f viewport;
 };

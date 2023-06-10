@@ -69,7 +69,7 @@ add_library(Wave STATIC
         Wave/src/Renderer/uniform_buffer.cpp
         Wave/src/Renderer/gl_uniform_buffer.cpp
         Wave/include/Renderer/gl_texture.cpp
-        Wave/src/ImGUI/scene_panel.cpp)
+        Wave/src/ImGUI/scene_panel.cpp Wave/src/Lighting/light.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")

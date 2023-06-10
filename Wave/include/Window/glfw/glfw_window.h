@@ -46,7 +46,7 @@ namespace Wave
     [[nodiscard]] int32_t get_max_refresh_rate() const override;
     [[nodiscard]] int32_t get_samples() const override;
     [[nodiscard]] bool is_vsync() const override;
-    [[nodiscard]] bool is_minimized() override;
+    [[nodiscard]] bool is_minimized() const override;
     [[nodiscard]] bool is_focused() const override;
     [[nodiscard]] bool is_hovered() const override;
     [[nodiscard]] float get_x_scale() const override;

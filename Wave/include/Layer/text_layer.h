@@ -17,7 +17,6 @@ namespace Wave
   {
     public:
     Text_layer(const std::vector<std::shared_ptr<Text_box>> &text_boxes_,
-               const std::vector<std::shared_ptr<Shader>> &shaders_,
                const Vector_2f *viewport_size,
                bool imgui_render = false);
     ~Text_layer() override;
@@ -30,7 +29,6 @@ namespace Wave
     void on_ui_render(float time_step) override;
     private:
     std::vector<std::shared_ptr<Text_box>> text_boxes;
-    std::vector<std::shared_ptr<Shader>> shaders;
     std::vector<std::shared_ptr<Vertex_array_buffer>> vao_list{};
     Orthographic_camera projection;
     const Vector_2f *viewport_size;

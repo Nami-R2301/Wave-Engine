@@ -185,7 +185,8 @@ namespace Wave
   {
     if (this->is_sent())
     {
-      Gl_texture_2D::remove();
+      unbind();
+      glDeleteTextures(1, &this->texture_id);
       this->sent = false;
     }
   }
@@ -209,18 +210,10 @@ namespace Wave
     return 0;
   }
   
-  void Gl_texture_2D::bind(int32_t slot_) const
+  void Gl_texture_2D::bind(int32_t slot_)
   {
-    if (!this->sent)
-    {
-      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 2D, OpenGL texture 2D not built!"
-                                                 " Did you forget to build/reload in your shader with 'build()'?",
-                                                 __FUNCTION__,
-                                                 __FILE__,
-                                                 __LINE__ - 2);
-      return;
-    }
+    if (!this->sent) this->send_gpu();
+    
     CHECK_GL_CALL(glActiveTexture(
       slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.
     CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
@@ -230,25 +223,21 @@ namespace Wave
   {
     if (!this->sent)
     {
+      char buffer[FILENAME_MAX]{0};
+      if (snprintf(buffer, sizeof(buffer), "[Gl texture 2D] --> Cannot unbind texture, texture not sent to the gpu!"
+                                           "\n%55sDid you forget to send in your texture beforehand with send_gpu()"
+                                           " or bind()?", DEFAULT) < 0)
+      {
+        alert(WAVE_LOG_ERROR, "[Gl texture 2D] --> Internal error occurred (snprintf) on line %d, in file %s!",
+              __LINE__, __FILE__);
+      }
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 2D, OpenGL texture 2D not built!"
-                                                 " Did you forget to build/reload in your shader with 'build()'?",
-                                                 __FUNCTION__,
-                                                 __FILE__,
-                                                 __LINE__ - 2);
+                                                 buffer,
+                                                 __FUNCTION__, "gl_texture.cpp", __LINE__);
       return;
     }
     CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));
     CHECK_GL_CALL(glBindTexture(this->texture_target, 0));
-  }
-  
-  void Gl_texture_2D::remove()
-  {
-    if (*this)
-    {
-      unbind();
-      glDeleteTextures(1, &this->texture_id);
-    }
   }
   
   void Gl_texture_2D::set_data(const Texture_data_s *data_array, uint32_t offset_array[2]) const
@@ -550,7 +539,8 @@ namespace Wave
   
   void Gl_texture_3D::free_gpu()
   {
-    Gl_texture_3D::remove();
+    unbind();
+    glDeleteTextures(1, &this->texture_id);
     this->sent = false;
   }
   
@@ -572,18 +562,10 @@ namespace Wave
     return 0;
   }
   
-  void Gl_texture_3D::bind(int32_t slot_) const
+  void Gl_texture_3D::bind(int32_t slot_)
   {
-    if (!this->sent)
-    {
-      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 3D, OpenGL texture 3D not built!"
-                                                 " Did you forget to build/reload in your shader with 'build()'?",
-                                                 __FUNCTION__,
-                                                 __FILE__,
-                                                 __LINE__ - 2);
-      return;
-    }
+    if (!this->sent) this->send_gpu();
+    
     CHECK_GL_CALL(glActiveTexture(
       slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.
     CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
@@ -593,25 +575,21 @@ namespace Wave
   {
     if (!this->sent)
     {
+      char buffer[FILENAME_MAX]{0};
+      if (snprintf(buffer, sizeof(buffer), "[Gl texture 3D] --> Cannot unbind texture, texture not sent to the gpu!"
+                                           "\n%55sDid you forget to send in your texture beforehand with send_gpu()"
+                                           " or bind()?", DEFAULT) < 0)
+      {
+        alert(WAVE_LOG_ERROR, "[Gl texture 3D] --> Internal error occurred (snprintf) on line %d, in file %s!",
+              __LINE__, __FILE__);
+      }
       Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot bind texture 3D, OpenGL texture 3D not built!"
-                                                 " Did you forget to build/reload in your shader with 'build()'?",
-                                                 __FUNCTION__,
-                                                 __FILE__,
-                                                 __LINE__ - 2);
+                                                 buffer,
+                                                 __FUNCTION__, "gl_texture.cpp", __LINE__);
       return;
     }
     CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));
     CHECK_GL_CALL(glBindTexture(this->texture_target, 0));
-  }
-  
-  void Gl_texture_3D::remove()
-  {
-    if (*this)
-    {
-      unbind();
-      glDeleteTextures(1, &this->texture_id);
-    }
   }
   
   void Gl_texture_3D::set_data(const Texture_data_s data_array[6], uint32_t offset_array[3]) const

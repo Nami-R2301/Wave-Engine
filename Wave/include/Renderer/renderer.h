@@ -26,7 +26,7 @@
 namespace Wave
 {
   
-  constexpr int64_t max_vbo_buffer_size = 5'000'000;
+  constexpr int64_t max_vbo_buffer_size = 3'000'000;
   constexpr int64_t max_ibo_buffer_size = 5'000'000;
   
   class Renderer
@@ -34,6 +34,8 @@ namespace Wave
     public:
     typedef struct Renderer_stats_s
     {
+      uint64_t shaders_count = 0;
+      uint64_t vao_count = 0;
       uint64_t vertices_drawn_count = 0;
       uint64_t indices_drawn_count = 0;
       uint64_t textures_drawn_count = 0;
@@ -42,9 +44,17 @@ namespace Wave
       uint64_t text_glyph_count = 0;
     } Renderer_stats_s;
     
+    struct Offset_s
+    {
+      uint64_t index_count = 0;
+      uint64_t ibo_offset = 0;
+      uint64_t base_vertex = 0;
+    };
+    
     typedef struct Draw_command
     {
-      uint64_t vbo_offset = 0, ibo_offset = 0;
+      uint64_t global_vbo_offset = 0, instance_count = 1;
+      std::vector<struct Offset_s> batch_offset;
       Shader *associated_shader = nullptr;
       std::shared_ptr<Vertex_array_buffer> vertex_array_buffer;
     } Draw_command;
@@ -75,9 +85,9 @@ namespace Wave
     
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(Object &object, Shader &linked_shader, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
+    static void send_object(const Object &object, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
                             int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
-    static void send_text(Text_box &text, Shader &linked_shader, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
+    static void send_text(const Text_box &text, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
                           int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
     static void flush();
     static void end();

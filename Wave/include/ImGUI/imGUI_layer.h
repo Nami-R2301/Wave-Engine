@@ -20,7 +20,7 @@ namespace Wave
       float font_scale = 1.0f;
     } ImGui_layer_data_s;
     public:
-    explicit ImGui_layer(ImGui_layer_data_s imgui_data_ = {16.0f, 1.0f});
+    explicit ImGui_layer(ImGui_layer_data_s imgui_data_ = {18.0f, 1.0f});
     ~ImGui_layer() override = default;
     
     void on_attach() override;
@@ -33,13 +33,18 @@ namespace Wave
     static void begin();
     static void end();
     
+    static void draw_property(const std::string &label, Vector_2f &values, Vector_2f min_value, Vector_2f max_value,
+                              Vector_2f speed_value, Vector_2f reset_value = Vector_2f(0.0f),
+                              float column_width = 100.0f);
+    static void display_property(const std::string &label, Vector_3f &values, Vector_3f min_value, Vector_3f max_value,
+                                 Vector_3f speed_value, Vector_3f reset_value = Vector_3f(0.0f),
+                                 float column_width = 100.0f);
     static void set_colors();
     [[maybe_unused]] [[nodiscard]] static uint32_t get_active_widget_id();
     public:
-    static bool dockSpace_open;
+    static bool dockSpace_open, show_scene_panel, show_system_panel;
     static ImGuiWindowFlags window_flags;
-    static ImGuiID dockSpace_id, viewport_panel_dock_id, scene_panel_dock_id, events_panel_dock_id, stats_panel_dock_id;
-    private:
-    ImGui_layer_data_s imgui_data;
+    static ImGuiID dockSpace_id, viewport_panel_dock_id, scene_panel_dock_id, events_panel_dock_id, info_panel_dock_id;
+    static ImGui_layer_data_s imgui_data;
   };
 }

@@ -10,6 +10,13 @@
 namespace Wave
 {
   
+  typedef struct Gpu_light_struct_s
+  {
+    Color color;
+    float ambient_intensity;
+    float diffuse_intensity;
+  } Gpu_light_struct_s;
+  
   class Shader : public Printable, public Sendable
   {
     public:
@@ -17,7 +24,7 @@ namespace Wave
     static std::shared_ptr<Shader> create(const std::string &name, const std::string &vertex_source,
                                           const std::string &fragment_source);
     
-    virtual void bind() const = 0;
+    virtual void bind() = 0;
     virtual void unbind() const = 0;
     
     virtual void source(uint32_t count, const char *source, int *length) const = 0;
@@ -38,6 +45,7 @@ namespace Wave
     virtual void set_uniform(const char *uniform_name, int32_t int_value) const = 0;
     virtual void set_uniform(const char *uniform_name, uint32_t uint_value) const = 0;
     virtual void set_uniform(const char *uniform_name, float float_value) const = 0;
+    virtual void set_uniform(const std::string &uniform_name, const Gpu_light_struct_s &light_struct) const = 0;
     [[maybe_unused]] virtual void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const = 0;
     
     virtual bool operator==(const Shader &other_shader) const = 0;

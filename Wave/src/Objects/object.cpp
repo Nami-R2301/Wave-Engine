@@ -4,6 +4,7 @@
 
 #include <Objects/object.h>
 #include <Utilities/resource_loader.h>
+#include <Renderer/renderer.h>
 
 namespace Wave
 {
@@ -13,14 +14,16 @@ namespace Wave
     return Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj"));
   }
   
-  std::shared_ptr<Object> Object::create(const Object_2D_data_s &object_2D_data)
+  std::shared_ptr<Object> Object::create(const Object_2D_data_s &object_2D_data,
+                                         const std::shared_ptr<Shader> &associated_shader_)
   {
-    return std::make_shared<Object_2D>(object_2D_data);
+    return std::make_shared<Object_2D>(object_2D_data, associated_shader_);
   }
   
-  std::shared_ptr<Object> Object::create(const Object_3D_data_s &object_3D_data)
+  std::shared_ptr<Object> Object::create(const Object_3D_data_s &object_3D_data,
+                                         const std::shared_ptr<Shader> &associated_shader_)
   {
-    return std::make_shared<Object_3D>(object_3D_data);
+    return std::make_shared<Object_3D>(object_3D_data, associated_shader_);
   }
   
   /*********************** OBJECT 2D***************************/
@@ -42,6 +45,31 @@ namespace Wave
     this->vertices = object_2D_data.vertices;
     this->tex_coords = object_2D_data.tex_coords;
     this->textures = object_2D_data.textures;
+    this->associated_shader = Shader::create("Default Object 2D",
+                                             Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/default_2D.vert"),
+                                             Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/default_2D.frag"));
+    
+    apply_vertex_properties(object_2D_data);
+  }
+  
+  Object_2D::Object_2D(const Object_2D_data_s &object_2D_data, const std::shared_ptr<Shader> &associated_shader_)
+  {
+    this->object_type_e = Object_type_e::Object_2D;
+    this->vertices = object_2D_data.vertices;
+    this->tex_coords = object_2D_data.tex_coords;
+    this->textures = object_2D_data.textures;
+    this->associated_shader = associated_shader_;
+    if (this->associated_shader == nullptr)
+    {
+      this->associated_shader = Shader::create("Default Object 2D",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/default_2D.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/default_2D.frag"));
+    }
+    
     apply_vertex_properties(object_2D_data);
   }
   
@@ -52,12 +80,15 @@ namespace Wave
   
   void Object_2D::send_gpu()
   {
-    for (const auto &texture: this->textures) texture->send_gpu();
+    for (const auto &texture: this->textures) if (!texture->is_sent()) texture->send_gpu();
+    Renderer::send_object(*this);
+    this->sent = true;
   }
   
   void Object_2D::free_gpu()
   {
     for (const auto &texture: this->textures) texture->free_gpu();
+    this->sent = false;
   }
   
   void Object_2D::normalize()
@@ -83,7 +114,8 @@ namespace Wave
   
   const Vertex_2D &Object_2D::get_vertex(uint64_t index) const
   {
-    if (index >= this->get_vertex_count() && !this->vertices.empty()) return this->vertices[0];
+    if (index >= this->get_vertex_count() && !this->vertices.empty())
+      throw std::out_of_range("Vertex index out of bounds!");
     if (!this->vertices.empty()) return this->vertices[index];
     return {};
   }
@@ -131,6 +163,11 @@ namespace Wave
   const Transform &Object_2D::get_model_transform() const
   {
     return this->model_transform;
+  }
+  
+  const std::shared_ptr<Shader> &Object_2D::get_shader() const
+  {
+    return this->associated_shader;
   }
   
   const Vector_2f &Object_2D::get_position() const
@@ -368,6 +405,62 @@ namespace Wave
     return *this;
   }
   
+  void Object_2D::calculate_average_normals()
+  {
+    for (size_t i = 0; i < this->get_face_count(); i += 3)
+    {
+      unsigned int in0 = this->faces[i];
+      unsigned int in1 = this->faces[i + 1];
+      unsigned int in2 = this->faces[i + 2];
+      Vector_2f v1(this->vertices[in1].get_position().get_x() - this->vertices[in0].get_position().get_x(),
+                   this->vertices[in1].get_position().get_y() - this->vertices[in0].get_position().get_y());
+      
+      Vector_2f v2(this->vertices[in2].get_position().get_x() - this->vertices[in0].get_position().get_x(),
+                   this->vertices[in2].get_position().get_y() - this->vertices[in0].get_position().get_y());
+      Vector_2f normal = v1.cross(v2);
+      normal = normal.normalize();
+      
+      this->vertices[in0].set_normal(this->vertices[in0].get_normal() + normal);
+      this->vertices[in1].set_normal(this->vertices[in1].get_normal() + normal);
+      this->vertices[in2].set_normal(this->vertices[in2].get_normal() + normal);
+    }
+    
+    for (auto &vertex: this->vertices)
+    {
+      Vector_2f vec(vertex.get_normal());
+      vec = vec.normalize();
+      vertex.set_normal(vec);
+    }
+  }
+  
+  void Object_2D::calculate_effect_by_light(const Light &light_source)
+  {
+    switch (light_source.get_type())
+    {
+      case Light::Light_type_e::Point_light:
+      {
+        auto point_light = dynamic_cast<const Point_light &>(light_source);
+        
+        this->associated_shader->bind();
+        
+        this->associated_shader->set_uniform("u_point_light_count", (int) point_light.get_count());
+        
+        this->associated_shader->set_uniform("u_point_lights[0].base.color", point_light.get_color());
+        this->associated_shader->set_uniform("u_point_lights[0].base.ambient_intensity",
+                                             point_light.get_ambient_intensity());
+        this->associated_shader->set_uniform("u_point_lights[0].base.diffuse_intensity",
+                                             point_light.get_diffuse_intensity());
+        
+        this->associated_shader->set_uniform("u_point_lights[0].position", point_light.get_position());
+        this->associated_shader->set_uniform("u_point_lights[0].constant", point_light.get_constant());
+        this->associated_shader->set_uniform("u_point_lights[0].linear", point_light.get_linear());
+        this->associated_shader->set_uniform("u_point_lights[0].exponent", point_light.get_exponent());
+        break;
+      }
+      default: break;
+    }
+  }
+  
   /****************************** 3D ********************************/
   
   Object_3D::Object_3D(const Object_3D_data_s &mesh)
@@ -376,8 +469,32 @@ namespace Wave
     this->vertices = mesh.vertices;
     this->tex_coords = mesh.tex_coords;
     this->normals = mesh.normals;
+    this->associated_shader = Shader::create("Default Object 3D",
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/default_3D.vert"),
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/default_3D.frag"));
     
     apply_vertex_properties(mesh);
+  }
+  
+  Object_3D::Object_3D(const Wave::Object_3D_data_s &mesh_data, const std::shared_ptr<Shader> &associated_shader_)
+  {
+    this->object_type_e = Object_type_e::Object_3D;
+    this->vertices = mesh_data.vertices;
+    this->tex_coords = mesh_data.tex_coords;
+    this->normals = mesh_data.normals;
+    this->associated_shader = associated_shader_;
+    if (this->associated_shader == nullptr)
+    {
+      this->associated_shader = Shader::create("Default Object 3D",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/default_3D.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/default_3D.frag"));
+    }
+    
+    apply_vertex_properties(mesh_data);
   }
   
   Object_3D::Object_3D(const Object_3D &mesh)
@@ -398,8 +515,8 @@ namespace Wave
   
   void Object_3D::send_gpu()
   {
-    
     for (const auto &texture: this->textures) texture->send_gpu();
+    Renderer::send_object(*this);
     this->sent = true;
   }
   
@@ -448,7 +565,7 @@ namespace Wave
   
   const Vertex_3D &Object_3D::get_vertex(uint64_t index) const
   {
-    if (index >= this->get_vertex_count()) return {};
+    if (index >= this->get_vertex_count()) throw std::out_of_range("Index for vertex is out of bounds!");
     return this->vertices[index];
   }
   
@@ -495,6 +612,11 @@ namespace Wave
   const Transform &Object_3D::get_model_transform() const
   {
     return this->model_transform;
+  }
+  
+  const std::shared_ptr<Shader> &Object_3D::get_shader() const
+  {
+    return this->associated_shader;
   }
   
   const Vector_3f &Object_3D::get_position() const
@@ -648,6 +770,8 @@ namespace Wave
   {
     this->model_matrix = this->model_transform.get_transform_matrix();
     this->model_matrix.transpose();
+    
+    for (Vertex_3D &vertex: this->vertices) vertex.set_model_matrix(this->model_matrix);
   }
   
   void Object_3D::apply_vertex_properties(const Object_3D_data_s &mesh)
@@ -756,7 +880,114 @@ namespace Wave
     return this->model_transform == obj.model_transform && this->model_matrix == obj.model_matrix;
   }
   
+  void Object_3D::calculate_average_normals()
+  {
+    for (size_t i = 0; i < this->get_face_count(); i += 3)
+    {
+      unsigned int in0 = this->faces[i];
+      unsigned int in1 = this->faces[i + 1];
+      unsigned int in2 = this->faces[i + 2];
+      Vector_3f v1(this->vertices[in1].get_position().get_x() - this->vertices[in0].get_position().get_x(),
+                   this->vertices[in1].get_position().get_y() - this->vertices[in0].get_position().get_y(),
+                   this->vertices[in1].get_position().get_z() - this->vertices[in0].get_position().get_z());
+      
+      Vector_3f v2(this->vertices[in2].get_position().get_x() - this->vertices[in0].get_position().get_x(),
+                   this->vertices[in2].get_position().get_y() - this->vertices[in0].get_position().get_y(),
+                   this->vertices[in2].get_position().get_z() - this->vertices[in0].get_position().get_z());
+      Vector_3f normal = v1.cross(v2);
+      normal = normal.normalize();
+      
+      this->vertices[in0].set_normal(this->vertices[in0].get_normal() + normal);
+      this->vertices[in1].set_normal(this->vertices[in1].get_normal() + normal);
+      this->vertices[in2].set_normal(this->vertices[in2].get_normal() + normal);
+    }
+    
+    for (auto &vertex: this->vertices)
+    {
+      Vector_3f vec(vertex.get_normal());
+      vec = vec.normalize();
+      vertex.set_normal(vec);
+    }
+  }
+  
+  void Object_3D::calculate_effect_by_light(const Light &light_source)
+  {
+    switch (light_source.get_type())
+    {
+      case Light::Light_type_e::Point_light:
+      {
+        auto point_light = dynamic_cast<const Point_light &>(light_source);
+        
+        this->associated_shader->bind();
+        
+        this->associated_shader->set_uniform("u_point_light_count", (int) point_light.get_count());
+        
+        this->associated_shader->set_uniform("u_point_lights[0].base.color", point_light.get_color());
+        this->associated_shader->set_uniform("u_point_lights[0].base.ambient_intensity",
+                                             point_light.get_ambient_intensity());
+        this->associated_shader->set_uniform("u_point_lights[0].base.diffuse_intensity",
+                                             point_light.get_diffuse_intensity());
+        
+        this->associated_shader->set_uniform("u_point_lights[0].position", point_light.get_position());
+        this->associated_shader->set_uniform("u_point_lights[0].constant", point_light.get_constant());
+        this->associated_shader->set_uniform("u_point_lights[0].linear", point_light.get_linear());
+        this->associated_shader->set_uniform("u_point_lights[0].exponent", point_light.get_exponent());
+        break;
+      }
+      default: break;
+    }
+  }
+  
+  
   /******************** CUBE *************************/
+  
+  Cube::Cube(const Vector_3f &scale, const Color &color)
+  {
+    this->origin = Vector_3f(0.0f);
+//    float vertices[] = {
+//      -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+//      0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+//      0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+//      0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+//      -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+//      -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+//
+//      -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+//      0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+//      0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+//      0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+//      -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+//      -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+//
+//      -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+//      -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+//      -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+//      -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+//      -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+//      -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+//
+//      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+//      0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+//      0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+//      0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+//      0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+//      0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+//
+//      -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+//      0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+//      0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+//      0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+//      -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+//      -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+//
+//      -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+//      0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+//      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+//      0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+//      -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+//      -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+//    };
+  }
   
   Cube::Cube(const Object_3D_data_s &mesh, const Vector_3f &scale_, const Color &color)
   {

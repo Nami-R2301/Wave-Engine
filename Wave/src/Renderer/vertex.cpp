@@ -331,6 +331,17 @@ namespace Wave
     this->color = Color(r, g, b, a);
   }
   
+  void Vertex_3D::set_model_matrix(const Matrix_4f &model_matrix_)
+  {
+    for (int i = 0; i < model_matrix_.get_num_rows(); ++i)
+    {
+      for (int j = 0; j < model_matrix_.get_num_cols(); ++j)
+      {
+        this->model_matrix[i][j] = model_matrix_.get_value(i, j);
+      }
+    }
+  }
+  
   Vertex_3D::operator Vertex_2D() const
   {
     Vertex_2D vertex;

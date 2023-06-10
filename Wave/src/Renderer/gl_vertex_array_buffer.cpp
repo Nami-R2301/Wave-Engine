@@ -92,13 +92,13 @@ namespace Wave
         case Buffer_data_type::Color_4f:
         case Buffer_data_type::Vector_4f:
         {
-          glEnableVertexAttribArray(this->vertex_buffer_index);
-          glVertexAttribPointer(this->vertex_buffer_index,
-                                static_cast<GLint>(element.get_property_count()),
-                                convert_buffer_data_type_to_gl(element.type),
-                                element.normalized ? GL_TRUE : GL_FALSE,
-                                static_cast<GLint>(layout.get_stride()),
-                                (const void *) element.offset);
+          CHECK_GL_CALL(glEnableVertexAttribArray(this->vertex_buffer_index));
+          CHECK_GL_CALL(glVertexAttribPointer(this->vertex_buffer_index,
+                                              static_cast<GLint>(element.get_property_count()),
+                                              convert_buffer_data_type_to_gl(element.type),
+                                              element.normalized ? GL_TRUE : GL_FALSE,
+                                              static_cast<GLint>(layout.get_stride()),
+                                              (const void *) element.offset));
           this->vertex_buffer_index++;
           break;
         }
@@ -108,12 +108,12 @@ namespace Wave
         case Buffer_data_type::Vector_4i:
         case Buffer_data_type::Bool:
         {
-          glEnableVertexAttribArray(this->vertex_buffer_index);
-          glVertexAttribIPointer(this->vertex_buffer_index,
-                                 static_cast<GLint>(element.get_property_count()),
-                                 convert_buffer_data_type_to_gl(element.type),
-                                 static_cast<GLint>(layout.get_stride()),
-                                 (const void *) element.offset);
+          CHECK_GL_CALL(glEnableVertexAttribArray(this->vertex_buffer_index));
+          CHECK_GL_CALL(glVertexAttribIPointer(this->vertex_buffer_index,
+                                               static_cast<GLint>(element.get_property_count()),
+                                               convert_buffer_data_type_to_gl(element.type),
+                                               static_cast<GLint>(layout.get_stride()),
+                                               (const void *) element.offset));
           this->vertex_buffer_index++;
           break;
         }
@@ -123,14 +123,14 @@ namespace Wave
           uint64_t count = element.get_property_count();
           for (uint64_t i = 0; i < count; i++)
           {
-            glEnableVertexAttribArray(this->vertex_buffer_index);
-            glVertexAttribPointer(this->vertex_buffer_index,
-                                  static_cast<GLint>(count),
-                                  convert_buffer_data_type_to_gl(element.type),
-                                  element.normalized ? GL_TRUE : GL_FALSE,
-                                  static_cast<GLint>(layout.get_stride()),
-                                  (const void *) (element.offset + sizeof(float) * count * i));
-            glVertexAttribDivisor(this->vertex_buffer_index, 1);
+            CHECK_GL_CALL(glEnableVertexAttribArray(this->vertex_buffer_index));
+            CHECK_GL_CALL(glVertexAttribPointer(this->vertex_buffer_index,
+                                                static_cast<GLint>(count),
+                                                convert_buffer_data_type_to_gl(element.type),
+                                                element.normalized ? GL_TRUE : GL_FALSE,
+                                                static_cast<GLint>(layout.get_stride()),
+                                                (const void *) (element.offset + sizeof(float) * count * i)));
+            CHECK_GL_CALL(glVertexAttribDivisor(this->vertex_buffer_index, 0));
             this->vertex_buffer_index++;
           }
           break;

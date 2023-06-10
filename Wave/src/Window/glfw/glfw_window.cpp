@@ -90,7 +90,7 @@ namespace Wave
     if (this->window_properties.width == WAVE_VALUE_DONT_CARE) this->set_width(static_cast<float>(mode->width));
     if (this->window_properties.height == WAVE_VALUE_DONT_CARE) this->set_height(static_cast<float>(mode->height));
     if (this->window_properties.refresh_rate == WAVE_VALUE_DONT_CARE) this->set_refresh_rate(mode->refreshRate);
-    if (this->window_properties.refresh_rate == WAVE_VALUE_DONT_CARE) this->set_max_refresh_rate(mode->refreshRate);
+    this->set_max_refresh_rate(mode->refreshRate);
     if (!this->window_properties.title) this->set_title("No title");
     this->set_vsync(this->window_properties.vsync);
     
@@ -275,9 +275,8 @@ namespace Wave
     }
   }
   
-  bool Glfw_window::is_minimized()
+  bool Glfw_window::is_minimized() const
   {
-    this->window_properties.refresh_rate = 30.0f;
     return glfwGetWindowAttrib(static_cast<GLFWwindow *>(this->get_native_window()), GLFW_ICONIFIED);
   }
   
@@ -344,7 +343,7 @@ namespace Wave
   {
     if (this->glfw_init)
     {
-      WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Closing window", this->close());
+      WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Closing window", this->close())
       
       glfwDestroyWindow(static_cast<GLFWwindow *>(get_native_window()));
       glfwTerminate();

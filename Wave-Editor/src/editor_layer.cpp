@@ -7,43 +7,70 @@
 namespace Wave
 {
   
-  bool Editor_layer::system_panel_dock_open = true;
   static float s_imgui_app_performance_stat = 0.0f;
   static float s_imgui_app_performance_timer = 0.0f;
   
   Editor_layer::Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
-                             const std::vector<std::shared_ptr<Wave::Shader>> &shaders_,
                              const std::vector<std::shared_ptr<Wave::Object>> &demo_objects_,
                              const std::shared_ptr<Framebuffer> &viewport_)
   {
     this->layer_name = "Editor layer";
     this->camera = demo_perspective_camera_;
-    this->shaders = shaders_;
     this->objects = demo_objects_;
     this->framebuffer_viewport_data.viewport = viewport_;
-  }
-  
-  void Editor_layer::on_attach()
-  {
-    // Setup object shaders.
-//    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
-    
-    // Setup objects in scene.
-    this->objects[0]->translate(0, 0, 5.);
-    this->objects[0]->rotate(45, 0, 0);
-    
     // Setup framebuffer shader.
     this->framebuffer_viewport_data.framebuffer_viewport_shader = Shader::create("Framebuffer Editor Viewport",
                                                                                  Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert"),
                                                                                  Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag"));
-    // Load framebuffer.
-    this->framebuffer_viewport_data.viewport->send_gpu();
-    this->framebuffer_viewport_data.framebuffer_viewport_shader->send_gpu();
+//    for (const auto &object : demo_objects_) this->scene_panel.add(object);
+  }
+  
+  void Editor_layer::on_attach()
+  {
+    // Setup objects transformations.
+    this->objects[0]->translate(0, 0, 5);
+    this->objects[0]->rotate(0, 0, 0);
     
-    // Load and enqueue the object for rendering.
-    Renderer::send_object(*this->objects[0], *this->shaders[0]);
+    this->objects[1]->translate(10, -10, 20);
+    this->objects[1]->rotate(90, -90, 0);
+    
+    this->objects[2]->translate(5, -5, 8);
+    this->objects[2]->rotate(180, 0, 0);
+    
+    this->objects[3]->translate(-3.5, -2, 6);
+    this->objects[3]->rotate(45, 0, 0);
+    
+    // Setup object textures.
+//    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
+//    this->objects[3]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
+    
+    // Setup how object behaves with lighting.
+    Point_light point_light = Point_light(Color(0xFFFFFFFF), 0.1f, 0.4f,
+                                          this->camera->get_position(),
+                                          0.3f, 0.2f, 0.1f);
+    Point_light point_light_2 = Point_light(Color(0xFFFFFFFF), 0.1f, 0.3f,
+                                            this->camera->get_position(),
+                                            0.3f, 0.2f, 0.1f);
+    
+    this->objects[0]->calculate_average_normals();
+    this->objects[0]->calculate_effect_by_light(point_light);
+    
+    this->objects[1]->calculate_average_normals();
+    this->objects[1]->calculate_effect_by_light(point_light_2);
+    
+    this->objects[2]->calculate_average_normals();
+    this->objects[2]->calculate_effect_by_light(point_light_2);
+    
+    this->objects[3]->calculate_average_normals();
+    this->objects[3]->calculate_effect_by_light(point_light_2);
+    
+    // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
+    this->objects[0]->send_gpu();
+    this->objects[1]->send_gpu();
+    this->objects[2]->send_gpu();
+    this->objects[3]->send_gpu();
   }
   
   void Editor_layer::on_detach()
@@ -118,18 +145,10 @@ namespace Wave
     // Render System panel UI.
     ImGui::SetNextWindowViewport(viewport_->ID);
     
-    if (Editor_layer::system_panel_dock_open)
+    if (ImGui_layer::show_system_panel)
     {
-      if (ImGui::Begin("System Info", &(Editor_layer::system_panel_dock_open), ImGuiWindowFlags_None))
+      if (ImGui::Begin("System Info", &(ImGui_layer::show_system_panel), ImGuiWindowFlags_None))
       {
-        auto renderer_stats = Renderer::get_stats();
-        ImGui::Text("Renderer stats (per frame) :\n\t\tDraw calls = %ld\n\t\tTotal number of vertices drawn = %ld\t\t"
-                    "Total number of indices drawn = %ld\t\tTotal number of textures drawn = %ld\n\t\t"
-                    "Total number of objects drawn = %ld\t\tTotal number of text characters drawn = %ld",
-                    renderer_stats.draw_call_count, renderer_stats.vertices_drawn_count,
-                    renderer_stats.indices_drawn_count,
-                    renderer_stats.textures_drawn_count, renderer_stats.object_count, renderer_stats.text_glyph_count);
-        
         // Slow down the refresh rate of the text output by timing it with each second.
         if (s_imgui_app_performance_timer >= 1.0f)
         {
@@ -144,55 +163,98 @@ namespace Wave
                       (int) (1.0f / s_imgui_app_performance_stat));
         }
         auto framebuffer_viewport_gl = dynamic_cast<Gl_framebuffer *>(this->framebuffer_viewport_data.viewport.get());
-        ImGui::Text("Framebuffer size :\t(%.2f, %.2f)", framebuffer_viewport_gl->get_options().width,
-                    framebuffer_viewport_gl->get_options().height);
+        ImGui::Text("Viewport resolution :\t(%.2f, %.2f)",
+                    framebuffer_viewport_gl->get_options().width, framebuffer_viewport_gl->get_options().height);
+        
+        ImGui::Text("Framebuffer resolution :\t(%.2f, %.2f)", 1920.0f, 1080.0f);
+        
+        ImGui::Text("UI font size :\t%.2f", ImGui_layer::imgui_data.font_size * ImGui_layer::imgui_data.font_scale);
       }
-      ImGui::End();  // Stats
+      ImGui::End();  // System Info.
+      auto node = ImGui::DockBuilderGetNode(ImGui_layer::events_panel_dock_id);
+      if (node)
+      {
+        ImGui::DockNodeBeginAmendTabBar(node);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f));
+        
+        if (ImGui::BeginTabItem("Renderer Info", &ImGui_layer::show_system_panel, ImGuiTabItemFlags_Trailing))
+        {
+          auto renderer_stats = Renderer::get_stats();
+          ImGui::Text("Renderer 3D");
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + this->scene_panel.get_size_boundaries().get_z());
+          ImGui::Text("\t\tRenderer stats (per frame) :\n"
+                      "\t\t\t\tDraw calls = %ld\n"
+                      "\t\t\t\tTotal number of shaders sent = %ld"
+                      "\t\t\t\tTotal number of vertex array buffers sent = %ld"
+                      "\t\t\t\tTotal number of vertices sent = %ld"
+                      "\t\t\t\tTotal number of indices sent = %ld\n"
+                      "\t\t\t\tTotal number of textures sent = %ld"
+                      "\t\t\t\tTotal number of objects sent = %ld"
+                      "\t\t\t\t\t\t\t\t\t  Total number of text characters sent = %ld",
+                      renderer_stats.draw_call_count,
+                      renderer_stats.shaders_count,
+                      renderer_stats.vao_count,
+                      renderer_stats.vertices_drawn_count,
+                      renderer_stats.indices_drawn_count,
+                      renderer_stats.textures_drawn_count,
+                      renderer_stats.object_count,
+                      renderer_stats.text_glyph_count);
+          ImGui::EndTabItem();
+        }
+        ImGui::PopStyleVar();
+        ImGui::DockNodeEndAmendTabBar();
+      }
     }
     
     // Render scene UI.
     ImGui::SetNextWindowViewport(viewport_->ID);
     
     io.Fonts->Fonts[1]->Scale = this->scene_panel.get_font_scale();
-    this->scene_panel.on_render();
+    this->scene_panel.on_ui_render();
     io.Fonts->Fonts[1]->Scale = 1.0f;  // Reset scale for other components.
     
     // Render Viewport framebuffer UI.
     ImGui::SetNextWindowViewport(viewport_->ID);
     
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Viewport");
-    ImGuiDockNode *viewport_dock_node;
-    viewport_dock_node = ImGui::DockBuilderGetNode(ImGui_layer::viewport_panel_dock_id);
-    if (viewport_dock_node) viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;
-    
-    if (this->framebuffer_viewport_data.viewport->get_options().samples == 1)
+    if (ImGui::Begin("Viewport"))
     {
-      // Traditional mono-sampled framebuffer.
-      uint64_t texture_id = this->framebuffer_viewport_data.viewport->get_color_attachment()->get_id();
-      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-      ImGui::Image(reinterpret_cast<void *>(texture_id),
-                   ImVec2(viewport_size.x, viewport_size.y),
-                   ImVec2(0, 1), ImVec2(1, 0));
+      ImGuiDockNode *viewport_dock_node;
+      viewport_dock_node = ImGui::DockBuilderGetNode(ImGui_layer::viewport_panel_dock_id);
+      if (viewport_dock_node) viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;
       
-      /* For some reason, if the window is being dragged outside the dock container, it will cease to call the framebuffer.
-       * callback provided. After countless tests, it seems that the only quick workaround for this is to add the custom
-       * callback via the Window list instead of the host window due to Window list decreasing in size when the window node
-       * is undocked.
-       *
-       * NOTE : If we only pass the callback via the Window list, the window won't execute the custom callback
-       * once it's docked again, so, we must cover both cases for a smoother and more robust user experience.
-       *
-      */
-    } else if (viewport_dock_node->Windows.Size > 0)
-    {
-      // Add custom callback to draw texture multi-sampled framebuffer onto the docked window.
-      viewport_dock_node->HostWindow->DrawList->AddCallback(draw_viewport_quad, &this->framebuffer_viewport_data);
-    } else
-    {
-      // Add the custom callback when the window is undocked and being popped out of the node container.
-      viewport_dock_node->Windows.Data[0]->DrawList->AddCallback(draw_viewport_quad,
-                                                                 &this->framebuffer_viewport_data);
+      if (this->framebuffer_viewport_data.viewport->get_options().samples == 1)
+      {
+        // Traditional mono-sampled framebuffer.
+        uint64_t texture_id = this->framebuffer_viewport_data.viewport->get_color_attachment()->get_id();
+        ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        ImGui::Image(reinterpret_cast<void *>(texture_id),
+                     ImVec2(viewport_size.x, viewport_size.y),
+                     ImVec2(0, 1), ImVec2(1, 0));
+        
+        /* For some reason, if the window is being dragged outside the dock container, it will cease to call the framebuffer.
+         * callback provided. After countless tests, it seems that the only quick workaround for this is to add the custom
+         * callback via the Window list instead of the host window due to Window list decreasing in size when the window node
+         * is undocked.
+         *
+         * NOTE : If we only pass the callback via the Window list, the window won't execute the custom callback
+         * once it's docked again, so, we must cover both cases for a smoother and more robust user experience.
+         *
+        */
+      } else if (viewport_dock_node && viewport_dock_node->Windows.Size > 0)
+      {
+        // Add custom callback to draw texture multi-sampled framebuffer onto the docked window.
+        viewport_dock_node->HostWindow->DrawList->AddCallback(draw_viewport_quad, &this->framebuffer_viewport_data);
+      } else if (viewport_dock_node && viewport_dock_node->Windows.Data)
+      {
+        // Add the custom callback when the window is undocked and being popped out of the node container.
+        viewport_dock_node->Windows.Data[0]->DrawList->AddCallback(draw_viewport_quad,
+                                                                   &this->framebuffer_viewport_data);
+      } else
+      {
+        ImGui::GetWindowDrawList()->AddCallback(draw_viewport_quad,
+                                                &this->framebuffer_viewport_data);
+      }
     }
     ImGui::End(); // Viewport.
     ImGui::PopStyleVar();  // Window padding.

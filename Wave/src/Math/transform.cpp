@@ -26,6 +26,11 @@ namespace Wave
     return this->translation;
   }
   
+  Vector_3f &Transform::get_translation()
+  {
+    return this->translation;
+  }
+  
   void Transform::set_translation(float x, float y, float z)
   {
     this->translation = Vector_3f(x, y, z);
@@ -41,6 +46,11 @@ namespace Wave
     return this->rotation;
   }
   
+  Vector_3f &Transform::get_rotation()
+  {
+    return this->rotation;
+  }
+  
   void Transform::set_rotation(float x, float y, float z)
   {
     this->rotation = Vector_3f(y, x, z) + get_rotation();
@@ -52,6 +62,11 @@ namespace Wave
   }
   
   const Vector_3f &Transform::get_scale() const
+  {
+    return this->scale;
+  }
+  
+  Vector_3f &Transform::get_scale()
   {
     return this->scale;
   }

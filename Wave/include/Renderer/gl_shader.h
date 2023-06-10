@@ -18,7 +18,7 @@ namespace Wave
     ~Gl_shader() override;
     
     void add_shader(int32_t type, const char *source);
-    void bind() const override;
+    void bind() override;
     void unbind() const override;
     [[nodiscard]] int32_t get_id() const override;
     
@@ -43,6 +43,8 @@ namespace Wave
     void set_uniform(const char *uniform_name, int32_t value) const override;
     void set_uniform(const char *uniform_name, uint32_t value) const override;
     void set_uniform(const char *uniform_name, float value) const override;
+    void set_uniform(const std::string &uniform_name, const Gpu_light_struct_s &light_struct) const override;
+    
     [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
     
     bool operator==(const Shader &other_shader) const override;

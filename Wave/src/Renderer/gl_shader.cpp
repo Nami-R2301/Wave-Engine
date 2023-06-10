@@ -124,23 +124,29 @@ namespace Wave
     CHECK_GL_CALL(glValidateProgram(this->program_id));
   }
   
-  void Gl_shader::bind() const
+  void Gl_shader::bind()
   {
-    if (!this->sent)
-    {
-      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
-                                                 "Cannot use shader program, OpenGL shader not built!"
-                                                 " Did you forget to build/reload in your shader with 'build()'?",
-                                                 __FUNCTION__,
-                                                 __FILE__,
-                                                 __LINE__ - 2);
-      return;
-    }
+    if (!this->sent) this->send_gpu();
     CHECK_GL_CALL(glUseProgram(this->program_id));
   }
   
   void Gl_shader::unbind() const
   {
+    if (!this->sent)
+    {
+      char buffer[FILENAME_MAX]{0};
+      if (snprintf(buffer, sizeof(buffer), "[Gl shader] --> Cannot unbind shader, shader not sent to the gpu!"
+                                           "\n%55sDid you forget to send in your shader beforehand with send_gpu()"
+                                           " or bind()?", DEFAULT) < 0)
+      {
+        alert(WAVE_LOG_ERROR, "[Gl shader] --> Internal error occurred (snprintf) on line %d, in file %s!",
+              __LINE__, __FILE__);
+      }
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 buffer,
+                                                 __FUNCTION__, "gl_shader.cpp", __LINE__);
+      return;
+    }
     CHECK_GL_CALL(glUseProgram(0));
   }
   
@@ -213,6 +219,13 @@ namespace Wave
     CHECK_GL_CALL(glUniform3f(get_uniform_location(uniform_name), vector_3f.get_x(),
                               vector_3f.get_y(),
                               vector_3f.get_z()));
+  }
+  
+  void Gl_shader::set_uniform(const std::string &uniform_name, const Gpu_light_struct_s &light_struct) const
+  {
+    set_uniform((uniform_name + ".color").c_str(), light_struct.color);
+    set_uniform((uniform_name + ".ambient_intensity").c_str(), light_struct.ambient_intensity);
+    set_uniform((uniform_name + ".diffuse_intensity").c_str(), light_struct.diffuse_intensity);
   }
   
   void Gl_shader::set_uniform(const char *uniform_name, const Color &color) const

@@ -29,7 +29,7 @@ namespace Wave
     std::vector<std::shared_ptr<Wave::Object>> demo_objects;
     std::vector<std::shared_ptr<Text_box>> demo_texts;
     std::shared_ptr<Framebuffer> viewport_framebuffer;
-    Color background_clear_color = Color(78.0f, 255.0f, false);  // Light gray.
+    Color background_clear_color = Color(75.0f, 255.0f, false);  // Light gray.
     Vector_2f viewport_resolution = {0, 0};
     Vector_4f viewport_framebuffer_boundaries;
   };

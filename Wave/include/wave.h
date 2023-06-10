@@ -4,6 +4,9 @@
 #include <Renderer/renderer.h>
 #include <Renderer/shader.h>
 
+/************************* Lighting ********************************/
+#include <Lighting/light.h>
+
 /************************* Core ********************************/
 #include <Core/core.h>
 #include <Core/interfaces.h>

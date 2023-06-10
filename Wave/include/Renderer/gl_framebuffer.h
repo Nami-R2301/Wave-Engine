@@ -35,8 +35,7 @@ namespace Wave
     void on_resize_draw_data(void *data) override;
     void reset() override;
     void bind() override;
-    void unbind() override;
-    void remove() override;
+    void unbind() const override;
     public:
     Framebuffer_viewport_data data;
     private:

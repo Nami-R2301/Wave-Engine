@@ -42,9 +42,8 @@ namespace Wave
     void set_bits_per_pixel(int bits_per_pixel) override;
     
     void set_data(const Texture_data_s *data_array, uint32_t offset_array[2]) const override;
-    void bind(int32_t slot_) const override;
+    void bind(int32_t slot_) override;
     void unbind() const override;
-    void remove() override;
     
     
     explicit operator bool() const override;
@@ -95,9 +94,8 @@ namespace Wave
     void set_texture_slot(int32_t texture_slot_) override;
     void set_bits_per_pixel(int bits_per_pixel) override;
     
-    void bind(int32_t slot_) const override;
+    void bind(int32_t slot_) override;
     void unbind() const override;
-    void remove() override;
     void set_data(const Texture_data_s data_array[6], uint32_t offset_array[3]) const override;
     
     

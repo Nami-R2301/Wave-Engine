@@ -258,14 +258,14 @@ namespace Wave
     }
     
     Face_3D_s face_3D_indices = {indices[0] - 1,
-                                 indices[1] - 1,
-                                 indices[2] - 1,
+                                 indices[1] > 0 ? indices[1] - 1 : indices[1],
+                                 indices[2] > 0 ? indices[2] - 1 : indices[2],
                                  indices[3] - 1,
-                                 indices[4] - 1,
-                                 indices[5] - 1,
+                                 indices[4] > 0 ? indices[4] - 1 : indices[4],
+                                 indices[5] > 0 ? indices[5] - 1 : indices[5],
                                  indices[6] - 1,
-                                 indices[7] - 1,
-                                 indices[8] - 1};
+                                 indices[7] > 0 ? indices[7] - 1 : indices[7],
+                                 indices[8] > 0 ? indices[8] - 1 : indices[8]};
     
     return face_3D_indices;
   }

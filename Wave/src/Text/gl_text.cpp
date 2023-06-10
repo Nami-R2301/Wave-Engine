@@ -14,68 +14,158 @@ namespace Wave
   
   Gl_text_box::Gl_text_box()
   {
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
     this->text = "?Example text?";
+    this->associated_shader = Shader::create("Text_box",
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/text-glyph.vert"),
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/text-glyph.frag"));
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size)
+  Gl_text_box::Gl_text_box(const std::shared_ptr<Shader> &associated_shader_)
+  {
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
+    this->text = "?Example text?";
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
+    init_freetype();
+  }
+  
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::shared_ptr<Shader> &associated_shader_)
   {
     this->format.text_size = pixel_size;
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
     this->text = "?Example text?";
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const std::string &text_)
+  Gl_text_box::Gl_text_box(const std::string &text_, const std::shared_ptr<Shader> &associated_shader_)
   {
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
     this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_)
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_,
+                           const std::shared_ptr<Shader> &associated_shader_)
   {
     this->format.text_size = pixel_size;
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
     this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_, const char *font_file_name)
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_, const char *font_file_name,
+                           const std::shared_ptr<Shader> &associated_shader_)
   {
     this->format.text_size = pixel_size;
     s_font_file_path = font_file_name;
     this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format)
+  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format,
+                           const std::shared_ptr<Shader> &associated_shader_)
   {
     this->format.text_size = pixel_size;
     this->text = string_;
     this->format = text_format;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_)
+  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_,
+                           const std::shared_ptr<Shader> &associated_shader_)
   {
     s_font_file_path = font_file_name;
     this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_, Text_format_s format_)
+  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_, Text_format_s format_,
+                           const std::shared_ptr<Shader> &associated_shader_)
   {
     s_font_file_path = font_file_name;
     this->text = text_;
     this->format = std::move(format_);
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
   Gl_text_box::~Gl_text_box()
   {
     Gl_text_box::free_gpu();
+    delete this->texture_atlas;
   }
   
   void Gl_text_box::init_freetype()
@@ -88,7 +178,7 @@ namespace Wave
       {
         alert(WAVE_LOG_ERROR, "[Gl text] --> Error loading font file %s!", s_font_file_path);
         // If the font file is missing, use the callback (default) one.
-        FT_New_Face(this->library, "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf", 0, &this->face);
+        FT_New_Face(this->library, "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf", 0, &this->face);
       }
     }
     
@@ -190,6 +280,8 @@ namespace Wave
       this->characters[i].texture_offset /= (float) this->texture_atlas->get_width();
     }
     
+    if (!this->is_sent()) Renderer::send_text(*this);
+    else Renderer::send_text(*this, 0);  // If we are overwriting the current text_box vbo.
     this->sent = true;
   }
   
@@ -199,7 +291,6 @@ namespace Wave
     {
       FT_Done_Face(this->face);
       FT_Done_FreeType(this->library);
-      delete this->texture_atlas;
       this->sent = false;
     }
   }

@@ -35,7 +35,7 @@ namespace Wave
     INTERFACE_MOVABLE
     INTERFACE_COPIABLE
     
-    void on_render();
+    void on_ui_render();
     
     [[nodiscard]] const Vector_2f &get_position() const;
     [[nodiscard]] const Vector_4f &get_size_boundaries() const;
@@ -49,9 +49,8 @@ namespace Wave
     private:
     Scene_ui_data_s scene_ui_data;
     std::shared_ptr<Scene> context;
-    static bool scene_panel_dock_open;
     bool moved = false;
     private:
-    void draw_entity(Entity entity);
+    void display_entity(Entity entity);
   };
 }

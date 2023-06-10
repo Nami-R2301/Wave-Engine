@@ -27,10 +27,9 @@ namespace Wave
     [[nodiscard]] virtual Texture *get_depth_attachment() = 0;
     
     virtual void bind() = 0;
-    virtual void unbind() = 0;
+    virtual void unbind() const = 0;
     virtual void resize(float width, float height, void *data) = 0;
     virtual void reset() = 0;
-    virtual void remove() = 0;
     virtual void on_resize_draw_data(void *data) = 0;
     protected:
     bool sent = false;

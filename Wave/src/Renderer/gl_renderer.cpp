@@ -20,6 +20,7 @@ namespace Wave
   Renderer::Renderer_stats_s Gl_renderer::stats = {0};
   
   static char *s_glsl_version = nullptr;
+  static std::vector<Renderer::Draw_command *> s_object_draw_commands;
   static int32_t s_texture_unit_number_assigned = 0, s_max_texture_samplers = 4;
   
   bool Gl_renderer::is_running()
@@ -114,11 +115,11 @@ namespace Wave
                     CHECK_GL_CALL(glClearColor(background_color.get_red(), background_color.get_green(),
                                                background_color.get_blue(), background_color.get_alpha()));
                     
-                    // Every shape drawn in clock-wise manner will be considered the FRONT face.
-                    CHECK_GL_CALL(glFrontFace(GL_CW));
-                    CHECK_GL_CALL(glCullFace(GL_FRONT_AND_BACK)); // The back side of shapes will NOT be drawn.
+                    CHECK_GL_CALL(glEnable(GL_CULL_FACE));
                     CHECK_GL_CALL(
-                      glDisable(GL_CULL_FACE)); // Don't update the back face of shapes since the camera won't see it.
+                      glCullFace(GL_BACK));  // Don't update the back face of shapes since the camera won't see it.
+                    CHECK_GL_CALL(
+                      glFrontFace(GL_CW));  // Every shape drawn in clock-wise manner will be considered the FRONT face.
                     
                     // Let OpenGL keep track of depth for shapes and auto determine if some shapes closer or further away from
                     // the camera should take priority (drawn on top of other ones).
@@ -178,34 +179,35 @@ namespace Wave
                                                          3));
                                 
                                 // Add draw command for batch rendering.
-                                Renderer::Draw_command initial_command;
                                 std::vector<Buffer_element> b_elements;  // Vbo layout.
                                 
-                                initial_command.associated_shader = &shader_linked;
+                                s_object_draw_commands.emplace_back(new Renderer::Draw_command());
+                                s_object_draw_commands.back()->associated_shader = &shader_linked;
+                                s_object_draw_commands.back()->batch_offset.emplace_back(0, 0, 0);
                                 
                                 // Set default shader layout for an 3D object.
                                 b_elements.emplace_back(Buffer_data_type::Vector_3f, "Position", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_3f, "Normal", true);
                                 b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
+                                b_elements.emplace_back(Buffer_data_type::Matrix_4f, "Model Matrix", false);
                                 
-                                initial_command.vertex_array_buffer = Vertex_array_buffer::create();
-                                initial_command.vertex_array_buffer->set_index_buffer(
+                                s_object_draw_commands.back()->vertex_array_buffer = Vertex_array_buffer::create();
+                                s_object_draw_commands.back()->vertex_array_buffer->set_index_buffer(
                                   Index_buffer::create(nullptr, max_ibo_buffer_size));
                                 
                                 // Make sure the buffer is set to 0 in count to prevent fetching the max count with 'get_count()'.
-                                initial_command.vertex_array_buffer->get_index_buffer()->set_count(0);
+                                s_object_draw_commands.back()->vertex_array_buffer->get_index_buffer()->set_count(0);
                                 
                                 auto vbo_ = Vertex_buffer::create(sizeof(Vertex_3D), max_vbo_buffer_size);
                                 Buffer_layout vbo_layout(b_elements);
                                 vbo_->set_layout(vbo_layout);
-                                initial_command.vertex_array_buffer->add_vertex_buffer(vbo_);
+                                s_object_draw_commands.back()->vertex_array_buffer->add_vertex_buffer(vbo_);
                                 
                                 // Make sure the buffer is set to 0 in count to prevent fetching the max count with 'get_count()'.
-                                initial_command.vertex_array_buffer->get_vertex_buffers()[0]->set_count(0);
-                                
-                                Gl_renderer::draw_commands[shader_linked.get_id()] = new Renderer::Draw_command(
-                                  initial_command);
+                                s_object_draw_commands.back()->vertex_array_buffer->get_vertex_buffers()[0]->set_count(
+                                  0);
+                                Gl_renderer::draw_commands[shader_linked.get_id()] = s_object_draw_commands.back();
                               }
     
     )
@@ -284,86 +286,121 @@ namespace Wave
     if (!vertices || size == 0 || count == 0) return;
     if (Gl_renderer::draw_commands.contains(command_index))
     {
-      if (vbo_offset != WAVE_VALUE_DONT_CARE)
+      if (vbo_offset == 0)
       {
-        Gl_renderer::draw_commands[command_index]->vbo_offset = vbo_offset;
+        // Reset buffer contents.
+        Gl_renderer::draw_commands[command_index]->global_vbo_offset = vbo_offset;
         Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->set_count(0);
       }
       Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->set_data(
         vertices,
-        count *
-        size,
-        Gl_renderer::draw_commands[command_index]->vbo_offset);
+        count * size,
+        vbo_offset == WAVE_VALUE_DONT_CARE ? Gl_renderer::draw_commands[command_index]->global_vbo_offset :
+        vbo_offset);
     }
     
     // Update vbo count.
     Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->set_count(
       Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->get_count() +
       count);
-    Gl_renderer::draw_commands[command_index]->vbo_offset += count * size;
+    Gl_renderer::draw_commands[command_index]->global_vbo_offset =
+      vbo_offset == WAVE_VALUE_DONT_CARE ?
+      Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_vertex_buffers()[0]->get_count() *
+      size :
+      (uint64_t) Gl_renderer::draw_commands[command_index]->global_vbo_offset + vbo_offset + (count * size);
   }
   
   void Gl_renderer::load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index,
                                           int64_t ibo_offset)
   {
     if (!faces || size == 0 || count == 0) return;
+    
+    if (ibo_offset == WAVE_VALUE_DONT_CARE &&
+        Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->get_count() != 0)
+      Gl_renderer::draw_commands[command_index]->batch_offset.back().ibo_offset =
+        Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->get_count() *
+        sizeof(uint32_t);
+    else if (ibo_offset != WAVE_VALUE_DONT_CARE)
+    {
+      Gl_renderer::draw_commands[command_index]->batch_offset.back().ibo_offset +=
+        (uint64_t) ibo_offset + (count * size);
+    }
+    
     if (Gl_renderer::draw_commands.contains(command_index))
     {
-      if (ibo_offset != WAVE_VALUE_DONT_CARE)
+      if (ibo_offset == 0)
       {
-        Gl_renderer::draw_commands[command_index]->ibo_offset = ibo_offset;
+        // Reset buffer contents.
+        Gl_renderer::draw_commands[command_index]->batch_offset.back().ibo_offset = ibo_offset;
         Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->set_count(0);
       }
-      Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->set_data(faces,
-                                                                                                   count * size,
-                                                                                                   Gl_renderer::draw_commands[command_index]->ibo_offset);
+      Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->set_data(
+        faces,
+        count * size,
+        ibo_offset == WAVE_VALUE_DONT_CARE ?
+        Gl_renderer::draw_commands[command_index]->batch_offset.back().ibo_offset : ibo_offset);
+      
       // Update ibo count.
       Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->set_count(
         Gl_renderer::draw_commands[command_index]->vertex_array_buffer->get_index_buffer()->get_count() + count);
-      Gl_renderer::draw_commands[command_index]->ibo_offset += count * size;
     }
   }
   
-  void Gl_renderer::send_object(Object &object, Shader &linked_shader, int64_t vbo_offset,
-                                [[maybe_unused]] int64_t ibo_offset)
+  void Gl_renderer::send_object(const Object &object, int64_t vbo_offset, int64_t ibo_offset)
   {
-    if (!object.is_sent()) object.send_gpu();
-    if (!Gl_renderer::draw_commands.contains(linked_shader.get_id()))
+    object.get_shader()->bind();
+    int32_t object_shader_id = object.get_shader()->get_id();
+    
+    if (Gl_renderer::draw_commands.contains(object_shader_id))
     {
-      Gl_renderer::stats.object_count++;
-      init_object_draw_command(linked_shader);
+      Gl_renderer::draw_commands[object_shader_id]->batch_offset.emplace_back(
+        Gl_renderer::draw_commands[object_shader_id]->vertex_array_buffer->get_index_buffer()->get_count(),
+        Gl_renderer::draw_commands[object_shader_id]->vertex_array_buffer->get_index_buffer()->get_count() *
+        sizeof(uint32_t),
+        Gl_renderer::draw_commands[object_shader_id]->vertex_array_buffer->get_vertex_buffers()[0]->get_count());
+    } else if (!Gl_renderer::draw_commands.contains(object_shader_id))
+    {
+      init_object_draw_command(*object.get_shader());
     }
     
-    int32_t shader_id = linked_shader.get_id();
-    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_sent())
-      Gl_renderer::draw_commands[shader_id]->associated_shader->send_gpu();
-    Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
-    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
+    // Check if we have the same mesh as our previous objects.
+//    if (Gl_renderer::draw_commands[object_shader_id]->batch_offset.size() > 1 &&
+//        Gl_renderer::draw_commands[object_shader_id]->batch_offset
+//        [Gl_renderer::draw_commands[object_shader_id]->batch_offset.size() - 2].index_count == object.get_face_count())
+//    {
+//      Gl_renderer::draw_commands[object_shader_id]->instance_count += 1;  // Add instance for instance drawing.
+//    }
+    
+    Gl_renderer::draw_commands[object_shader_id]->batch_offset.back() = {
+      .base_vertex = Gl_renderer::draw_commands[object_shader_id]->vertex_array_buffer->get_vertex_buffers()[0]->get_count()};
+    
+    Gl_renderer::draw_commands[object_shader_id]->associated_shader->bind();
+    Gl_renderer::draw_commands[object_shader_id]->associated_shader->set_uniform("u_sampler",
+                                                                                 s_texture_unit_number_assigned);
     
     unsigned int u_camera_block = glGetUniformBlockIndex(
-      Gl_renderer::draw_commands[shader_id]->associated_shader->get_id(), "u_camera");
-    CHECK_GL_CALL(glUniformBlockBinding(Gl_renderer::draw_commands[shader_id]->associated_shader->get_id(),
+      Gl_renderer::draw_commands[object_shader_id]->associated_shader->get_id(), "u_camera");
+    CHECK_GL_CALL(glUniformBlockBinding(Gl_renderer::draw_commands[object_shader_id]->associated_shader->get_id(),
                                         u_camera_block,
                                         3));
     
     
     // If we reached the max batch memory limit (2 MB).
-    if ((Gl_renderer::draw_commands[shader_id]->vertex_array_buffer->get_vertex_buffers()[0]->get_count() +
+    if ((Gl_renderer::draw_commands[object_shader_id]->vertex_array_buffer->get_vertex_buffers()[0]->get_count() +
          object.get_vertex_count()) * object.get_vertex_size() >= max_vbo_buffer_size)
       flush();
     
     // Set data in vbo and ibo.
     load_dynamic_vbo_data(object.get_vertices(), object.get_vertex_count(), object.get_vertex_size(),
-                          shader_id, vbo_offset);
+                          object_shader_id, vbo_offset);
+    
     load_dynamic_ibo_data(object.get_faces(), object.get_face_count(), sizeof(uint32_t),
-                          shader_id, ibo_offset);
+                          object_shader_id, ibo_offset);
+    
+    Gl_renderer::draw_commands[object_shader_id]->batch_offset.back().index_count = object.get_face_count();
     
     if (!object.get_textures().empty())
-      Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_has_texture", true);
-    
-    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_model",
-                                                                          &object.get_model_matrix().get_matrix()[0][0],
-                                                                          false);
+      Gl_renderer::draw_commands[object_shader_id]->associated_shader->set_uniform("u_has_texture", true);
     
     // Link object texture objects to texture units for rendering.
     for (const auto &texture: object.get_textures())
@@ -375,28 +412,21 @@ namespace Wave
       if (!Gl_renderer::textures.contains(texture->get_id())) s_texture_unit_number_assigned++;
       Gl_renderer::textures[texture->get_id()] = texture.get();
     }
+    Gl_renderer::stats.object_count++;
   }
   
-  void
-  Gl_renderer::send_text(Text_box &text, Shader &linked_shader, int64_t vbo_offset, [[maybe_unused]] int64_t ibo_offset)
+  void Gl_renderer::send_text(const Text_box &text, int64_t vbo_offset, [[maybe_unused]] int64_t ibo_offset)
   {
-    if (!text.is_sent()) text.send_gpu();
-    if (Gl_renderer::draw_commands.contains(linked_shader.get_id()) && vbo_offset != WAVE_VALUE_DONT_CARE)
-    {
-      Gl_renderer::draw_commands[linked_shader.get_id()]->vbo_offset = vbo_offset;
-      Gl_renderer::draw_commands[linked_shader.get_id()]->vertex_array_buffer->get_vertex_buffers().back()->set_count(
-        0);
-    }
+    text.get_shader()->bind();
+    int32_t shader_id = text.get_shader()->get_id();
     
-    if (!Gl_renderer::draw_commands.contains(linked_shader.get_id()))
+    // Setup new buffer.
+    if (!Gl_renderer::draw_commands.contains(shader_id))
     {
       Gl_renderer::stats.text_glyph_count += text.get_text_string().size();
-      init_text_draw_command(linked_shader);
+      init_text_draw_command(*text.get_shader());
     }
     
-    int32_t shader_id = linked_shader.get_id();
-    if (!Gl_renderer::draw_commands[shader_id]->associated_shader->is_sent())
-      Gl_renderer::draw_commands[shader_id]->associated_shader->send_gpu();
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
     Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
     
@@ -431,7 +461,7 @@ namespace Wave
       float vertices[6][8] = {
         {x_pos,     -y_pos,
           red, green, blue, alpha,
-          texture_offset_x + (glyph.size_x == 0 ? 0 : 0.0001f),               0},
+          texture_offset_x + 0.0001f,                                         0},
         
         {x_pos + w, -y_pos,
           red, green, blue, alpha,
@@ -439,7 +469,7 @@ namespace Wave
         
         {x_pos,     (-y_pos - h),
           red, green, blue, alpha,
-          texture_offset_x + (glyph.size_x == 0 ? 0 : 0.0001f),               (float) (glyph.size_y - 1) /
+          texture_offset_x + 0.0001f,                                         (float) (glyph.size_y - 1) /
                                                                               atlas_size.get_y()},
         
         {x_pos + w, -y_pos,
@@ -448,7 +478,7 @@ namespace Wave
         
         {x_pos,     (-y_pos - h),
           red, green, blue, alpha,
-          texture_offset_x + (glyph.size_x == 0 ? 0 : 0.0001f),               (float) (glyph.size_y - 1) /
+          texture_offset_x + 0.0001f,                                         (float) (glyph.size_y - 1) /
                                                                               atlas_size.get_y()},
         
         {x_pos + w, (-y_pos - h),
@@ -457,9 +487,15 @@ namespace Wave
                                                                               atlas_size.get_y()}
       };
       
+      if (vbo_offset == 0)
+      {
+        load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id, 0);
+        vbo_offset = WAVE_VALUE_DONT_CARE;
+        continue;
+      }
       
       // Update content of VBO memory.
-      load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id, WAVE_VALUE_DONT_CARE);
+      load_dynamic_vbo_data(vertices, 6, sizeof(float) * 8, shader_id, vbo_offset);
     }
     
     // Set texture unit for draw command.
@@ -475,13 +511,10 @@ namespace Wave
   
   void Gl_renderer::flush()
   {
-    uint64_t index_count = 0, vertex_count = 0;
+    uint64_t frame_index_count = 0, frame_vertex_count = 0, frame_draw_count = 0, frame_vao_count = 0;
     for (const auto &texture: Gl_renderer::textures)
     {
-      if (texture.second)
-      {
-        texture.second->bind(texture.second->get_texture_slot());
-      }
+      if (texture.second) texture.second->bind(texture.second->get_texture_slot());
     }
     Gl_renderer::stats.textures_drawn_count = Gl_renderer::textures.size();
     
@@ -489,27 +522,72 @@ namespace Wave
     {
       draw_command.second->associated_shader->bind();
       draw_command.second->vertex_array_buffer->bind();
-      vertex_count += draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count();
+      frame_vao_count++;
+      
       if (draw_command.second->vertex_array_buffer->get_index_buffer())  // Has an index buffer
       {
-        index_count += draw_command.second->vertex_array_buffer->get_index_buffer()->get_count();
         draw_command.second->vertex_array_buffer->get_index_buffer()->bind();
-        CHECK_GL_CALL(glDrawElementsBaseVertex(GL_TRIANGLES,
-                                               draw_command.second->vertex_array_buffer->get_index_buffer()->get_count(),
-                                               GL_UNSIGNED_INT,
-                                               (const void *) draw_command.second->ibo_offset,
-                                               draw_command.second->ibo_offset));
+        for (const auto &offset: draw_command.second->batch_offset)
+        {
+          if (draw_command.second->instance_count == 1)
+          {
+            if (offset.base_vertex == 0 && offset.index_count > 0 && draw_command.second->instance_count == 1)
+            {
+              CHECK_GL_CALL(glDrawElements(GL_TRIANGLES, offset.index_count,
+                                           GL_UNSIGNED_INT,
+                                           nullptr));
+              continue;
+            }
+            if (offset.index_count > 0 && draw_command.second->instance_count == 1)
+            {
+              CHECK_GL_CALL(glDrawElementsBaseVertex(GL_TRIANGLES, offset.index_count,
+                                                     GL_UNSIGNED_INT,
+                                                     (const void *) offset.ibo_offset,
+                                                     offset.base_vertex));
+            }
+            frame_draw_count++;
+            frame_vertex_count += draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count() -
+                                  offset.base_vertex;
+            frame_index_count += offset.index_count;
+          }
+        }
+        if (draw_command.second->instance_count != 1)
+        {
+          CHECK_GL_CALL(
+            glDrawElementsInstancedBaseVertex(GL_TRIANGLES, draw_command.second->batch_offset[0].index_count,
+                                              GL_UNSIGNED_INT,
+                                              nullptr,
+                                              draw_command.second->instance_count,
+                                              draw_command.second->batch_offset[0].base_vertex));
+          frame_draw_count++;
+          frame_vertex_count += draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count() -
+                                draw_command.second->batch_offset[0].base_vertex;
+          frame_index_count += draw_command.second->batch_offset[0].index_count;
+        }
       } else
       {
-        CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, 0,
-                                   draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count()));  // Draw everything.
+        CHECK_GL_CALL(glDisable(GL_CULL_FACE));
+        if (draw_command.second->instance_count == 1)
+        {
+          CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, 0,
+                                     draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count()));
+        } else
+        {
+          CHECK_GL_CALL(glDrawArraysInstanced(GL_TRIANGLES, 0,
+                                              draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count(),
+                                              draw_command.second->instance_count));
+        }
+        frame_vertex_count += draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count();
+        frame_draw_count++;
+        CHECK_GL_CALL(glEnable(GL_CULL_FACE));
       }
-      draw_command.second->vbo_offset = 0;
-      draw_command.second->ibo_offset = 0;
+      draw_command.second->global_vbo_offset = 0;
     }
-    Gl_renderer::stats.vertices_drawn_count = vertex_count;
-    Gl_renderer::stats.indices_drawn_count = index_count;
-    Gl_renderer::stats.draw_call_count = Gl_renderer::draw_commands.size();
+    Gl_renderer::stats.shaders_count = Gl_renderer::draw_commands.size();
+    Gl_renderer::stats.vao_count = frame_vao_count;
+    Gl_renderer::stats.vertices_drawn_count = frame_vertex_count;
+    Gl_renderer::stats.indices_drawn_count = frame_index_count;
+    Gl_renderer::stats.draw_call_count = frame_draw_count;
   }
   
   void Gl_renderer::end()
@@ -821,9 +899,9 @@ namespace Wave
           temp.code = GL_INVALID_VALUE;
           break;
         }
-        case GL_DEBUG_SOURCE_INVALID_UNIFORM:
+        case WAVE_GL_DEBUG_SOURCE_INVALID_UNIFORM:
         {
-          temp.code = GL_DEBUG_SOURCE_INVALID_UNIFORM;
+          temp.code = WAVE_GL_DEBUG_SOURCE_INVALID_UNIFORM;
           break;
         }
         case GL_INVALID_FRAMEBUFFER_OPERATION:

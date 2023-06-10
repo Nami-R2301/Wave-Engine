@@ -14,13 +14,19 @@ namespace Wave
   {
     public:
     Gl_text_box();
-    explicit Gl_text_box(const std::string &string_);
-    explicit Gl_text_box(const Vector_2f &pixel_size);
-    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_);
-    Gl_text_box(const char *font_file_name, const std::string &string_);
-    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format);
-    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const char *font_file_path);
-    Gl_text_box(const char *font_file_name, const std::string &string_, Text_format_s text_format_);
+    explicit Gl_text_box(const std::shared_ptr<Shader> &associated_shader_);
+    explicit Gl_text_box(const std::string &string_, const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+    explicit Gl_text_box(const Vector_2f &pixel_size, const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_,
+                const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+    Gl_text_box(const char *font_file_name, const std::string &string_,
+                const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format,
+                const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const char *font_file_path,
+                const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+    Gl_text_box(const char *font_file_name, const std::string &string_, Text_format_s text_format_,
+                const std::shared_ptr<Shader> &associated_shader_ = nullptr);
     ~Gl_text_box() override;
     
     // Interfaces.

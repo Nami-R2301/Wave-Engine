@@ -6,6 +6,7 @@
 
 #include <Math/vector.h>
 #include <Renderer/color.h>
+#include <Math/matrix_4f.h>
 
 namespace Wave
 {
@@ -50,6 +51,10 @@ namespace Wave
     Vector_2f normal = Vector_2f(0.0f);
     Color color;
     Vector_2f tex_coord = Vector_2f(0.0f);
+    float model_matrix[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
+                                {0.0f, 1.0f, 0.0f, 0.0f},
+                                {0.0f, 0.0f, 1.0f, 0.0f},
+                                {0.0f, 0.0f, 0.0f, 1.0f}};
   };
   
   // Manipulation of vertices to pass on to our opengl vertex_source shaders.
@@ -91,13 +96,19 @@ namespace Wave
     void set_tex_coord(const Vector_2f &tex_coord_);
     void set_tex_coord(float x, float y);
     
+    void set_model_matrix(const Matrix_4f &model_matrix_);
+    
     explicit operator Vertex_2D() const;
     bool operator==(const Vertex_3D &);
     Vertex_3D &operator=(const Vertex_3D &);
     private:
-    Vector_3f position = Vector_3f(0);
+    Vector_3f position = Vector_3f(0.0f);
     Vector_3f normal = Vector_3f(0, 0, 1);
     Color color;
     Vector_2f tex_coord = Vector_2f(0);
+    float model_matrix[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
+                                {0.0f, 1.0f, 0.0f, 0.0f},
+                                {0.0f, 0.0f, 1.0f, 0.0f},
+                                {0.0f, 0.0f, 0.0f, 1.0f}};
   };
 }

@@ -18,8 +18,11 @@ namespace Wave
     ~Transform() override = default;
     
     [[nodiscard]] const Vector_3f &get_translation() const;
+    [[nodiscard]] Vector_3f &get_translation();
     [[nodiscard]] const Vector_3f &get_rotation() const;
+    [[nodiscard]] Vector_3f &get_rotation();
     [[nodiscard]] const Vector_3f &get_scale() const;
+    [[nodiscard]] Vector_3f &get_scale();
     [[nodiscard]] Matrix_4f get_transform_matrix() const;
     
     void set_rotation(const Vector_3f &rotation_);

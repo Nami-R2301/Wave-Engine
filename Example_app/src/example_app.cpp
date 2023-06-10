@@ -31,10 +31,14 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
                                                        Wave::Resource_loader::load_shader_source(
                                                          "../Wave/res/Shaders/text-glyph.frag")));
   
-  
+  this->viewport = {Engine::get_main_window()->get_width(), Engine::get_main_window()->get_height()};
   // Add objects
   this->demo_objects.emplace_back(
     Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj")));
+  this->demo_objects.emplace_back(
+    Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/sphere.obj")));
+  this->demo_objects.emplace_back(
+    Wave::Object::create(Wave::Resource_loader::load_object_3D_source("../Wave/res/Models/sphere.obj")));
   
   // Add text strings
   this->demo_text.emplace_back(Wave::Text_box::create(Wave::Vector_2f(0.0f, 200.0f),
@@ -43,15 +47,13 @@ Example_app::Example_app() : Wave::Engine(Wave::Renderer_api::OpenGL, Wave::Cont
   this->demo_text[0]->set_text_scale(Wave::Vector_2f(0.5f));
 }
 
-void Example_app::send()
+void Example_app::on_init()
 {
-  Engine::send();
+  Engine::on_init();
   Wave::Renderer::set_clear_color(Wave::Color(78.0f, 255.0f, false));
   
   push_layer(new Example_scene_3D(this->demo_perspective_camera, this->demo_shaders, this->demo_objects));
-  push_layer(new Wave::Text_layer(this->demo_text, this->demo_shaders,
-                                  Wave::Vector_2f(Engine::get_main_window()->get_width(),
-                                                  Engine::get_main_window()->get_height()), false));
+  push_layer(new Wave::Text_layer(this->demo_text, &this->viewport, false));
 }
 
 void Example_app::on_event(Wave::Event &event)
@@ -60,7 +62,7 @@ void Example_app::on_event(Wave::Event &event)
   
   Wave::Event_dispatcher event_dispatcher(event);
   
-  switch(event.get_event_type())
+  switch (event.get_event_type())
   {
     case Wave::Event_type::On_key_event:
     {
@@ -155,6 +157,14 @@ bool Example_app::window_resize_callback(Wave::On_window_resize &window_resized_
   Engine::window_resize_callback(window_resized_event);
   this->demo_perspective_camera->on_window_resize(window_resized_event);
   return true;
+}
+
+void Example_app::on_destroy()
+{
+  for (auto &shader: this->demo_shaders) shader->free_gpu();
+  for (auto &object: this->demo_objects) object->free_gpu();
+  for (auto &text: this->demo_text) text->free_gpu();
+  Engine::on_destroy();
 }
 
 Wave::Engine *Wave::create_app()

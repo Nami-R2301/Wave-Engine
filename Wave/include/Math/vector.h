@@ -28,6 +28,7 @@ namespace Wave
     [[nodiscard]] float length() const;
     [[nodiscard]] float size() const;
     [[nodiscard]] float dot(const Vector_2f &vector_) const;
+    [[nodiscard]] Vector_2f cross(const Vector_2f &other_vector) const;
     [[nodiscard]] Vector_2f normalize() const;
     [[nodiscard]] Vector_2f absolute() const;
     [[nodiscard]] Vector_2f rotate(float angle) const;

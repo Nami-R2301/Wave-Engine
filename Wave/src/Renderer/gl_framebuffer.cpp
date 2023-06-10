@@ -43,6 +43,10 @@ namespace Wave
   Gl_framebuffer::~Gl_framebuffer()
   {
     Gl_framebuffer::free_gpu();
+    delete this->color_attachment;
+    delete this->depth_attachment;
+    delete[] this->data.ibo_data;
+    delete[] this->data.vbo_data;
   }
   
   void Gl_framebuffer::send_gpu()
@@ -85,13 +89,13 @@ namespace Wave
                                                  "gl_framebuffer.cpp",
                                                  __LINE__ - 5);
     }
-    Gl_framebuffer::unbind();
-    
     this->sent = true;
+    Gl_framebuffer::unbind();
   }
   
   void Gl_framebuffer::free_gpu()
   {
+    unbind();
     if (this->is_sent())
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
@@ -99,10 +103,6 @@ namespace Wave
       if (this->depth_attachment) this->depth_attachment->free_gpu();
       
       this->sent = false;
-      delete this->color_attachment;
-      delete this->depth_attachment;
-      delete[] this->data.ibo_data;
-      delete[] this->data.vbo_data;
     }
   }
   
@@ -125,31 +125,17 @@ namespace Wave
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
       this->color_attachment->free_gpu();
       this->depth_attachment->free_gpu();
-      delete this->color_attachment;
-      delete this->depth_attachment;
       
       CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
       CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
       
       // Creating the 2D texture of our viewport.
-      this->color_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
-                                                           Texture::Texture_internal_format_e::Rgba8,
-                                                           this->options.width,
-                                                           this->options.height,
-                                                           0,
-                                                           2,
-                                                           static_cast<int32_t>(this->options.samples),
-                                                           nullptr});
+      this->color_attachment->set_width(this->options.width);
+      this->color_attachment->set_height(this->options.height);
       
-      // Depth attachment.
-      this->depth_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
-                                                           Texture::Texture_internal_format_e::Depth_stencil,
-                                                           this->options.width,
-                                                           this->options.height,
-                                                           0,
-                                                           3,
-                                                           static_cast<int32_t>(this->options.samples),
-                                                           nullptr});
+      this->depth_attachment->set_width(this->options.width);
+      this->depth_attachment->set_height(this->options.height);
+      
       this->color_attachment->send_gpu();
       this->depth_attachment->send_gpu();
       
@@ -176,6 +162,7 @@ namespace Wave
   
   void Gl_framebuffer::bind()
   {
+    if (!this->is_sent()) this->send_gpu();
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     Gl_renderer::set_viewport(this->options.width, this->options.height);
   }
@@ -232,18 +219,25 @@ namespace Wave
     this->data.vao->unbind();
   }
   
-  void Gl_framebuffer::unbind()
+  void Gl_framebuffer::unbind() const
   {
-    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-  }
-  
-  void Gl_framebuffer::remove()
-  {
-    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    if (this->renderer_id)
+    if (!this->sent)
     {
-      CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
+      char buffer[FILENAME_MAX]{0};
+      if (snprintf(buffer, sizeof(buffer),
+                   "[Gl framebuffer] --> Cannot unbind framebuffer, framebuffer not sent to the gpu!"
+                   "\n%55sDid you forget to send in your shader beforehand with send_gpu()"
+                   " or bind()?", DEFAULT) < 0)
+      {
+        alert(WAVE_LOG_ERROR, "[Gl framebuffer] --> Internal error occurred (snprintf) on line %d, in file %s!",
+              __LINE__, __FILE__);
+      }
+      Gl_renderer::gl_synchronous_error_callback(WAVE_GL_BUFFER_NOT_LOADED,
+                                                 buffer,
+                                                 __FUNCTION__, "gl_framebuffer.cpp", __LINE__);
+      return;
     }
+    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
   }
   
   const Framebuffer_options &Gl_framebuffer::get_options() const

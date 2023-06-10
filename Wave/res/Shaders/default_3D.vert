@@ -5,6 +5,7 @@ layout (location = 0) in vec3 in_vertex_position;
 layout (location = 1) in vec3 in_vertex_normal;
 layout (location = 2) in vec4 in_color;
 layout (location = 3) in vec2 in_tex_coords;
+layout (location = 4) in mat4 in_model_matrix;
 
 // Camera matrix.
 layout (std140) uniform u_camera
@@ -13,18 +14,22 @@ layout (std140) uniform u_camera
     mat4 u_projection;
 };
 
-uniform mat4 u_model;
-
 // Input variables.
 uniform vec3 u_mouse_pos;
 
 // Outputs.
 out vec2 vout_tex_coords;
 out vec4 vout_frag_color;
+out vec3 vout_normal;
+out vec3 vout_frag_position;
+out vec4 vout_directional_light_position;
+
 
 void main()
 {
-    gl_Position = u_projection * u_view * u_model * vec4(in_vertex_position.xyz, 1.0);
+    gl_Position = u_projection * u_view * (in_model_matrix * vec4(in_vertex_position.xyz + (gl_InstanceID * 5), 1.0));
     vout_tex_coords = in_tex_coords;
-  vout_frag_color = in_color;
+    vout_frag_color = in_color;
+    vout_normal = mat3(transpose(inverse(in_model_matrix))) * in_vertex_normal;
+    vout_frag_position = (in_model_matrix * vec4(in_vertex_position, 1.0)).xyz;
 }

@@ -15,7 +15,7 @@ namespace Wave
     Camera_tests()
     {
       this->app = new Example_app();
-      this->app->send();
+      this->app->on_init();
     }
     
     void SetUp() override
@@ -33,7 +33,7 @@ namespace Wave
     {
       // Code here will be called immediately after each test (right
       // before the destructor).
-      Example_app::shutdown();
+      this->app->on_destroy();
     }
     
     // shared user data

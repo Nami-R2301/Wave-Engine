@@ -39,7 +39,6 @@ namespace Wave
     Transform transform_component;
     
     Transform_component_s() = default;
-    Transform_component_s(const Transform_component_s &) = default;
     
     explicit Transform_component_s(const Transform &transform_)
     {
@@ -53,9 +52,14 @@ namespace Wave
       this->transform_component.set_scale(scale);
     }
     
-    [[nodiscard]] Matrix_4f get_transform() const
+    [[nodiscard]] const Transform &get_transform() const
     {
-      return transform_component.get_transform_matrix();
+      return this->transform_component;
+    }
+    
+    [[nodiscard]] Transform &get_transform()
+    {
+      return this->transform_component;
     }
   };
   
