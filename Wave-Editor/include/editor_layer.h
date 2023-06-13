@@ -19,8 +19,8 @@ namespace Wave
   class Editor_layer : public Layer
   {
     public:
-    Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
-                 const std::vector<std::shared_ptr<Wave::Object>> &objects_,
+    Editor_layer(const std::shared_ptr<Scene> &active_scene_,
+                 const std::vector<Entity> &entities_,
                  const std::shared_ptr<Framebuffer> &viewport_);
     ~Editor_layer() override = default;
     
@@ -33,6 +33,7 @@ namespace Wave
     void on_ui_render(float time_step) override;
     private:
     Scene_ui_panel scene_panel = {nullptr, {}};
+    std::vector<Entity> entities;
     std::shared_ptr<Wave::Camera> camera;
     std::vector<std::shared_ptr<Wave::Object>> objects;
     Framebuffer_draw_data framebuffer_viewport_data;

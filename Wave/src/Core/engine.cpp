@@ -45,7 +45,7 @@ namespace Wave
                                                           WAVE_VALUE_DONT_CARE,
                                                           WAVE_VALUE_DONT_CARE,
                                                           WAVE_VALUE_DONT_CARE,
-                                                          4});
+                                                          8});
                   },
                   "Engine launched")
   }
@@ -481,7 +481,7 @@ namespace Wave
       return true;
     }
     
-    resize_event.print(Print_type::Default);
+    resize_event.print(Info);
     if (resize_event.get_width() <= 0.0f || resize_event.get_height() <= 0.0f) return false;
     Engine::main_window->resize(resize_event.get_width(), resize_event.get_height());
     Renderer::on_event(resize_event);

@@ -29,13 +29,15 @@ namespace Wave
                 const std::shared_ptr<Shader> &associated_shader_ = nullptr);
     ~Gl_text_box() override;
     
+    void prepare_vertices() override;
+    
     // Interfaces.
-    INTERFACE_SENDABLE
-    INTERFACE_PRINTABLE
-    INTERFACE_MOVABLE
-    INTERFACE_ROTATABLE
-    INTERFACE_COPIABLE
-    INTERFACE_SCALABLE
+    INTERFACE_SENDABLE;
+    INTERFACE_PRINTABLE;
+    INTERFACE_MOVABLE;
+    INTERFACE_ROTATABLE;
+    INTERFACE_COPIABLE;
+    INTERFACE_SCALABLE;
     
     private:
     void init_freetype();

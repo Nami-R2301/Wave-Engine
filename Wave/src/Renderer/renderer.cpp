@@ -203,26 +203,38 @@ namespace Wave
     }
   }
   
-  void Renderer::send_object(const Object &object, int64_t vbo_offset, int64_t ibo_offset)
+  void Renderer::send_object(Shader &shader, const std::vector<std::shared_ptr<Texture>> &textures,
+                             const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
+                             const void *indices,
+                             uint64_t index_count,
+                             int64_t vbo_offset,
+                             int64_t ibo_offset)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_object(object, vbo_offset, ibo_offset);
+        Gl_renderer::send_object(shader, textures, vertices, vertex_count, vertex_size, indices,
+                                 index_count, vbo_offset, ibo_offset);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::send_text(const Text_box &text, int64_t vbo_offset, int64_t ibo_offset)
+  void Renderer::send_text(Shader &shader, Texture &texture_atlas,
+                           const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
+                           const void *indices,
+                           uint64_t index_count,
+                           int64_t vbo_offset,
+                           int64_t ibo_offset)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_text(text, vbo_offset, ibo_offset);
+        Gl_renderer::send_text(shader, texture_atlas, vertices, vertex_count, vertex_size,
+                               indices, index_count, vbo_offset, ibo_offset);
         break;
       }
       default:break;

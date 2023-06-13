@@ -20,10 +20,10 @@ namespace Wave
 
   Gl_shader::~Gl_shader()
   {
-    Gl_shader::free_gpu();
+    Gl_shader::free_gpu(1);
   }
   
-  void Gl_shader::send_gpu()
+  void Gl_shader::send_gpu([[maybe_unused]] uint64_t instance_count)
   {
     
     CHECK_GL_CALL(this->program_id = glCreateProgram());
@@ -42,7 +42,7 @@ namespace Wave
     this->sent = true;
   }
   
-  void Gl_shader::free_gpu()
+  void Gl_shader::free_gpu([[maybe_unused]] uint64_t instance_count)
   {
     if (this->is_sent())
     {
@@ -126,7 +126,7 @@ namespace Wave
   
   void Gl_shader::bind()
   {
-    if (!this->sent) this->send_gpu();
+    if (!this->sent) this->send_gpu(1);
     CHECK_GL_CALL(glUseProgram(this->program_id));
   }
   

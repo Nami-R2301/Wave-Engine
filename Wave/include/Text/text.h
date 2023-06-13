@@ -47,6 +47,13 @@ namespace Wave
     Vector_2f advance;    // Offset to advance to next glyph
   } Glyph;
   
+  typedef struct Glyph_quad_s
+  {
+    Vector_2f position = Vector_2f(0.0f);
+    Color color = Color(1.0f, 1.0f, true);
+    Vector_2f texture_offset = Vector_2f(0.0f);
+  } Glyph_quad_s;
+  
   class Text_box : public Printable, public Movable, public Rotatable, public Copiable, public Scalable,
                    public Sendable
   {
@@ -72,6 +79,8 @@ namespace Wave
     static std::shared_ptr<Text_box> create(const Vector_2f &pixel_size_, const std::string &text_,
                                             const Text_format_s &format_,
                                             const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+    
+    virtual void prepare_vertices() = 0;
     
     void append_text(const std::string &text_);
     void append_text(const std::string &text_, const Color &uniform_color);
@@ -105,6 +114,10 @@ namespace Wave
     [[nodiscard]] const Text_format_s &get_text_format() const;
     [[nodiscard]] const std::string &get_text_string() const;
     [[nodiscard]] float get_text_length() const;
+    
+    [[nodiscard]] const void *get_vertices() const;
+    [[nodiscard]] uint64_t get_vertex_count() const;
+    [[nodiscard]] uint64_t get_vertex_size() const;
     
     [[nodiscard]] const Glyph_s &get_character(uint8_t character_code);
     [[nodiscard]] const std::map<uint8_t, Glyph_s> &get_characters() const;
@@ -149,5 +162,6 @@ namespace Wave
                                          Vector_3f(0.0f),
                                          Vector_3f(0.0f));
     std::shared_ptr<Shader> associated_shader;
+    std::vector<Glyph_quad_s> glyph_vertices;
   };
 }

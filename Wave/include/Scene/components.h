@@ -15,10 +15,15 @@ namespace Wave
   
   struct ID_component_s
   {
-    uint64_t ID = 0;
+    UUID ID = UUID();
     
     ID_component_s() = default;
     ID_component_s(const ID_component_s &) = default;
+    
+    explicit ID_component_s(const UUID &uuid)
+    {
+      this->ID = uuid;
+    };
   };
   
   struct Tag_component_s
@@ -90,7 +95,7 @@ namespace Wave
   struct Camera_component_s
   {
     Scene_camera Camera;
-    bool Primary = true; // TODO: think about moving to Scene
+    bool Primary = true;
     bool FixedAspectRatio = false;
     
     Camera_component_s() = default;
@@ -148,7 +153,6 @@ namespace Wave
     Vector_2f Offset = {0.0f, 0.0f};
     Vector_2f Size = {0.5f, 0.5f};
     
-    // TODO(Yan): move into physics material in the future maybe
     float Density = 1.0f;
     float Friction = 0.5f;
     float Restitution = 0.0f;
@@ -166,7 +170,6 @@ namespace Wave
     Vector_2f Offset = {0.0f, 0.0f};
     float Radius = 0.5f;
     
-    // TODO(Yan): move into physics material in the future maybe
     float Density = 1.0f;
     float Friction = 0.5f;
     float Restitution = 0.0f;
@@ -184,7 +187,7 @@ namespace Wave
   {
   };
   
-  using all_components =
+  using All_components =
     Component_group_s<Transform_component_s, Sprite_component_s,
       Circle_component_s, Camera_component_s, Script_component_s,
       Rigid_body_2D_component_s, Box_collider_2D_component_s,

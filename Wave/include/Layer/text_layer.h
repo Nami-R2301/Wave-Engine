@@ -4,11 +4,13 @@
 
 #pragma once
 
-#include <Layer/layer.h>
 #include <Renderer/renderer.h>
-#include <Text/gl_text.h>
-#include <Scene/camera.h>
 #include <Renderer/shader.h>
+
+#include <Scene/entity.h>
+#include <Scene/camera.h>
+#include <Layer/layer.h>
+#include <Text/gl_text.h>
 
 namespace Wave
 {
@@ -16,7 +18,7 @@ namespace Wave
   class Text_layer : public Layer
   {
     public:
-    Text_layer(const std::vector<std::shared_ptr<Text_box>> &text_boxes_,
+    Text_layer(const std::vector<Entity> &entities_,
                const Vector_2f *viewport_size,
                bool imgui_render = false);
     ~Text_layer() override;
@@ -28,8 +30,8 @@ namespace Wave
     void on_render() override;
     void on_ui_render(float time_step) override;
     private:
+    std::vector<Entity> entities;
     std::vector<std::shared_ptr<Text_box>> text_boxes;
-    std::vector<std::shared_ptr<Vertex_array_buffer>> vao_list{};
     Orthographic_camera projection;
     const Vector_2f *viewport_size;
     bool imgui_enabled;

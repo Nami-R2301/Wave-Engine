@@ -57,7 +57,7 @@ namespace Wave
   {
     std::vector<Vertex_2D> vertices;
     std::vector<Face_2D_s> face_indices;
-    std::vector<Vector_3f> normals;
+    std::vector<Vector_2f> normals;
     std::vector<Vector_2f> tex_coords;
     
     FILE *file_ptr = fopen(file_path, "rb");
@@ -106,7 +106,7 @@ namespace Wave
     }
     
     fclose(file_ptr);
-    return {Vector_2f(0.0f), vertices, face_indices, tex_coords, {}};
+    return {Vector_2f(0.0f), vertices, face_indices, normals, tex_coords, {}};
   }
   
   Object_3D_data_s Resource_loader::load_object_3D_source(const char *file_path)

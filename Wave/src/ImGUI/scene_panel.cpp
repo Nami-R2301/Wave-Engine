@@ -157,7 +157,7 @@ namespace Wave
       ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
       
       ImGui::Begin("Properties", &opened_);
-      if (ImGui::TreeNodeEx((void *) 9817239, flags, "%s", tag.c_str())) ImGui::TreePop();
+      if (ImGui::TreeNodeEx("##Entity", flags, "%s", tag.c_str())) ImGui::TreePop();
       
       if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen |
                                          ImGuiTreeNodeFlags_OpenOnArrow |
@@ -190,10 +190,10 @@ namespace Wave
         }
         ImGui::TreePop();  // Transform.
       }
-      ImGui::End();
+      ImGui::End();  // Properties.
+      ImGui::TreePop();  // Entity.
     }
-    ImGui::TreePop();  // Entity.
     
-    if (entityDeleted) this->context->DestroyEntity(entity);
+    if (entityDeleted) this->context->destroy_entity(entity);
   }
 }

@@ -302,13 +302,11 @@ namespace Wave
     
     // Append overflowing text to the bottom left of the box to mimic newlines.
     float length = 0;
-    bool text_rearranged = false;
     float new_line_advance_offset;
     for (const auto &character: this->text)
     {
       if (length >= new_size.get_x())
       {
-        text_rearranged = true;
         new_line_advance_offset = -length;
         length = this->characters.at(character).advance.get_x();
         if (this->characters.contains(character))
@@ -318,7 +316,6 @@ namespace Wave
       if (this->characters.contains(character))
         length += (float) this->characters.at(character).advance.get_x() * this->format.scale.get_x();
     }
-    if (text_rearranged) this->send_gpu();
   }
   
   void Text_box::on_box_resize(float new_width, float new_height)
@@ -335,7 +332,6 @@ namespace Wave
     
     // Append overflowing text to the bottom left of the box to mimic newlines.
     float length = 0;
-    bool text_rearranged = false;
     float new_line_advance_offset;
     for (const auto &character: this->text)
     {
@@ -344,7 +340,6 @@ namespace Wave
         new_line_advance_offset = -length;
         if (this->characters.contains(character))
         {
-          text_rearranged = true;
           length = this->characters.at(character).advance.get_x();
           this->characters.at(character).advance = Vector_2f(new_line_advance_offset,
                                                              this->get_pixel_size().get_y() + 25.0f);
@@ -353,7 +348,6 @@ namespace Wave
       if (this->characters.contains(character))
         length += (float) this->characters.at(character).advance.get_x() * this->format.scale.get_x();
     }
-    if (text_rearranged) this->send_gpu();
   }
   
   void Text_box::on_text_resize(const Vector_2f &new_size, const std::string &section_resized)
@@ -373,7 +367,6 @@ namespace Wave
         this->characters[character].size_y = (int) new_size.get_y();
       }
     }
-    this->send_gpu();
   }
   
   void Text_box::on_text_resize(float new_width, float new_height, const std::string &section_resized)
@@ -393,7 +386,6 @@ namespace Wave
         this->characters[character].size_y = (int) new_height;
       }
     }
-    this->send_gpu();
   }
   
   void Text_box::on_recolor(const Color &new_color, const std::string &section_recolored)
@@ -624,6 +616,8 @@ namespace Wave
   void Text_box::set_text_uniform_color(const Color &uniform_color)
   {
     if (this->format.text_uniform_color == uniform_color) return;
+    alert(WAVE_LOG_DEBUG, "Current text uniform color --> (%.2f, %.2f, %.2f, %.2f)", uniform_color.get_red(),
+          uniform_color.get_green(), uniform_color.get_blue(), uniform_color.get_alpha());
     this->format.text_uniform_color = uniform_color;
     for (const auto &character: this->text)
     {
@@ -644,5 +638,24 @@ namespace Wave
   const std::shared_ptr<Shader> &Text_box::get_shader() const
   {
     return this->associated_shader;
+  }
+  
+  void Text_box::prepare_vertices()
+  {
+  }
+  
+  const void *Text_box::get_vertices() const
+  {
+    return this->glyph_vertices.data();
+  }
+  
+  uint64_t Text_box::get_vertex_count() const
+  {
+    return this->glyph_vertices.size();
+  }
+  
+  uint64_t Text_box::get_vertex_size() const
+  {
+    return sizeof(Glyph_quad_s);
   }
 }

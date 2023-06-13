@@ -69,7 +69,7 @@ add_library(Wave STATIC
         Wave/src/Renderer/uniform_buffer.cpp
         Wave/src/Renderer/gl_uniform_buffer.cpp
         Wave/include/Renderer/gl_texture.cpp
-        Wave/src/ImGUI/scene_panel.cpp Wave/src/Lighting/light.cpp)
+        Wave/src/ImGUI/scene_panel.cpp Wave/src/Lighting/light.cpp Wave/src/Core/uuid.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -277,14 +277,14 @@ if (WIN32)
             Wave/include/Dependencies/googleTest/googlemock/include
             Example_app/include)
 
-elseif (UNIX AND (${CMAKE_BUILD_TYPE} STREQUAL DEBUG))
+elseif (UNIX)
     target_compile_options(Tests PUBLIC -O1)
 
     target_compile_definitions(Tests PUBLIC
             GLEW_STATIC
             GLFW3_STATIC
             TESTING
-            DEBUG)
+            ${CMAKE_BUILD_TYPE})
 
     target_precompile_headers(Tests PUBLIC Wave/include/wave_pch.h)
 

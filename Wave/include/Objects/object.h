@@ -49,6 +49,7 @@ namespace Wave
     Vector_2f origin;
     std::vector<Vertex_2D> vertices;
     std::vector<Face_2D_s> indices;
+    std::vector<Vector_2f> normals;
     std::vector<Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
   } Object_2D_data_s;
@@ -60,7 +61,7 @@ namespace Wave
     std::vector<Face_3D_s> indices;
     std::vector<Vector_3f> normals;
     std::vector<Vector_2f> tex_coords;
-    std::vector<Texture> textures;
+    std::vector<std::shared_ptr<Texture>> textures;
   } Object_3D_data_s;
   
   enum class Object_type_e
@@ -120,13 +121,12 @@ namespace Wave
     ~Object_2D() override;
     
     // Interfaces.
-    INTERFACE_SENDABLE
-    
-    INTERFACE_PRINTABLE
-    INTERFACE_COPIABLE
-    INTERFACE_MOVABLE
-    INTERFACE_ROTATABLE
-    INTERFACE_SCALABLE
+    INTERFACE_SENDABLE;
+    INTERFACE_PRINTABLE;
+    INTERFACE_COPIABLE;
+    INTERFACE_MOVABLE;
+    INTERFACE_ROTATABLE;
+    INTERFACE_SCALABLE;
     
     [[nodiscard]] Object_type_e get_type() const;
     [[nodiscard]] const Vector_2f &get_position() const;
@@ -190,7 +190,7 @@ namespace Wave
     std::shared_ptr<Shader> associated_shader;
     bool sent = false;
     protected:
-    void apply_vertex_properties(const Object_2D_data_s &sprite);
+    void prepare_vertices(const Object_2D_data_s &sprite);
   };
   
   /************************************** 2D OBJECTS *************************************/
@@ -258,13 +258,13 @@ namespace Wave
     ~Object_3D() override;
     
     // Interfaces.
-    INTERFACE_SENDABLE
-    
+    INTERFACE_SENDABLE;
     INTERFACE_PRINTABLE
-    INTERFACE_COPIABLE
-    INTERFACE_MOVABLE
-    INTERFACE_ROTATABLE
-    INTERFACE_SCALABLE
+    
+    INTERFACE_COPIABLE;
+    INTERFACE_MOVABLE;
+    INTERFACE_ROTATABLE;
+    INTERFACE_SCALABLE;
     
     [[nodiscard]] Object_type_e get_type() const;
     [[nodiscard]] const Vector_3f &get_position() const;
@@ -330,7 +330,7 @@ namespace Wave
     bool sent = false;
     std::shared_ptr<Shader> associated_shader;
     protected:
-    void apply_vertex_properties(const Object_3D_data_s &mesh);
+    void prepare_vertices(const Object_3D_data_s &mesh);
   };
   
   /************************************** 3D OBJECTS *************************************/

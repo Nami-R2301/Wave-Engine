@@ -10,13 +10,12 @@ namespace Wave
   static float s_imgui_app_performance_stat = 0.0f;
   static float s_imgui_app_performance_timer = 0.0f;
   
-  Editor_layer::Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
-                             const std::vector<std::shared_ptr<Wave::Object>> &demo_objects_,
-                             const std::shared_ptr<Framebuffer> &viewport_)
+  Editor_layer::Editor_layer(const std::shared_ptr<Scene> &active_scene_,
+                             const std::vector<Entity> &entities_,
+                             const std::shared_ptr<Framebuffer> &viewport_) : scene_panel(active_scene_, {}),
+                                                                              entities(entities_)
   {
     this->layer_name = "Editor layer";
-    this->camera = demo_perspective_camera_;
-    this->objects = demo_objects_;
     this->framebuffer_viewport_data.viewport = viewport_;
     // Setup framebuffer shader.
     this->framebuffer_viewport_data.framebuffer_viewport_shader = Shader::create("Framebuffer Editor Viewport",
@@ -24,7 +23,14 @@ namespace Wave
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.vert"),
                                                                                  Resource_loader::load_shader_source(
                                                                                    "../Wave-Editor/res/Shaders/viewport_framebuffer_ms.frag"));
-//    for (const auto &object : demo_objects_) this->scene_panel.add(object);
+    for (auto &entity: this->entities)
+    {
+      if (entity.has_component<std::shared_ptr<Object>>())
+        this->objects.emplace_back(entity.get_component<std::shared_ptr<Object>>());
+      
+      if (entity.has_component<std::shared_ptr<Camera>>())
+        this->camera = entity.get_component<std::shared_ptr<Camera>>();
+    }
   }
   
   void Editor_layer::on_attach()
@@ -36,14 +42,11 @@ namespace Wave
     this->objects[1]->translate(10, -10, 20);
     this->objects[1]->rotate(90, -90, 0);
     
-    this->objects[2]->translate(5, -5, 8);
-    this->objects[2]->rotate(180, 0, 0);
-    
-    this->objects[3]->translate(-3.5, -2, 6);
-    this->objects[3]->rotate(45, 0, 0);
+    this->objects[2]->translate(-3.5, -2, 6);
+    this->objects[2]->rotate(45, 0, 0);
     
     // Setup object textures.
-//    this->objects[0]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
+//    this->objects[0]->add_texture(Texture_2D::create("../Wave/res/Textures/tiles.png"));
 //    this->objects[3]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
     
     // Setup how object behaves with lighting.
@@ -62,20 +65,11 @@ namespace Wave
     
     this->objects[2]->calculate_average_normals();
     this->objects[2]->calculate_effect_by_light(point_light_2);
-    
-    this->objects[3]->calculate_average_normals();
-    this->objects[3]->calculate_effect_by_light(point_light_2);
-    
-    // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
-    this->objects[0]->send_gpu();
-    this->objects[1]->send_gpu();
-    this->objects[2]->send_gpu();
-    this->objects[3]->send_gpu();
   }
   
   void Editor_layer::on_detach()
   {
-    this->framebuffer_viewport_data.framebuffer_viewport_shader->free_gpu();
+    this->framebuffer_viewport_data.framebuffer_viewport_shader->free_gpu(1);
   }
   
   void Editor_layer::on_event([[maybe_unused]] Event &event)

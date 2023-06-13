@@ -35,7 +35,7 @@ namespace Wave
     [[nodiscard]] int get_num_rows() const;
     [[nodiscard]] int get_num_cols() const;
     
-    INTERFACE_PRINTABLE
+    INTERFACE_PRINTABLE;
     
     void set_value(int row, int col, float value);
     void transpose();

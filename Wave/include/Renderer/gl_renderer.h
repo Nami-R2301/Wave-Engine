@@ -80,8 +80,13 @@ namespace Wave
     
     // Rendering objects.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(const Object &object, int64_t vbo_offset, int64_t ibo_offset);
-    static void send_text(const Text_box &text, int64_t vbo_offset, int64_t ibo_offset);
+    static void send_object(Shader &shader, const std::vector<std::shared_ptr<Texture>> &textures_,
+                            const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
+                            const void *indices, uint64_t index_count, int64_t vbo_offset, int64_t ibo_offset);
+    static void send_text(Shader &shader, Texture &texture_atlas, const void *vertices, uint64_t vertex_count,
+                          uint64_t vertex_size, [[maybe_unused]] const void *indices,
+                          [[maybe_unused]] uint64_t index_count, int64_t vbo_offset,
+                          [[maybe_unused]] int64_t ibo_offset);
     static void flush();
     static void end();
     

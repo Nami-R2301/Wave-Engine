@@ -164,7 +164,7 @@ namespace Wave
   
   Gl_text_box::~Gl_text_box()
   {
-    Gl_text_box::free_gpu();
+    Gl_text_box::free_gpu(1);
     delete this->texture_atlas;
   }
   
@@ -196,7 +196,7 @@ namespace Wave
       // Load character glyph
       if (FT_Load_Char(this->face, character, FT_LOAD_RENDER))
       {
-        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to build Glyph %c", character);
+        alert(WAVE_LOG_ERROR, "[Gl text] --> Failed to build Glyph %c", character);
         continue;
       }
       
@@ -226,7 +226,7 @@ namespace Wave
     this->atlas_size.set_y((float) atlas_total_height);
   }
   
-  void Gl_text_box::send_gpu()
+  void Gl_text_box::send_gpu([[maybe_unused]] uint64_t instance_count)
   {
     if (!this->is_sent())
     {
@@ -237,7 +237,7 @@ namespace Wave
     // If we are rebuilding.
     if (this->is_sent())
     {
-      if (this->texture_atlas) this->texture_atlas->free_gpu();
+      if (this->texture_atlas) this->texture_atlas->free_gpu(1);
       
       init_freetype();
       this->texture_atlas->set_width(this->atlas_size.get_x());
@@ -254,7 +254,7 @@ namespace Wave
                                                                  WAVE_VALUE_DONT_CARE,
                                                                  nullptr});
     }
-    this->texture_atlas->send_gpu();
+    this->texture_atlas->send_gpu(1);
     
     if (!this->texture_atlas) return;
     
@@ -263,7 +263,7 @@ namespace Wave
     {
       if (FT_Load_Char(this->face, i, FT_LOAD_RENDER))
       {
-        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to build Glyph_s");
+        alert(WAVE_LOG_ERROR, "[Gl text] --> Failed to build Glyph_s");
         continue;
       }
       
@@ -280,18 +280,110 @@ namespace Wave
       this->characters[i].texture_offset /= (float) this->texture_atlas->get_width();
     }
     
-    if (!this->is_sent()) Renderer::send_text(*this);
-    else Renderer::send_text(*this, 0);  // If we are overwriting the current text_box vbo.
+    this->prepare_vertices();
+    if (!this->is_sent())
+      Renderer::send_text(*this->associated_shader, *this->texture_atlas, get_vertices(),
+                          get_vertex_count(), get_vertex_size());
+    else
+      Renderer::send_text(*this->associated_shader, *this->texture_atlas, get_vertices(),
+                          get_vertex_count(), get_vertex_size(), nullptr,
+                          0, 0);  // If we are overwriting the current text_box vbo.
     this->sent = true;
   }
   
-  void Gl_text_box::free_gpu()
+  void Gl_text_box::prepare_vertices()
+  {
+    if (!this->glyph_vertices.empty())
+    {
+      this->glyph_vertices.clear();
+      this->glyph_vertices.resize(0);
+    }
+    
+    float offset_x = get_text_offset().get_x(), offset_y = get_text_offset().get_y();
+    const Vector_2f &scale = get_text_scale();
+    
+    for (char character: this->text)
+    {
+      Glyph_s glyph = this->characters.at(character);
+      
+      float red = this->characters.at(character).color.get_red(),
+        green = this->characters.at(character).color.get_green(),
+        blue = this->characters.at(character).color.get_blue(),
+        alpha = this->characters.at(character).color.get_alpha();
+      
+      auto texture_offset_x = (float) glyph.texture_offset;
+      
+      float x_pos = offset_x + (glyph.bearing.get_x() * scale.get_x());
+      float y_pos = -offset_y - (glyph.bearing.get_y() * scale.get_y());
+      float w = (float) glyph.size_x * scale.get_x();
+      float h = (float) glyph.size_y * scale.get_y();
+      
+      // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
+      offset_x += glyph.advance.get_x() * scale.get_x();
+      offset_y += glyph.advance.get_y() * scale.get_y();
+      
+      // Update VBO for each character
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            Vector_2f(x_pos, -y_pos),
+                                            Color(red, green, blue, alpha, true),
+                                            Vector_2f(texture_offset_x + 0.0001f, 0)
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            Vector_2f(x_pos + w, -y_pos),
+                                            Color(red, green, blue, alpha, true),
+                                            Vector_2f(
+                                              texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0)
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            Vector_2f(x_pos, (-y_pos - h)),
+                                            Color(red, green, blue, alpha, true),
+                                            Vector_2f(texture_offset_x + 0.0001f,
+                                                      (float) (glyph.size_y - 1) / atlas_size.get_y())
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            Vector_2f(x_pos + w, -y_pos),
+                                            Color(red, green, blue, alpha, true),
+                                            Vector_2f(
+                                              texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0)
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            Vector_2f(x_pos, (-y_pos - h)),
+                                            Color(red, green, blue, alpha, true),
+                                            Vector_2f(texture_offset_x + 0.0001f,
+                                                      (float) (glyph.size_y - 1) / atlas_size.get_y())
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            Vector_2f(x_pos + w, (-y_pos - h)),
+                                            Color(red, green, blue, alpha, true),
+                                            Vector_2f(
+                                              texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(),
+                                              (float) (glyph.size_y - 1) /
+                                              atlas_size.get_y())
+                                          });
+    }
+  }
+  
+  void Gl_text_box::free_gpu(uint64_t instance_count)
   {
     if (this->is_sent())
     {
       FT_Done_Face(this->face);
       FT_Done_FreeType(this->library);
       this->sent = false;
+      this->texture_atlas->free_gpu(instance_count);
+      this->glyph_vertices.clear();
+      this->glyph_vertices.resize(0);
     }
   }
   

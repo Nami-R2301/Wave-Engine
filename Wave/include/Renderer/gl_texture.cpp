@@ -98,10 +98,10 @@ namespace Wave
   
   Gl_texture_2D::~Gl_texture_2D()
   {
-    Gl_texture_2D::free_gpu();
+    Gl_texture_2D::free_gpu(1);
   }
   
-  void Gl_texture_2D::send_gpu()
+  void Gl_texture_2D::send_gpu([[maybe_unused]] uint64_t instance_count)
   {
     
     // Default text glyph texture slot given for renderer.
@@ -117,10 +117,14 @@ namespace Wave
         GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
       CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
       // set texture options
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     } else if (this->file_path)  // Generating file texture.
     {
       CHECK_GL_CALL(glActiveTexture(
@@ -138,16 +142,21 @@ namespace Wave
                                                       &this->bits_per_pixel,
                                                       4);  // 4 channels (RGBA).
       if (!this->texture_data.data)
-        Wave::alert(WAVE_LOG_ERROR, "[Texture] : Could not build image from %s", file_path);
+        Wave::alert(WAVE_LOG_ERROR, "[Gl texture 2D] : Could not build image from %s", file_path);
       
       this->texture_data.desired_width = (float) width;
       this->texture_data.desired_height = (float) height;
       
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_S, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_T, GL_REPEAT));
-      CHECK_GL_CALL(glTexParameteri(this->texture_target, GL_TEXTURE_WRAP_R, GL_REPEAT));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_WRAP_S, GL_REPEAT));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_WRAP_T, GL_REPEAT));
+      CHECK_GL_CALL(glTexParameteri(this->texture_target == GL_TEXTURE_2D_MULTISAMPLE ? GL_TEXTURE_2D :
+                                    this->texture_target, GL_TEXTURE_WRAP_R, GL_REPEAT));
     } else  // Generating empty buffer texture.
     {
       CHECK_GL_CALL(glActiveTexture(
@@ -181,7 +190,7 @@ namespace Wave
     this->sent = true;
   }
   
-  void Gl_texture_2D::free_gpu()
+  void Gl_texture_2D::free_gpu([[maybe_unused]] uint64_t instance_count)
   {
     if (this->is_sent())
     {
@@ -212,7 +221,7 @@ namespace Wave
   
   void Gl_texture_2D::bind(int32_t slot_)
   {
-    if (!this->sent) this->send_gpu();
+    if (!this->sent) this->send_gpu(1);
     
     CHECK_GL_CALL(glActiveTexture(
       slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.
@@ -262,7 +271,7 @@ namespace Wave
                                                 data_array->desired_width,
                                                 data_array->desired_height == WAVE_VALUE_DONT_CARE ? 0 :
                                                 data_array->desired_height,
-                                                GL_FALSE));
+                                                GL_TRUE));
         } else if (data_array && offset_array)
         {
           CHECK_GL_CALL(glTexSubImage2D(this->texture_target,
@@ -490,10 +499,10 @@ namespace Wave
   
   Gl_texture_3D::~Gl_texture_3D()
   {
-    Gl_texture_3D::free_gpu();
+    Gl_texture_3D::free_gpu(1);
   }
   
-  void Gl_texture_3D::send_gpu()
+  void Gl_texture_3D::send_gpu([[maybe_unused]] uint64_t instance_count)
   {
     
     stbi_uc *image_buffer{};
@@ -537,7 +546,7 @@ namespace Wave
     this->sent = true;
   }
   
-  void Gl_texture_3D::free_gpu()
+  void Gl_texture_3D::free_gpu([[maybe_unused]] uint64_t instance_count)
   {
     unbind();
     glDeleteTextures(1, &this->texture_id);
@@ -564,7 +573,7 @@ namespace Wave
   
   void Gl_texture_3D::bind(int32_t slot_)
   {
-    if (!this->sent) this->send_gpu();
+    if (!this->sent) this->send_gpu(1);
     
     CHECK_GL_CALL(glActiveTexture(
       slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 : GL_TEXTURE0 + slot_));  // Set our active texture slot.

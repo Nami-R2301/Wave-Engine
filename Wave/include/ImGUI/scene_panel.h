@@ -32,8 +32,8 @@ namespace Wave
     ~Scene_ui_panel() override = default;
     
     // Interfaces implementation.
-    INTERFACE_MOVABLE
-    INTERFACE_COPIABLE
+    INTERFACE_MOVABLE;
+    INTERFACE_COPIABLE;
     
     void on_ui_render();
     

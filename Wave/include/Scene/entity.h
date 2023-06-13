@@ -23,7 +23,6 @@ namespace Wave
     T &add_component(Args &&... args)
     {
       T &component = scene->registry.emplace<T>(entity_handle, std::forward<Args>(args)...);
-      scene->OnComponentAdded<T>(*this, component);
       return component;
     }
     
@@ -31,7 +30,6 @@ namespace Wave
     T &add_or_replace_component(Args &&... args)
     {
       T &component = scene->registry.emplace_or_replace<T>(entity_handle, std::forward<Args>(args)...);
-      scene->OnComponentAdded<T>(*this, component);
       return component;
     }
     
@@ -66,7 +64,7 @@ namespace Wave
     explicit operator uint32_t() const
     { return (uint32_t) entity_handle; }
     
-    uint64_t get_uuid()
+    UUID get_uuid()
     { return get_component<ID_component_s>().ID; }
     
     const std::string &get_name()

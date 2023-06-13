@@ -28,39 +28,40 @@ namespace Wave
   
   /*********************** OBJECT 2D***************************/
   
-  Object_2D::Object_2D(const Object_2D &obj)
+  Object_2D::Object_2D(const Object_2D &obj) : object_type_e(obj.object_type_e),
+                                               vertices(obj.vertices),
+                                               normals(obj.normals),
+                                               faces(obj.faces),
+                                               tex_coords(obj.tex_coords),
+                                               textures(obj.textures),
+                                               model_matrix(obj.model_matrix),
+                                               model_transform(obj.model_transform)
   {
-    this->object_type_e = obj.object_type_e;
-    this->vertices = obj.vertices;
-    this->faces = obj.faces;
-    this->tex_coords = obj.tex_coords;
-    this->textures = obj.textures;
-    this->model_matrix = obj.model_matrix;
-    this->model_transform = obj.model_transform;
   }
   
-  Object_2D::Object_2D(const Object_2D_data_s &object_2D_data)
+  Object_2D::Object_2D(const Object_2D_data_s &object_2D_data) : vertices(object_2D_data.vertices),
+                                                                 normals(object_2D_data.normals),
+                                                                 tex_coords(object_2D_data.tex_coords),
+                                                                 textures(object_2D_data.textures)
   {
     this->object_type_e = Object_type_e::Object_2D;
-    this->vertices = object_2D_data.vertices;
-    this->tex_coords = object_2D_data.tex_coords;
-    this->textures = object_2D_data.textures;
     this->associated_shader = Shader::create("Default Object 2D",
                                              Resource_loader::load_shader_source(
                                                "../Wave/res/Shaders/default_2D.vert"),
                                              Resource_loader::load_shader_source(
                                                "../Wave/res/Shaders/default_2D.frag"));
     
-    apply_vertex_properties(object_2D_data);
+    prepare_vertices(object_2D_data);
   }
   
   Object_2D::Object_2D(const Object_2D_data_s &object_2D_data, const std::shared_ptr<Shader> &associated_shader_)
+    : vertices(object_2D_data.vertices),
+      normals(object_2D_data.normals),
+      tex_coords(object_2D_data.tex_coords),
+      textures(object_2D_data.textures),
+      associated_shader(associated_shader_)
   {
     this->object_type_e = Object_type_e::Object_2D;
-    this->vertices = object_2D_data.vertices;
-    this->tex_coords = object_2D_data.tex_coords;
-    this->textures = object_2D_data.textures;
-    this->associated_shader = associated_shader_;
     if (this->associated_shader == nullptr)
     {
       this->associated_shader = Shader::create("Default Object 2D",
@@ -70,24 +71,25 @@ namespace Wave
                                                  "../Wave/res/Shaders/default_2D.frag"));
     }
     
-    apply_vertex_properties(object_2D_data);
+    prepare_vertices(object_2D_data);
   }
   
   Object_2D::~Object_2D()
   {
-    Object_2D::free_gpu();
+    Object_2D::free_gpu(1);
   }
   
-  void Object_2D::send_gpu()
+  void Object_2D::send_gpu(uint64_t instance_count)
   {
-    for (const auto &texture: this->textures) if (!texture->is_sent()) texture->send_gpu();
-    Renderer::send_object(*this);
+    for (const auto &texture: this->textures) if (!texture->is_sent()) texture->send_gpu(instance_count);
+    Renderer::send_object(*this->associated_shader, this->textures, this->get_vertices(), this->get_vertex_count(),
+                          this->get_vertex_size(), this->get_faces(), this->get_face_count());
     this->sent = true;
   }
   
-  void Object_2D::free_gpu()
+  void Object_2D::free_gpu(uint64_t instance_count)
   {
-    for (const auto &texture: this->textures) texture->free_gpu();
+    for (const auto &texture: this->textures) texture->free_gpu(instance_count);
     this->sent = false;
   }
   
@@ -326,7 +328,7 @@ namespace Wave
   {
   }
   
-  void Object_2D::apply_vertex_properties(const Object_2D_data_s &sprite)
+  void Object_2D::prepare_vertices(const Object_2D_data_s &sprite)
   {
     for (const Face_2D_s &face: sprite.indices)
     {
@@ -475,16 +477,17 @@ namespace Wave
                                              Wave::Resource_loader::load_shader_source(
                                                "../Wave/res/Shaders/default_3D.frag"));
     
-    apply_vertex_properties(mesh);
+    prepare_vertices(mesh);
   }
   
-  Object_3D::Object_3D(const Wave::Object_3D_data_s &mesh_data, const std::shared_ptr<Shader> &associated_shader_)
+  Object_3D::Object_3D(const Wave::Object_3D_data_s &mesh_data, const std::shared_ptr<Shader> &associated_shader_) :
+    vertices(mesh_data.vertices),
+    normals(mesh_data.normals),
+    tex_coords(mesh_data.tex_coords),
+    textures(mesh_data.textures),
+    associated_shader(associated_shader_)
   {
     this->object_type_e = Object_type_e::Object_3D;
-    this->vertices = mesh_data.vertices;
-    this->tex_coords = mesh_data.tex_coords;
-    this->normals = mesh_data.normals;
-    this->associated_shader = associated_shader_;
     if (this->associated_shader == nullptr)
     {
       this->associated_shader = Shader::create("Default Object 3D",
@@ -494,35 +497,37 @@ namespace Wave
                                                  "../Wave/res/Shaders/default_3D.frag"));
     }
     
-    apply_vertex_properties(mesh_data);
+    prepare_vertices(mesh_data);
   }
   
-  Object_3D::Object_3D(const Object_3D &mesh)
+  Object_3D::Object_3D(const Object_3D &mesh) : object_type_e(mesh.object_type_e),
+                                                vertices(mesh.vertices),
+                                                normals(mesh.normals),
+                                                faces(mesh.faces),
+                                                tex_coords(mesh.tex_coords),
+                                                textures(mesh.textures),
+                                                model_matrix(mesh.model_matrix),
+                                                model_transform(mesh.model_transform),
+                                                associated_shader(mesh.associated_shader)
   {
-    this->object_type_e = mesh.object_type_e;
-    this->vertices = mesh.vertices;
-    this->faces = mesh.faces;
-    this->normals = mesh.normals;
-    this->tex_coords = mesh.tex_coords;
-    this->model_matrix = mesh.model_matrix;
-    this->model_transform = mesh.model_transform;
   }
   
   Object_3D::~Object_3D()
   {
-    Object_3D::free_gpu();
+    Object_3D::free_gpu(1);
   }
   
-  void Object_3D::send_gpu()
+  void Object_3D::send_gpu(uint64_t instance_count)
   {
-    for (const auto &texture: this->textures) texture->send_gpu();
-    Renderer::send_object(*this);
+    for (const auto &texture: this->textures) texture->send_gpu(instance_count);
+    Renderer::send_object(*this->associated_shader, this->textures, this->get_vertices(), this->get_vertex_count(),
+                          this->get_vertex_size(), this->get_faces(), this->get_face_count());
     this->sent = true;
   }
   
-  void Object_3D::free_gpu()
+  void Object_3D::free_gpu(uint64_t instance_count)
   {
-    for (const auto &texture: this->textures) texture->free_gpu();
+    for (const auto &texture: this->textures) texture->free_gpu(instance_count);
     this->sent = false;
   }
   
@@ -774,7 +779,7 @@ namespace Wave
     for (Vertex_3D &vertex: this->vertices) vertex.set_model_matrix(this->model_matrix);
   }
   
-  void Object_3D::apply_vertex_properties(const Object_3D_data_s &mesh)
+  void Object_3D::prepare_vertices(const Object_3D_data_s &mesh)
   {
     for (const Face_3D_s &face: mesh.indices)
     {
@@ -989,13 +994,8 @@ namespace Wave
 //    };
   }
   
-  Cube::Cube(const Object_3D_data_s &mesh, const Vector_3f &scale_, const Color &color)
+  Cube::Cube(const Object_3D_data_s &mesh, const Vector_3f &scale_, const Color &color) : Object_3D(mesh)
   {
-    this->origin = mesh.origin;
-    this->vertices = mesh.vertices;
-    this->tex_coords = mesh.tex_coords;
-    this->normals = mesh.normals;
-    this->apply_vertex_properties(mesh);
     this->scale(scale_);
     this->set_color(color);
   }

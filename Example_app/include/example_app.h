@@ -23,10 +23,8 @@ public:
   bool mouse_movement_callback(Wave::On_mouse_movement &mouse_cursor_event) override;
   bool mouse_wheel_callback(Wave::On_mouse_wheel_scroll &mouse_wheel_input) override;
   
-  std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;
-  std::shared_ptr<Wave::Camera> demo_perspective_camera;
-  std::vector<std::shared_ptr<Wave::Object>> demo_objects;
-  std::vector<std::shared_ptr<Wave::Text_box>> demo_text;
+  std::vector<Wave::Entity> entities;
+  std::shared_ptr<Wave::Scene> active_scene;
   Wave::Color background_clear_color = Wave::Color(78.0f, 255.0f, false);
   Wave::Vector_2f viewport;
 };

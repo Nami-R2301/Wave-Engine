@@ -10,7 +10,7 @@ namespace Wave
 {
   enum Print_type
   {
-    Default = 0,
+    Info = 0,
     Warn,
     Error,
     Debug
@@ -22,8 +22,8 @@ namespace Wave
     public:
     virtual ~Sendable() = default;
     [[nodiscard]] virtual bool is_sent() const = 0;
-    virtual void send_gpu() = 0;
-    virtual void free_gpu() = 0;
+    virtual void send_gpu(uint64_t instance_count) = 0;
+    virtual void free_gpu(uint64_t instance_count) = 0;
   };
   
   // Display properties applied to entities to debug their states and/or show them in the editor.
@@ -79,4 +79,50 @@ namespace Wave
     virtual void encode() = 0;
     virtual void *decode() = 0;
   };
+
+#ifdef DEBUG
+// Display properties applied to entities to debug their states and/or show them in the editor.
+#define INTERFACE_PRINTABLE  [[nodiscard]] std::string to_string() const override;\
+                         void print([[maybe_unused]] Print_type type = Print_type::Info) const override                        \
+                         {                                                    \
+                          std::string printed(this->to_string());             \
+                          if (type == Print_type::Info)     \
+                            Wave::alert(WAVE_LOG_INFO, "%s", this->to_string().c_str());  \
+                          else if (type == Print_type::Warn)   \
+                            Wave::alert(WAVE_LOG_WARN, "%s", this->to_string().c_str());                                \
+                          else if (type == Print_type::Debug)            \
+                            Wave::alert(WAVE_LOG_DEBUG, "%s", this->to_string().c_str()); \
+                         else Wave::alert(WAVE_LOG_ERROR, "%s", this->to_string().c_str());  \
+                         }
+#else
+#ifdef RELEASE
+#define INTERFACE_PRINTABLE  [[nodiscard]] std::string to_string() const override;\
+                             void print([[maybe_unused]] Print_type type) const override                          \
+                             {                                                    \
+                             };
+#endif
+#endif
+
+// Translate dynamic entities from one screen coordinate to the other.
+#define INTERFACE_MOVABLE  void translate(const Vector_3f &position) override; \
+                           void translate(float x, float y, float z) override
+
+// Able to be rotated on the x and y-axis.
+#define INTERFACE_ROTATABLE  void rotate(const Vector_3f &angle) override; \
+                           void rotate(float x, float y, float z) override
+
+// Transfer data from one entity onto the other, useful for duplication and testing of various similar entities.
+#define INTERFACE_COPIABLE [[nodiscard]] void *copy() const override
+
+// Able to get its size scaled on the x, y and z-axis.
+#define INTERFACE_SCALABLE void scale(const Vector_3f &scalar) override; \
+                           void scale(float x, float y, float z) override
+
+// Able to initialize its members explicitly without relying on the ambiguity of constructors.
+#define INTERFACE_SENDABLE void send_gpu(uint64_t instance_count) override; \
+                            void free_gpu(uint64_t instance_count) override; \
+                           [[nodiscard]] bool is_sent() const override \
+                           {                     \
+                             return this->sent;                      \
+                           }
 }

@@ -39,11 +39,13 @@ namespace Wave
   
   void Gl_vertex_array_buffer::bind() const
   {
+    if (!this->is_bound())
     CHECK_GL_CALL(glBindVertexArray(this->vertex_array_id));
   }
   
   void Gl_vertex_array_buffer::unbind() const
   {
+    if (this->is_bound())
     CHECK_GL_CALL(glBindVertexArray(0));
   }
   

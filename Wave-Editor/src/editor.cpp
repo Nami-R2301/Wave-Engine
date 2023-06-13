@@ -21,60 +21,64 @@ namespace Wave
                             Engine::App_type::Editor)
   {
     // Add Cameras
-    this->editor_camera = std::make_shared<Editor_camera>(Engine::get_main_window()->get_width(),
-                                                          Engine::get_main_window()->get_height(),
-                                                          90.0f, 0.1f, 1000.0f);
-    this->editor_camera->set_position(0, 0, 0);
+    this->active_scene = std::make_shared<Scene>();
+    this->entities.emplace_back(this->active_scene->create_entity("Editor Camera"));
+    
+    this->entities.back().add_component<std::shared_ptr<Camera>>(
+      std::make_shared<Editor_camera>(Engine::get_main_window()->get_width(),
+                                      Engine::get_main_window()->get_height(),
+                                      90.0f, 0.1f, 1000.0f));
     
     // Add objects
-    this->demo_objects.emplace_back(
-      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/sphere.obj")));
-    this->demo_objects.emplace_back(
-      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj"),
-                     this->demo_objects[0]->get_shader()));
-    this->demo_objects.emplace_back(
-      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/The Prince/The_Prince.obj"),
-                     this->demo_objects[0]->get_shader()));
-    this->demo_objects.emplace_back(
-      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj")));
-//    this->demo_objects.emplace_back(
-//      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj")));
-//
+    auto sphere = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/sphere.obj"));
+    auto awp = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj"),
+                              sphere->get_shader());
+    auto cube = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj"),
+                               sphere->get_shader());
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Object : Sphere"));
+    this->entities.back().add_component<std::shared_ptr<Object>>(sphere);
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Object : Awp"));
+    this->entities.back().add_component<std::shared_ptr<Object>>(awp);
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Object : Cube"));
+    this->entities.back().add_component<std::shared_ptr<Object>>(cube);
+    
     // Add framebuffer.
     // Setup default viewport framebuffer specs.
     Framebuffer_options fbSpec;
-    fbSpec.width = Engine::get_main_window()->get_width();  // Windowed docked size.
-    fbSpec.height = Engine::get_main_window()->get_height();  // Windowed docked size.
+    fbSpec.width = Engine::get_main_window()->get_width();
+    fbSpec.height = Engine::get_main_window()->get_height();
     fbSpec.samples = Engine::get_main_window()->get_samples();
     this->viewport_resolution = {fbSpec.width,
                                  fbSpec.height};
     this->viewport_framebuffer = Framebuffer::create(fbSpec);
     
     // Add text strings
-    this->demo_texts.emplace_back(Text_box::create(Vector_2f(0.0f, 50.0f), "~ Wave Engine ~",
-                                                   "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf"));
-    this->demo_texts[0]->set_text_offset_y((this->viewport_resolution.get_y() -
-                                            this->demo_texts[0]->get_pixel_size().get_y()));
-    this->demo_texts[0]->set_text_color('~', Color(0xFF0000FF));
-    this->demo_texts[0]->append_text(" By : Nami Reghbati ");
+    auto text_box = Text_box::create(Vector_2f(0.0f, 50.0f), "~ Wave Engine ~");
+    text_box->append_text(" By : Nami Reghbati ");
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Text Box : Title"));
+    this->entities.back().add_component<std::shared_ptr<Text_box>>(text_box);
   }
   
   void Editor::on_init()
   {
     Engine::on_init();
     
-    push_layer(new Editor_layer(this->editor_camera, this->demo_objects,
-                                this->viewport_framebuffer));
-    push_layer(new Text_layer(this->demo_texts, &this->viewport_resolution, true));
-    push_layer(new ImGui_layer());
+    push_overlay(new ImGui_layer());
+    push_layer(new Editor_layer(this->active_scene, this->entities, this->viewport_framebuffer));
+    push_layer(new Text_layer(this->entities, &this->viewport_resolution, false));
+    
+    // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
+    this->active_scene->send_gpu();
   }
   
   void Editor::on_destroy()
   {
-    for (auto &shader: this->demo_shaders) shader->free_gpu();
-    for (auto &text_box: this->demo_texts) text_box->free_gpu();
-    for (auto &object: this->demo_objects) object->free_gpu();
-    this->viewport_framebuffer->free_gpu();
+    for (auto &shader: this->demo_shaders) shader->free_gpu(1);
+    this->viewport_framebuffer->free_gpu(1);
     
     Engine::shutdown();
     Engine::on_destroy();
@@ -92,7 +96,8 @@ namespace Wave
       }
       case Wave::Event_type::On_mouse_wheel_scroll:
       {
-        this->editor_camera->on_event(event);
+        auto view = this->active_scene->get_all_entities_with<Editor_camera>();
+        for (const auto &entity: view) view.get<Editor_camera>(entity).on_event(event);
         break;
       }
       default: break;
@@ -143,7 +148,7 @@ namespace Wave
     }
     
     this->viewport_framebuffer->bind();
-    Renderer::begin(this->editor_camera);
+    Renderer::begin(this->active_scene->get_entity("Editor Camera").get_component<std::shared_ptr<Camera>>());
     Renderer::set_clear_color(this->background_clear_color);
     Renderer::clear_bg();
     Engine::on_game_render();

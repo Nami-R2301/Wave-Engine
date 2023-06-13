@@ -11,15 +11,19 @@ namespace Wave
   static Color s_text_color_previous_value;
   static bool s_info_visible = true;
   
-  Text_layer::Text_layer(const std::vector<std::shared_ptr<Text_box>> &text_boxes_,
+  Text_layer::Text_layer(const std::vector<Entity> &entities_,
                          const Vector_2f *viewport_size_,
-                         bool imgui_render)
+                         bool imgui_render) : entities(entities_),
+                                              viewport_size(viewport_size_), imgui_enabled(imgui_render)
   {
-    this->imgui_enabled = imgui_render;
-    this->text_boxes = text_boxes_;
-    this->viewport_size = viewport_size_;
     this->projection = Orthographic_camera(this->viewport_size->get_x(),
                                            this->viewport_size->get_y(), -1.0f, 1.0f);
+    
+    for (auto &entity: this->entities)
+    {
+      if (entity.has_component<std::shared_ptr<Text_box>>())
+        this->text_boxes.emplace_back(entity.get_component<std::shared_ptr<Text_box>>());
+    }
   }
   
   Text_layer::~Text_layer()
@@ -30,16 +34,14 @@ namespace Wave
   void Text_layer::on_attach()
   {
     // Setup text boxes' properties.
-    for (auto &text_box: this->text_boxes)
+    for (const auto &text_box: this->text_boxes)
     {
       text_box->get_shader()->bind();
       text_box->get_shader()->set_uniform("u_projection",
                                           &(this->projection.get_projection_matrix().get_matrix()[0][0]),
                                           false);
+      text_box->set_text_offset_y(this->viewport_size->get_y() - text_box->get_pixel_size().get_y());
       s_text_color_previous_value = text_box->get_text_uniform_color();
-      
-      // Finalize the text box, by sending it to the GPU for rendering at a later stage (on_render()).
-      text_box->send_gpu();
     }
   }
   
@@ -115,8 +117,7 @@ namespace Wave
                                            Vector_2f(0.0f), 120.0f);
                 ImGui::TreePop();  // Transform.
               }
-              this->text_boxes.back()->set_text_offset(s_text_box_offset);
-              this->text_boxes.back()->set_pixel_size(s_pixel_size_previous_value);
+              
               this->text_boxes.back()->set_text_uniform_color(s_text_color_previous_value);
               
               if (s_text_box_offset != this->text_boxes.back()->get_text_offset() ||
@@ -125,7 +126,7 @@ namespace Wave
               {
                 this->text_boxes.back()->set_pixel_size(s_pixel_size_previous_value);
                 this->text_boxes.back()->set_text_offset(s_text_box_offset);
-                this->text_boxes.back()->send_gpu();  // Resend text box to the GPU to update its buffer.
+                this->text_boxes.back()->send_gpu(1);
               }
               
               s_text_color_previous_value = this->text_boxes.back()->get_text_uniform_color();

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Core/core.h>
+#include <Core/uuid.h>
 #include <Scene/editor_camera.h>
 
 #include <entt/entt.hpp>
@@ -17,64 +18,60 @@ namespace Wave
   class Scene
   {
     public:
-    Scene();
-    ~Scene();
+    Scene() = default;
+    ~Scene() = default;
     
-    static std::shared_ptr<Scene> Copy(std::shared_ptr<Scene> other);
+    static std::shared_ptr<Scene> copy(const std::shared_ptr<Scene> &other);
     
-    Entity CreateEntity(const std::string &name = std::string());
-    Entity CreateEntityWithUUID(uint64_t uuid, const std::string &name = std::string());
-    void DestroyEntity(Entity entity);
+    Entity create_entity(const std::string &name = std::string());
+    Entity create_entity_with_uuid(UUID uuid, const std::string &name = std::string());
+    Entity create_entity_with_uuid(Entity entity);
+    void destroy_entity(Entity entity);
     
-    void OnRuntimeStart();
-    void OnRuntimeStop();
+    void on_runtime_start();
+    void on_runtime_stop();
     
-    void OnSimulationStart();
-    void OnSimulationStop();
+    void send_gpu();
     
-    void OnUpdateRuntime(float ts);
-    void OnUpdateSimulation(float ts, Editor_camera &camera);
-    void OnUpdateEditor(float ts, Editor_camera &camera);
-    void OnViewportResize(uint32_t width, uint32_t height);
+    void on_simulation_start();
+    void on_simulation_stop();
     
-    Entity DuplicateEntity(Entity entity);
+    void on_update_runtime(float ts);
+    void on_update_simulation(float ts, std::shared_ptr<Camera> &camera);
+    void on_update_editor(float ts, std::shared_ptr<Camera> &camera);
+    void on_viewport_resize(uint32_t width, uint32_t height);
     
-    Entity FindEntityByName(std::string_view name);
-    Entity GetEntityByUUID(uint64_t uuid);
+    Entity duplicate_entity(Entity entity);
+    Entity get_entity(std::string_view name);
+    Entity get_entity(UUID uuid);
+    Entity get_primary_camera();
     
-    Entity GetPrimaryCameraEntity();
+    bool is_running() const
+    { return this->running; }
     
-    bool IsRunning() const
-    { return is_running; }
+    bool is_paused() const
+    { return this->paused; }
     
-    bool IsPaused() const
-    { return is_paused; }
+    void set_paused(bool paused_)
+    { this->paused = paused_; }
     
-    void SetPaused(bool paused)
-    { is_paused = paused; }
-    
-    void Step(int frames = 1);
+    void step(int frames = 1);
     
     template<typename... Components>
-    auto GetAllEntitiesWith()
+    auto get_all_entities_with()
     {
       return registry.view<Components...>();
     }
     
     private:
-    template<typename T>
-    void OnComponentAdded(Entity entity, T &component);
-    
-    void OnPhysics2DStart();
-    void OnPhysics2DStop();
-    
-    void RenderScene(Editor_camera &camera);
+    void on_physics_start();
+    void on_physics_stop();
     private:
     entt::registry registry;
-    std::unordered_map<uint64_t, entt::entity> entity_map;
+    std::unordered_map<UUID, entt::entity> entity_map;
     Vector_2f viewport_dimensions = Vector_2f(0.0f);
-    bool is_running = false;
-    bool is_paused = false;
+    bool running = false;
+    bool paused = false;
     int step_frames = 0;
     
     friend class Entity;

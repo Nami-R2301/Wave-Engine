@@ -46,9 +46,10 @@ namespace Wave
     
     struct Offset_s
     {
+      uint64_t vertex_count = 0;
       uint64_t index_count = 0;
       uint64_t ibo_offset = 0;
-      uint64_t base_vertex = 0;
+      uint64_t vbo_offset = 0;
     };
     
     typedef struct Draw_command
@@ -85,10 +86,14 @@ namespace Wave
     
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(const Object &object, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
+    static void send_object(Shader &shader, const std::vector<std::shared_ptr<Texture>> &textures_,
+                            const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
+                            const void *indices, uint64_t index_count, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
                             int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
-    static void send_text(const Text_box &text, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
-                          int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
+    static void send_text(Shader &shader, Texture &texture_atlas, const void *vertices, uint64_t vertex_count,
+                          uint64_t vertex_size, [[maybe_unused]] const void *indices = nullptr,
+                          [[maybe_unused]] uint64_t index_count = 0, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
+                          [[maybe_unused]] int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
     static void flush();
     static void end();
     

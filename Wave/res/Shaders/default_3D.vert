@@ -30,6 +30,7 @@ void main()
     gl_Position = u_projection * u_view * (in_model_matrix * vec4(in_vertex_position.xyz + (gl_InstanceID * 5), 1.0));
     vout_tex_coords = in_tex_coords;
     vout_frag_color = in_color;
-    vout_normal = mat3(transpose(inverse(in_model_matrix))) * in_vertex_normal;
+    mat3 normal_matrix = mat3(transpose(inverse(u_view * in_model_matrix)));
+    vout_normal = normalize(vec3(vec4(normal_matrix * in_vertex_normal, 0.0)));
     vout_frag_position = (in_model_matrix * vec4(in_vertex_position, 1.0)).xyz;
 }
