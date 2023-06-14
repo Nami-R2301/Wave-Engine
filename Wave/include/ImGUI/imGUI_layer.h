@@ -20,7 +20,7 @@ namespace Wave
       float font_scale = 1.0f;
     } ImGui_layer_data_s;
     public:
-    explicit ImGui_layer(ImGui_layer_data_s imgui_data_ = {18.0f, 1.0f});
+    explicit ImGui_layer(ImGui_layer_data_s imgui_data_ = {16.0f, 1.0f});
     ~ImGui_layer() override = default;
     
     void on_attach() override;

@@ -19,8 +19,10 @@ namespace Wave
       case Texture::Texture_internal_format_e::Red: return GL_RED;
       case Texture::Texture_internal_format_e::Rgba8:
       case Texture::Texture_internal_format_e::Rgba16:
-      case Texture::Texture_internal_format_e::Rgba32: return GL_RGBA;
-      case Texture::Texture_internal_format_e::Depth_stencil: return GL_DEPTH_STENCIL;
+      case Texture::Texture_internal_format_e::Rgba32:
+      case Texture::Texture_internal_format_e::Color_attachment: return GL_RGBA;
+      case Texture::Texture_internal_format_e::Depth_attachment: return GL_DEPTH_COMPONENT;
+      case Texture::Texture_internal_format_e::Depth_stencil_attachment: return GL_DEPTH_STENCIL;
       default:
         Gl_renderer::gl_synchronous_error_callback(GL_INVALID_ENUM,
                                                    "[GL Texture] --> Invalid texture format given!",
@@ -34,10 +36,12 @@ namespace Wave
     switch (format)
     {
       case Texture::Texture_internal_format_e::Red: return GL_RED;
-      case Texture::Texture_internal_format_e::Rgba8: return GL_RGBA8;
+      case Texture::Texture_internal_format_e::Rgba8:
+      case Texture::Texture_internal_format_e::Color_attachment: return GL_RGBA8;
       case Texture::Texture_internal_format_e::Rgba16: return GL_RGBA16;
       case Texture::Texture_internal_format_e::Rgba32: return GL_RGBA32F;
-      case Texture::Texture_internal_format_e::Depth_stencil: return GL_DEPTH24_STENCIL8;
+      case Texture::Texture_internal_format_e::Depth_attachment: return GL_DEPTH_COMPONENT;
+      case Texture::Texture_internal_format_e::Depth_stencil_attachment: return GL_DEPTH24_STENCIL8;
       default:
         Gl_renderer::gl_synchronous_error_callback(GL_INVALID_ENUM,
                                                    "[GL Texture] --> Invalid texture format given!",
@@ -54,7 +58,9 @@ namespace Wave
       case Texture::Texture_internal_format_e::Rgba8: return GL_UNSIGNED_BYTE;
       case Texture::Texture_internal_format_e::Rgba16: return GL_2_BYTES;
       case Texture::Texture_internal_format_e::Rgba32: return GL_FLOAT;
-      case Texture::Texture_internal_format_e::Depth_stencil: return GL_UNSIGNED_INT_24_8;
+      case Texture::Texture_internal_format_e::Color_attachment:
+      case Texture::Texture_internal_format_e::Depth_attachment: return GL_UNSIGNED_BYTE;
+      case Texture::Texture_internal_format_e::Depth_stencil_attachment: return GL_UNSIGNED_INT_24_8;
       default:
         Gl_renderer::gl_synchronous_error_callback(GL_INVALID_ENUM,
                                                    "[GL Texture] --> Invalid texture format given!",
@@ -442,7 +448,21 @@ namespace Wave
         opengl_buffer_type = "GL_FLOAT";
         break;
       }
-      case Texture::Texture_internal_format_e::Depth_stencil:
+      case Texture::Texture_internal_format_e::Color_attachment:
+      {
+        opengl_internal_format = "GL_RGBA8";
+        opengl_format = "GL_RGBA";
+        opengl_buffer_type = "GL_UNSIGNED_BYTE";
+        break;
+      }
+      case Texture::Texture_internal_format_e::Depth_attachment:
+      {
+        opengl_internal_format = "GL_DEPTH_COMPONENT";
+        opengl_format = "GL_DEPTH_COMPONENT";
+        opengl_buffer_type = "GL_UNSIGNED_BYTE";
+        break;
+      }
+      case Texture::Texture_internal_format_e::Depth_stencil_attachment:
       {
         opengl_internal_format = "GL_DEPTH24_STENCIL8";
         opengl_format = "GL_DEPTH_STENCIL";
@@ -820,13 +840,6 @@ namespace Wave
         opengl_internal_format = "GL_RGBA32F";
         opengl_format = "GL_RGBA";
         opengl_buffer_type = "GL_FLOAT";
-        break;
-      }
-      case Texture::Texture_internal_format_e::Depth_stencil:
-      {
-        opengl_internal_format = "GL_DEPTH24_STENCIL8";
-        opengl_format = "GL_DEPTH_STENCIL";
-        opengl_buffer_type = "GL_UNSIGNED_INT_24_8";
         break;
       }
       default:

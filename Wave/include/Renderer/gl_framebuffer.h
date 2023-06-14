@@ -21,15 +21,15 @@ namespace Wave
   {
     public:
     Gl_framebuffer() = default;
-    explicit Gl_framebuffer(const Framebuffer_options &opt);
+    explicit Gl_framebuffer(const Framebuffer_options_s &opt);
     ~Gl_framebuffer() override;
     
-    INTERFACE_SENDABLE
-    INTERFACE_PRINTABLE
+    INTERFACE_SENDABLE;
+    INTERFACE_PRINTABLE;
     
-    [[nodiscard]] const Framebuffer_options &get_options() const override;
-    [[nodiscard]] Texture *get_color_attachment() override;
-    [[nodiscard]] Texture *get_depth_attachment() override;
+    [[nodiscard]] const Framebuffer_options_s &get_options() const override;
+    [[nodiscard]] const std::vector<Framebuffer_attachment_s> &get_color_attachments() override;
+    [[nodiscard]] const Framebuffer_attachment_s &get_depth_attachment() override;
     
     void resize(float width, float height, void *data) override;
     void on_resize_draw_data(void *data) override;
@@ -40,8 +40,8 @@ namespace Wave
     Framebuffer_viewport_data data;
     private:
     uint32_t renderer_id = 0;
-    Framebuffer_options options{0};
-    Texture *color_attachment = nullptr;
-    Texture *depth_attachment = nullptr;
+    Framebuffer_options_s options;
+    std::vector<Framebuffer_attachment_s> color_attachments;
+    Framebuffer_attachment_s depth_attachment;
   };
 }

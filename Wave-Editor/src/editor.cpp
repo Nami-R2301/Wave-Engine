@@ -45,15 +45,19 @@ namespace Wave
     this->entities.emplace_back(this->active_scene->create_entity("Object : Cube"));
     this->entities.back().add_component<std::shared_ptr<Object>>(cube);
     
-    // Add framebuffer.
-    // Setup default viewport framebuffer specs.
-    Framebuffer_options fbSpec;
-    fbSpec.width = Engine::get_main_window()->get_width();
-    fbSpec.height = Engine::get_main_window()->get_height();
-    fbSpec.samples = Engine::get_main_window()->get_samples();
-    this->viewport_resolution = {fbSpec.width,
-                                 fbSpec.height};
-    this->viewport_framebuffer = Framebuffer::create(fbSpec);
+    // Add framebuffers.
+    
+    // Setup default framebuffer's attachments.
+    Framebuffer_attachment_s color_attachment = {Framebuffer_target_e::Color_attachment, 0, 2};
+    Framebuffer_attachment_s depth_attachment = {Framebuffer_target_e::Depth_stencil_attachment, 0, 3};
+    
+    Framebuffer_options_s options = {Engine::get_main_window()->get_width(),
+                                     Engine::get_main_window()->get_height(),
+                                     {color_attachment, depth_attachment},
+                                     Engine::get_main_window()->get_samples()};
+    
+    this->viewport_resolution = {options.width, options.height};
+    this->viewport_framebuffer = Framebuffer::create(options);
     
     // Add text strings
     auto text_box = Text_box::create(Vector_2f(0.0f, 50.0f), "~ Wave Engine ~");
@@ -72,6 +76,7 @@ namespace Wave
     push_layer(new Text_layer(this->entities, &this->viewport_resolution, false));
     
     // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
+    this->viewport_framebuffer->send_gpu(1);
     this->active_scene->send_gpu();
   }
   

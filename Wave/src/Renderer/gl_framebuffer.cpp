@@ -4,6 +4,8 @@
 
 #include <Renderer/gl_renderer.h>
 #include <cassert>
+#include <Renderer/gl_framebuffer.h>
+
 
 namespace Wave
 {
@@ -15,36 +17,75 @@ namespace Wave
                                                 0,
                                                 3};
   
-  Gl_framebuffer::Gl_framebuffer(const Framebuffer_options &opt)
+  static int32_t convert_to_gl_attachment(Framebuffer_target_e target, uint32_t attachment_index_)
   {
-    this->options = opt;
+    switch (target)
+    {
+      case Framebuffer_target_e::Color_attachment: return GL_COLOR_ATTACHMENT0 + attachment_index_;
+      case Framebuffer_target_e::Depth_attachment: return GL_DEPTH_ATTACHMENT;
+      case Framebuffer_target_e::Stencil_attachment: return GL_STENCIL_ATTACHMENT;
+      case Framebuffer_target_e::Depth_stencil_attachment: return GL_DEPTH_STENCIL_ATTACHMENT;
+    }
+    return GL_COLOR_ATTACHMENT0 + attachment_index_;
+  }
+  
+  static Texture::Texture_internal_format_e attachment_to_texture_internal_format(Framebuffer_target_e target)
+  {
+    switch (target)
+    {
+      case Framebuffer_target_e::Color_attachment: return Texture::Texture_internal_format_e::Color_attachment;
+      case Framebuffer_target_e::Depth_attachment: return Texture::Texture_internal_format_e::Depth_attachment;
+      case Framebuffer_target_e::Stencil_attachment: return Texture::Texture_internal_format_e::Stencil_attachment;
+      case Framebuffer_target_e::Depth_stencil_attachment: return Texture::Texture_internal_format_e::Depth_stencil_attachment;
+    }
+    return Texture::Texture_internal_format_e::Color_attachment;
+  }
+  
+  static std::string buffer_type_to_string(Framebuffer_target_e target)
+  {
+    switch (target)
+    {
+      case Framebuffer_target_e::Color_attachment: return "Color attachment";
+      case Framebuffer_target_e::Depth_attachment: return "Depth attachment";
+      case Framebuffer_target_e::Stencil_attachment: return "Stencil attachment";
+      case Framebuffer_target_e::Depth_stencil_attachment: return "Depth stencil attachment";
+    }
+  }
+  
+  Gl_framebuffer::Gl_framebuffer(const Framebuffer_options_s &options_)
+  {
+    this->options = options_;
     
-    // Creating the 2D texture of our viewport.
-    this->color_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
-                                                         Texture::Texture_internal_format_e::Rgba8,
-                                                         this->options.width,
-                                                         this->options.height,
-                                                         0,
-                                                         2,
-                                                         static_cast<int32_t>(this->options.samples),
-                                                         nullptr});
-    
-    // Depth attachment.
-    this->depth_attachment = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
-                                                         Texture::Texture_internal_format_e::Depth_stencil,
-                                                         this->options.width,
-                                                         this->options.height,
-                                                         0,
-                                                         3,
-                                                         static_cast<int32_t>(this->options.samples),
-                                                         nullptr});
+    for (const auto &attachment: options_.attachments)
+    {
+      Texture::Texture_internal_format_e texture_internal_format = attachment_to_texture_internal_format(
+        attachment.buffer_target);
+      
+      // Creating the 2D texture of our viewport.
+      Framebuffer_attachment_s new_attachment = {attachment.buffer_target, attachment.attachment_index,
+                                                 attachment.attachment_texture_slot};
+      new_attachment.attachment_texture = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                                      texture_internal_format,
+                                                                      options.width,
+                                                                      options.height,
+                                                                      0,
+                                                                      attachment.attachment_texture_slot,
+                                                                      options.samples == WAVE_VALUE_DONT_CARE ? 0 :
+                                                                      options.samples,
+                                                                      nullptr});
+      
+      new_attachment.buffer_target == Framebuffer_target_e::Color_attachment ?
+      this->color_attachments.emplace_back(new_attachment) : this->depth_attachment = new_attachment;
+    }
   }
   
   Gl_framebuffer::~Gl_framebuffer()
   {
     Gl_framebuffer::free_gpu(1);
-    delete this->color_attachment;
-    delete this->depth_attachment;
+    for (const auto &attachment: this->color_attachments) delete attachment.attachment_texture;
+    this->color_attachments.clear();
+    delete this->depth_attachment.attachment_texture;
+    
     delete[] this->data.ibo_data;
     delete[] this->data.vbo_data;
   }
@@ -69,16 +110,28 @@ namespace Wave
     this->data.vao->add_vertex_buffer(vbo);
     this->data.vao->set_index_buffer(ibo);
     
-    this->color_attachment->send_gpu(1);
-    this->depth_attachment->send_gpu(1);
+    for (Framebuffer_attachment_s &attachment: this->color_attachments)
+    {
+      attachment.attachment_texture->send_gpu(1);
+      int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+      int32_t gl_attachment = convert_to_gl_attachment(attachment.buffer_target,
+                                                       attachment.attachment_index);
+      
+      CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, texture_enum,
+                                           attachment.attachment_texture->get_id(), 0));
+    }
     
-    int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
-    
-    
-    CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
-                                         this->color_attachment->get_id(), 0));
-    CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
-                                         this->depth_attachment->get_id(), 0));
+    if (this->depth_attachment.attachment_texture)
+    {
+      this->depth_attachment.attachment_texture->send_gpu(1);
+      
+      int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+      int32_t gl_attachment = convert_to_gl_attachment(this->depth_attachment.buffer_target,
+                                                       this->depth_attachment.attachment_index);
+      
+      CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, texture_enum,
+                                           this->depth_attachment.attachment_texture->get_id(), 0));
+    }
     
     int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -99,8 +152,8 @@ namespace Wave
     if (this->is_sent())
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      if (this->color_attachment) this->color_attachment->free_gpu(instance_count);
-      if (this->depth_attachment) this->depth_attachment->free_gpu(instance_count);
+      for (const auto &attachment: this->color_attachments) attachment.attachment_texture->free_gpu(instance_count);
+      if (this->depth_attachment.attachment_texture) this->depth_attachment.attachment_texture->free_gpu(1);
       
       this->sent = false;
     }
@@ -108,12 +161,22 @@ namespace Wave
   
   std::string Gl_framebuffer::to_string() const
   {
-    char buffer[FILENAME_MAX * 4]{0};
-    if (snprintf(buffer, sizeof(buffer), "[Gl framebuffer] :\n%55sID --> %d\n%55sWidth --> %.2f\n"
-                                         "%55sHeight --> %.2f\n%55sSamples --> %d", DEFAULT, this->renderer_id,
-                 DEFAULT, this->options.width, DEFAULT, this->options.height, DEFAULT, this->options.samples) < 0)
+    std::string buffer("[Gl framebuffer] :\n");
+    
+    std::vector<Framebuffer_attachment_s> all_attachments = this->color_attachments;
+    all_attachments.emplace_back(this->depth_attachment);
+    
+    for (const auto &attachment: all_attachments)
     {
-      return "ERROR : Snprintf failed while trying to print [Gl framebuffer]!";
+      std::string type = buffer_type_to_string(attachment.buffer_target);
+      char buffer_c[LINE_MAX]{0};
+      if (snprintf(buffer_c, sizeof(buffer_c), "%55sType --> %s\n%55sID --> %d\n%55sWidth --> %.2f\n"
+                                               "%55sHeight --> %.2f\n%55sSamples --> %d",
+                   DEFAULT, type.c_str(), DEFAULT, this->renderer_id,
+                   DEFAULT, this->options.width, DEFAULT, this->options.height, DEFAULT, this->options.samples) < 0)
+      {
+        return "ERROR : Snprintf failed while trying to print [Gl framebuffer]!";
+      }
     }
     return buffer;
   }
@@ -123,29 +186,44 @@ namespace Wave
     if (this->renderer_id)
     {
       CHECK_GL_CALL(glDeleteFramebuffers(1, &this->renderer_id));
-      this->color_attachment->free_gpu(1);
-      this->depth_attachment->free_gpu(1);
       
       CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
       CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
       
-      // Creating the 2D texture of our viewport.
-      this->color_attachment->set_width(this->options.width);
-      this->color_attachment->set_height(this->options.height);
+      for (Framebuffer_attachment_s &attachment: this->color_attachments)
+      {
+        attachment.attachment_texture->free_gpu(1);
+        
+        // Creating the 2D texture of our viewport.
+        attachment.attachment_texture->set_width(this->options.width);
+        attachment.attachment_texture->set_height(this->options.height);
+        
+        attachment.attachment_texture->send_gpu(1);
+        
+        int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+        int32_t gl_attachment = convert_to_gl_attachment(attachment.buffer_target,
+                                                         attachment.attachment_index);
+        
+        CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, texture_enum,
+                                             attachment.attachment_texture->get_id(), 0));
+      }
       
-      this->depth_attachment->set_width(this->options.width);
-      this->depth_attachment->set_height(this->options.height);
-      
-      this->color_attachment->send_gpu(1);
-      this->depth_attachment->send_gpu(1);
-      
-      int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
-      
-      
-      CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_enum,
-                                           this->color_attachment->get_id(), 0));
-      CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, texture_enum,
-                                           this->depth_attachment->get_id(), 0));
+      if (this->depth_attachment.attachment_texture)
+      {
+        this->depth_attachment.attachment_texture->free_gpu(1);
+        
+        this->depth_attachment.attachment_texture->set_width(this->options.width);
+        this->depth_attachment.attachment_texture->set_height(this->options.height);
+        
+        this->depth_attachment.attachment_texture->send_gpu(1);
+        
+        int64_t texture_enum = this->options.samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+        int32_t gl_attachment = convert_to_gl_attachment(this->depth_attachment.buffer_target,
+                                                         this->depth_attachment.attachment_index);
+        
+        CHECK_GL_CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, texture_enum,
+                                             this->depth_attachment.attachment_texture->get_id(), 0));
+      }
       
       int64_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
       if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -156,6 +234,17 @@ namespace Wave
                                                    "gl_framebuffer.cpp",
                                                    __LINE__ - 5);
       }
+      
+      if (this->color_attachments.size() > 1)
+      {
+        GLenum buffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        glDrawBuffers((int) this->color_attachments.size(), buffers);
+      } else if (this->color_attachments.empty())
+      {
+        // Only depth-pass
+        glDrawBuffer(GL_NONE);
+      }
+      
       Gl_framebuffer::unbind();
     }
   }
@@ -164,6 +253,7 @@ namespace Wave
   {
     if (!this->is_sent()) this->send_gpu(1);
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+    
     Gl_renderer::set_viewport(this->options.width, this->options.height);
   }
   
@@ -240,17 +330,17 @@ namespace Wave
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
   }
   
-  const Framebuffer_options &Gl_framebuffer::get_options() const
+  const Framebuffer_options_s &Gl_framebuffer::get_options() const
   {
     return this->options;
   }
   
-  Texture *Gl_framebuffer::get_color_attachment()
+  const std::vector<Framebuffer_attachment_s> &Gl_framebuffer::get_color_attachments()
   {
-    return this->color_attachment;
+    return this->color_attachments;
   }
   
-  Texture *Gl_framebuffer::get_depth_attachment()
+  const Framebuffer_attachment_s &Gl_framebuffer::get_depth_attachment()
   {
     return this->depth_attachment;
   }

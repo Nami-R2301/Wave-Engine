@@ -32,7 +32,12 @@ namespace Wave
       Rgba8,
       Rgba16,
       Rgba32,
-      Depth_stencil
+      
+      // Framebuffers.
+      Color_attachment,
+      Depth_attachment,
+      Stencil_attachment,
+      Depth_stencil_attachment
     };
     
     typedef struct Texture_data_s
@@ -45,6 +50,7 @@ namespace Wave
       int32_t desired_slot = 0;
       int32_t desired_samples = 1;
       void *data = nullptr;
+      int32_t framebuffer_attachment_index = 0;
     } Texture_data_s;
     public:
     static std::shared_ptr<Texture> create(const char *file_path_);

@@ -158,9 +158,11 @@ namespace Wave
         }
         auto framebuffer_viewport_gl = dynamic_cast<Gl_framebuffer *>(this->framebuffer_viewport_data.viewport.get());
         ImGui::Text("Viewport resolution :\t(%.2f, %.2f)",
-                    framebuffer_viewport_gl->get_options().width, framebuffer_viewport_gl->get_options().height);
+                    framebuffer_viewport_gl->get_options().width,
+                    framebuffer_viewport_gl->get_options().height);
         
-        ImGui::Text("Framebuffer resolution :\t(%.2f, %.2f)", 1920.0f, 1080.0f);
+        ImGui::Text("Framebuffer resolution :\t(%.2f, %.2f)", Engine::get_main_window()->get_width(),
+                    Engine::get_main_window()->get_height());
         
         ImGui::Text("UI font size :\t%.2f", ImGui_layer::imgui_data.font_size * ImGui_layer::imgui_data.font_scale);
       }
@@ -220,7 +222,7 @@ namespace Wave
       if (this->framebuffer_viewport_data.viewport->get_options().samples == 1)
       {
         // Traditional mono-sampled framebuffer.
-        uint64_t texture_id = this->framebuffer_viewport_data.viewport->get_color_attachment()->get_id();
+        uint64_t texture_id = this->framebuffer_viewport_data.viewport->get_color_attachments()[0].attachment_texture->get_id();
         ImVec2 viewport_size = ImGui::GetContentRegionAvail();
         ImGui::Image(reinterpret_cast<void *>(texture_id),
                      ImVec2(viewport_size.x, viewport_size.y),
@@ -287,10 +289,15 @@ namespace Wave
                                                                false);
     
     // Bind framebuffer textures
-    framebuffer_viewport_gl->get_color_attachment()->bind(
-      framebuffer_viewport_gl->get_color_attachment()->get_texture_slot());
-    framebuffer_viewport_gl->get_depth_attachment()->bind(
-      framebuffer_viewport_gl->get_depth_attachment()->get_texture_slot());
+    if (!framebuffer_viewport_gl->get_color_attachments().empty())
+      // Bind color attachment.
+      framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->bind(
+        framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->get_texture_slot());
+    
+    if (framebuffer_viewport_gl->get_depth_attachment().attachment_texture)
+      // Bind Depth attachment.
+      framebuffer_viewport_gl->get_depth_attachment().attachment_texture->bind(
+        framebuffer_viewport_gl->get_depth_attachment().attachment_texture->get_texture_slot());
     
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler", 2);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_viewport_width", (int) viewport->Size.x);
@@ -310,8 +317,11 @@ namespace Wave
     framebuffer_data->framebuffer_viewport_shader->unbind();
     
     // Unbind all buffers.
-    framebuffer_viewport_gl->get_color_attachment()->unbind();
-    framebuffer_viewport_gl->get_depth_attachment()->unbind();
+    if (!framebuffer_viewport_gl->get_color_attachments().empty())
+      framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->unbind();
+    
+    if (framebuffer_viewport_gl->get_depth_attachment().attachment_texture)
+      framebuffer_viewport_gl->get_depth_attachment().attachment_texture->unbind();
     
     // Reset Imgui OpenGL buffers for next draw commands.
     CHECK_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_ibo));

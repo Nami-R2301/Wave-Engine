@@ -88,7 +88,8 @@ namespace Wave
     if (e.get_event_type() == Event_type::On_mouse_wheel_scroll && Input::is_key_held(WAVE_KEY_LEFT_CONTROL))
     {
       auto on_mouse_zoom = dynamic_cast<On_mouse_wheel_scroll &>(e);
-      ImGui_layer::imgui_data.font_scale += on_mouse_zoom.get_mouse_wheel_offset().get_y() * 0.0625f;
+      ImGui_layer::imgui_data.font_scale +=
+        on_mouse_zoom.get_mouse_wheel_offset().get_y() * (1 / ImGui_layer::imgui_data.font_size);
       io.FontGlobalScale = ImGui_layer::imgui_data.font_scale;
     }
     // Avoid propagating mouse and keyboard events if the imgui window is focused on.
