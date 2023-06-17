@@ -27,11 +27,18 @@ namespace Wave
     INTERFACE_SENDABLE;
     INTERFACE_PRINTABLE;
     
+    [[nodiscard]] uint32_t get_id() const override;
     [[nodiscard]] const Framebuffer_options_s &get_options() const override;
     [[nodiscard]] const std::vector<Framebuffer_attachment_s> &get_color_attachments() override;
     [[nodiscard]] const Framebuffer_attachment_s &get_depth_attachment() override;
     
-    void resize(float width, float height, void *data) override;
+    void add_attachment(const Framebuffer_attachment_s &attachment) override;
+    void blit_color_attachments(int32_t framebuffer_id,
+                                const std::vector<Framebuffer_attachment_s> &color_attachments_) override;
+    void clear_attachment(uint32_t attachment_index, int32_t clear_value) override;
+    int32_t read_pixel(uint32_t attachment_index, int32_t position_x, int32_t position_y) override;
+    
+    void resize(int32_t width, int32_t height, void *data) override;
     void on_resize_draw_data(void *data) override;
     void reset() override;
     void bind() override;

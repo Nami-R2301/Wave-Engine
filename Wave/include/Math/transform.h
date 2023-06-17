@@ -10,10 +10,11 @@
 namespace Wave
 {
   
-  class Transform : public Printable
+  class Transform : public I_printable
   {
     public:
     Transform();
+    Transform(const Transform &) = default;
     Transform(const Vector_3f &translation_, const Vector_3f &rotation_, const Vector_3f &scale_);
     ~Transform() override = default;
     

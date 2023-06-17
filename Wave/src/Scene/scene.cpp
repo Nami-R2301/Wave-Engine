@@ -61,10 +61,10 @@ namespace Wave
     std::unordered_map<UUID, entt::entity> entity_map;
     
     // Create entities in new scene
-    auto idView = srcSceneRegistry.view<ID_component_s>();
-    for (auto e: idView)
+    const auto &idView = srcSceneRegistry.view<ID_component_s>();
+    for (const auto &e: idView)
     {
-      const UUID &uuid = srcSceneRegistry.get<ID_component_s>(e).ID;
+      UUID uuid = UUID(srcSceneRegistry.get<ID_component_s>(e).ID);
       const auto &name = srcSceneRegistry.get<Tag_component_s>(e).Tag;
       Entity newEntity = newScene->create_entity_with_uuid(uuid, name);
       entity_map[uuid] = (entt::entity) newEntity;

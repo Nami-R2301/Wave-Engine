@@ -16,10 +16,10 @@ namespace Wave
   
   UUID::UUID()
   {
-    s_uniform_distribution(s_random_engine);
+    this->uuid = s_uniform_distribution(s_random_engine);
   }
   
-  UUID::UUID(int64_t uuid_)
+  UUID::UUID(uint64_t uuid_)
   {
     this->uuid = uuid_;
   }
@@ -28,7 +28,7 @@ namespace Wave
   {
   }
   
-  int64_t UUID::get_id() const
+  uint64_t UUID::get_id() const
   {
     return this->uuid;
   }

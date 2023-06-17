@@ -57,7 +57,7 @@ namespace Wave
 
 #define EVENT_CLASS_CATEGORY(category) virtual int get_category_flags() const override { return (int) category; }
   
-  class Event : public Printable
+  class Event : public I_printable
   {
     friend class Event_dispatcher;
     

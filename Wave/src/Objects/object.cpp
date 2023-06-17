@@ -15,15 +15,17 @@ namespace Wave
   }
   
   std::shared_ptr<Object> Object::create(const Object_2D_data_s &object_2D_data,
-                                         const std::shared_ptr<Shader> &associated_shader_)
+                                         const std::shared_ptr<Shader> &associated_shader_,
+                                         int32_t id_)
   {
-    return std::make_shared<Object_2D>(object_2D_data, associated_shader_);
+    return std::make_shared<Object_2D>(object_2D_data, associated_shader_, id_);
   }
   
   std::shared_ptr<Object> Object::create(const Object_3D_data_s &object_3D_data,
-                                         const std::shared_ptr<Shader> &associated_shader_)
+                                         const std::shared_ptr<Shader> &associated_shader_,
+                                         int32_t id_)
   {
-    return std::make_shared<Object_3D>(object_3D_data, associated_shader_);
+    return std::make_shared<Object_3D>(object_3D_data, associated_shader_, id_);
   }
   
   /*********************** OBJECT 2D***************************/
@@ -39,11 +41,12 @@ namespace Wave
   {
   }
   
-  Object_2D::Object_2D(const Object_2D_data_s &object_2D_data) : vertices(object_2D_data.vertices),
-                                                                 normals(object_2D_data.normals),
-                                                                 tex_coords(object_2D_data.tex_coords),
-                                                                 textures(object_2D_data.textures)
+  Object_2D::Object_2D(const Object_2D_data_s &object_2D_data, int32_t id_) : vertices(object_2D_data.vertices),
+                                                                              normals(object_2D_data.normals),
+                                                                              tex_coords(object_2D_data.tex_coords),
+                                                                              textures(object_2D_data.textures)
   {
+    this->id = id_;
     this->object_type_e = Object_type_e::Object_2D;
     this->associated_shader = Shader::create("Default Object 2D",
                                              Resource_loader::load_shader_source(
@@ -54,13 +57,15 @@ namespace Wave
     prepare_vertices(object_2D_data);
   }
   
-  Object_2D::Object_2D(const Object_2D_data_s &object_2D_data, const std::shared_ptr<Shader> &associated_shader_)
+  Object_2D::Object_2D(const Object_2D_data_s &object_2D_data, const std::shared_ptr<Shader> &associated_shader_,
+                       int32_t id_)
     : vertices(object_2D_data.vertices),
       normals(object_2D_data.normals),
       tex_coords(object_2D_data.tex_coords),
       textures(object_2D_data.textures),
       associated_shader(associated_shader_)
   {
+    this->id = id_;
     this->object_type_e = Object_type_e::Object_2D;
     if (this->associated_shader == nullptr)
     {
@@ -336,18 +341,20 @@ namespace Wave
       add_face(face.second_vertex_index);
       
       replace_vertex(face.first_vertex_index,
-                     Vertex_2D(
-                       this->vertices[face.first_vertex_index].get_position() + sprite.origin,
-                       this->normals[face.first_normal_index] + sprite.origin,
-                       this->vertices[face.first_vertex_index].get_color(),
-                       this->tex_coords[face.first_texture_index]));
+                     Vertex_2D(this->vertices[face.first_vertex_index].get_position() + sprite.origin,
+                               this->normals[face.first_normal_index] + sprite.origin,
+                               this->vertices[face.first_vertex_index].get_color(),
+                               this->tex_coords[face.first_texture_index]));
+      
+      this->vertices[face.first_vertex_index].set_id(this->id);
       
       replace_vertex(face.second_vertex_index,
-                     Vertex_2D(
-                       this->vertices[face.second_vertex_index].get_position() + sprite.origin,
-                       this->normals[face.second_normal_index] + sprite.origin,
-                       this->vertices[face.second_vertex_index].get_color(),
-                       this->tex_coords[face.second_texture_index]));
+                     Vertex_2D(this->vertices[face.second_vertex_index].get_position() + sprite.origin,
+                               this->normals[face.second_normal_index] + sprite.origin,
+                               this->vertices[face.second_vertex_index].get_color(),
+                               this->tex_coords[face.second_texture_index]));
+      
+      this->vertices[face.second_vertex_index].set_id(this->id);
     }
   }
   
@@ -465,12 +472,11 @@ namespace Wave
   
   /****************************** 3D ********************************/
   
-  Object_3D::Object_3D(const Object_3D_data_s &mesh)
+  Object_3D::Object_3D(const Object_3D_data_s &mesh, int32_t id_) : vertices(mesh.vertices), normals(mesh.normals),
+                                                                    tex_coords(mesh.tex_coords)
   {
+    this->id = id_;
     this->object_type_e = Object_type_e::Object_3D;
-    this->vertices = mesh.vertices;
-    this->tex_coords = mesh.tex_coords;
-    this->normals = mesh.normals;
     this->associated_shader = Shader::create("Default Object 3D",
                                              Wave::Resource_loader::load_shader_source(
                                                "../Wave/res/Shaders/default_3D.vert"),
@@ -480,13 +486,15 @@ namespace Wave
     prepare_vertices(mesh);
   }
   
-  Object_3D::Object_3D(const Wave::Object_3D_data_s &mesh_data, const std::shared_ptr<Shader> &associated_shader_) :
+  Object_3D::Object_3D(const Wave::Object_3D_data_s &mesh_data, const std::shared_ptr<Shader> &associated_shader_,
+                       int32_t id_) :
     vertices(mesh_data.vertices),
     normals(mesh_data.normals),
     tex_coords(mesh_data.tex_coords),
     textures(mesh_data.textures),
     associated_shader(associated_shader_)
   {
+    this->id = id_;
     this->object_type_e = Object_type_e::Object_3D;
     if (this->associated_shader == nullptr)
     {
@@ -788,25 +796,28 @@ namespace Wave
       add_face(face.third_vertex_index);
       
       replace_vertex(face.first_vertex_index,
-                     Vertex_3D(
-                       this->vertices[face.first_vertex_index].get_position() + mesh.origin,
-                       this->vertices[face.first_vertex_index].get_color(),
-                       this->normals[face.first_normal_index] + mesh.origin,
-                       this->tex_coords[face.first_texture_index]));
+                     Vertex_3D(this->vertices[face.first_vertex_index].get_position() + mesh.origin,
+                               this->vertices[face.first_vertex_index].get_color(),
+                               this->normals[face.first_normal_index] + mesh.origin,
+                               this->tex_coords[face.first_texture_index]));
+      
+      this->vertices[face.first_vertex_index].set_id(this->id);
       
       replace_vertex(face.second_vertex_index,
-                     Vertex_3D(
-                       this->vertices[face.second_vertex_index].get_position() + mesh.origin,
-                       this->vertices[face.second_vertex_index].get_color(),
-                       this->normals[face.second_normal_index] + mesh.origin,
-                       this->tex_coords[face.second_texture_index]));
+                     Vertex_3D(this->vertices[face.second_vertex_index].get_position() + mesh.origin,
+                               this->vertices[face.second_vertex_index].get_color(),
+                               this->normals[face.second_normal_index] + mesh.origin,
+                               this->tex_coords[face.second_texture_index]));
+      
+      this->vertices[face.second_vertex_index].set_id(this->id);
       
       replace_vertex(face.third_vertex_index,
-                     Vertex_3D(
-                       this->vertices[face.third_vertex_index].get_position() + mesh.origin,
-                       this->vertices[face.third_vertex_index].get_color(),
-                       this->normals[face.third_normal_index] + mesh.origin,
-                       this->tex_coords[face.third_texture_index]));
+                     Vertex_3D(this->vertices[face.third_vertex_index].get_position() + mesh.origin,
+                               this->vertices[face.third_vertex_index].get_color(),
+                               this->normals[face.third_normal_index] + mesh.origin,
+                               this->tex_coords[face.third_texture_index]));
+      
+      this->vertices[face.third_vertex_index].set_id(this->id);
     }
   }
   
@@ -946,8 +957,9 @@ namespace Wave
   
   /******************** CUBE *************************/
   
-  Cube::Cube(const Vector_3f &scale, const Color &color)
+  Cube::Cube(const Vector_3f &scale, const Color &color, int32_t id_)
   {
+    this->id = id_;
     this->origin = Vector_3f(0.0f);
 //    float vertices[] = {
 //      -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -994,7 +1006,8 @@ namespace Wave
 //    };
   }
   
-  Cube::Cube(const Object_3D_data_s &mesh, const Vector_3f &scale_, const Color &color) : Object_3D(mesh)
+  Cube::Cube(const Object_3D_data_s &mesh, const Vector_3f &scale_, const Color &color, int32_t id_) :
+    Object_3D(mesh, id_)
   {
     this->scale(scale_);
     this->set_color(color);

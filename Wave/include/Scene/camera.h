@@ -10,7 +10,7 @@
 namespace Wave
 {
   
-  class Camera : public Printable
+  class Camera : public I_printable
   {
     public:
     Camera() = default;

@@ -24,7 +24,7 @@ namespace Wave
   } Scene_ui_data_s;
   
   // Active scene hierarchy displayed in the UI for the shown entities in the framebuffer.
-  class Scene_ui_panel : public Movable, public Copiable
+  class Scene_ui_panel : public I_movable, public I_copiable
   {
     public:
     Scene_ui_panel() = default;

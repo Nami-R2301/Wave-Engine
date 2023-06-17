@@ -45,10 +45,6 @@ namespace Wave
     this->objects[2]->translate(-3.5, -2, 6);
     this->objects[2]->rotate(45, 0, 0);
     
-    // Setup object textures.
-//    this->objects[0]->add_texture(Texture_2D::create("../Wave/res/Textures/tiles.png"));
-//    this->objects[3]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
-    
     // Setup how object behaves with lighting.
     Point_light point_light = Point_light(Color(0xFFFFFFFF), 0.1f, 0.4f,
                                           this->camera->get_position(),
@@ -157,14 +153,16 @@ namespace Wave
                       (int) (1.0f / s_imgui_app_performance_stat));
         }
         auto framebuffer_viewport_gl = dynamic_cast<Gl_framebuffer *>(this->framebuffer_viewport_data.viewport.get());
-        ImGui::Text("Viewport resolution :\t(%.2f, %.2f)",
+        ImGui::Text("Viewport resolution :\t(%d, %d)",
                     framebuffer_viewport_gl->get_options().width,
                     framebuffer_viewport_gl->get_options().height);
         
-        ImGui::Text("Framebuffer resolution :\t(%.2f, %.2f)", Engine::get_main_window()->get_width(),
+        ImGui::Text("Framebuffer resolution :\t(%d, %d)", Engine::get_main_window()->get_width(),
                     Engine::get_main_window()->get_height());
         
         ImGui::Text("UI font size :\t%.2f", ImGui_layer::imgui_data.font_size * ImGui_layer::imgui_data.font_scale);
+
+//        ImGui::Text("Clicked entity UUID : %d", this->hovered_entity.get_uuid());
       }
       ImGui::End();  // System Info.
       auto node = ImGui::DockBuilderGetNode(ImGui_layer::events_panel_dock_id);
@@ -288,18 +286,19 @@ namespace Wave
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_projection", &viewportProjection[0][0],
                                                                false);
     
-    // Bind framebuffer textures
-    if (!framebuffer_viewport_gl->get_color_attachments().empty())
-      // Bind color attachment.
-      framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->bind(
-        framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->get_texture_slot());
+    // Bind framebuffer attachments.
+    for (const auto &color_attachment: framebuffer_viewport_gl->get_color_attachments())
+    {
+      // Bind color attachments.
+      color_attachment.attachment_texture->bind(WAVE_VALUE_DONT_CARE);
+    }
     
     if (framebuffer_viewport_gl->get_depth_attachment().attachment_texture)
       // Bind Depth attachment.
-      framebuffer_viewport_gl->get_depth_attachment().attachment_texture->bind(
-        framebuffer_viewport_gl->get_depth_attachment().attachment_texture->get_texture_slot());
+      framebuffer_viewport_gl->get_depth_attachment().attachment_texture->bind(WAVE_VALUE_DONT_CARE);
     
-    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler", 2);
+    framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler",
+                                                               framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->get_texture_slot());
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_viewport_width", (int) viewport->Size.x);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_viewport_height", (int) viewport->Size.y);
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_max_samples",
@@ -315,13 +314,6 @@ namespace Wave
     framebuffer_viewport_gl->data.vao->unbind();
     framebuffer_viewport_gl->data.vao->get_index_buffer()->unbind();
     framebuffer_data->framebuffer_viewport_shader->unbind();
-    
-    // Unbind all buffers.
-    if (!framebuffer_viewport_gl->get_color_attachments().empty())
-      framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->unbind();
-    
-    if (framebuffer_viewport_gl->get_depth_attachment().attachment_texture)
-      framebuffer_viewport_gl->get_depth_attachment().attachment_texture->unbind();
     
     // Reset Imgui OpenGL buffers for next draw commands.
     CHECK_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_ibo));

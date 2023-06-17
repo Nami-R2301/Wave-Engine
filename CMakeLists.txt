@@ -100,6 +100,7 @@ if (UNIX)
             WAVE_STATIC
             GLFW3_STATIC
             GLEW_STATIC
+            OPENGL_VERSION_4_3_PLUS
             ${CMAKE_BUILD_TYPE})
 
     target_precompile_headers(Wave PUBLIC Wave/include/wave_pch.h)

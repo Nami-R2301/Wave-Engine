@@ -70,16 +70,19 @@ namespace Wave
     Object_3D
   };
   
-  class Object : public Printable, public Movable, public Rotatable, public Copiable, public Scalable, public Sendable
+  class Object : public I_printable, public I_movable, public I_rotatable, public I_copiable, public I_scalable,
+                 public I_sendable, public I_identifiable
   {
     public:
     ~Object() override = default;
     
     static std::shared_ptr<Object> create();
     static std::shared_ptr<Object> create(const Object_2D_data_s &object_2D_data,
-                                          const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                          const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                          int32_t id_ = 0);
     static std::shared_ptr<Object> create(const Object_3D_data_s &object_3D_data,
-                                          const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                          const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                          int32_t id_ = 0);
     
     [[nodiscard]] virtual const void *get_vertices() const = 0;
     [[nodiscard]] virtual uint64_t get_vertex_count() const = 0;
@@ -91,6 +94,8 @@ namespace Wave
     [[nodiscard]] virtual const Matrix_4f &get_model_matrix() const = 0;
     [[nodiscard]] virtual const Transform &get_model_transform() const = 0;
     [[nodiscard]] virtual const std::shared_ptr<Shader> &get_shader() const = 0;
+    
+    INTERFACE_IDENTIFIABLE;
     
     virtual void set_position(const Vector_3f &position_) = 0;
     virtual void set_color(const Color &color) = 0;
@@ -107,6 +112,8 @@ namespace Wave
     virtual void calculate_effect_by_light(const Light &light_source) = 0;
     virtual void normalize() = 0;
     virtual void update_model_matrix() = 0;
+    protected:
+    int32_t id = -1;
   };
   
   /************************************** 2D OBJECT *************************************/
@@ -116,8 +123,9 @@ namespace Wave
     public:
     Object_2D() = default;
     Object_2D(const Object_2D &sprite);
-    explicit Object_2D(const Object_2D_data_s &sprite_data);
-    Object_2D(const Object_2D_data_s &sprite_data, const std::shared_ptr<Shader> &associated_shader_);
+    explicit Object_2D(const Object_2D_data_s &sprite_data, int32_t id_ = 0);
+    Object_2D(const Object_2D_data_s &sprite_data, const std::shared_ptr<Shader> &associated_shader_,
+              int32_t id_ = 0);
     ~Object_2D() override;
     
     // Interfaces.
@@ -253,8 +261,9 @@ namespace Wave
     public:
     Object_3D() = default;
     Object_3D(const Object_3D &mesh);
-    explicit Object_3D(const Object_3D_data_s &mesh);
-    Object_3D(const Object_3D_data_s &mesh_data, const std::shared_ptr<Shader> &associated_shader_);
+    explicit Object_3D(const Object_3D_data_s &mesh, int32_t id_);
+    Object_3D(const Object_3D_data_s &mesh_data, const std::shared_ptr<Shader> &associated_shader_,
+              int32_t id_);
     ~Object_3D() override;
     
     // Interfaces.
@@ -338,9 +347,9 @@ namespace Wave
   class Cube : public Object_3D
   {
     public:
-    Cube(const Vector_3f &scale = Vector_3f(1.0f), const Color &color = Color());
+    Cube(const Vector_3f &scale = Vector_3f(1.0f), const Color &color = Color(), int32_t id_ = 0);
     Cube(const Object_3D_data_s &mesh,
-         const Vector_3f &scale = Vector_3f(1.0f), const Color &color = Color());
+         const Vector_3f &scale = Vector_3f(1.0f), const Color &color = Color(), int32_t id_ = 0);
     ~Cube() override = default;
     
     bool operator==(const Object &other_object);

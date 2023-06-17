@@ -39,8 +39,10 @@ namespace Wave
     [[nodiscard]] void *get_native_monitor() const override;
     [[nodiscard]] const char *get_title() const override;
     [[nodiscard]] bool is_fullscreen() const override;
-    [[nodiscard]] float get_width() const override;
-    [[nodiscard]] float get_height() const override;
+    [[nodiscard]] int get_framebuffer_width() const override;
+    [[nodiscard]] int get_framebuffer_height() const override;
+    [[nodiscard]] int get_width() const override;
+    [[nodiscard]] int get_height() const override;
     [[nodiscard]] const Vector_2f &get_aspect_ratio() const override;
     [[nodiscard]] int32_t get_refresh_rate() const override;
     [[nodiscard]] int32_t get_max_refresh_rate() const override;

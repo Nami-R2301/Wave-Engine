@@ -150,8 +150,6 @@ namespace Wave
                        []([[maybe_unused]] GLFWwindow *window_, int32_t key, [[maybe_unused]] int32_t scancode,
                           int32_t action, [[maybe_unused]] int32_t mods)
                        {
-                         On_any_key_event any_key;
-                         Glfw_window::get_event_callback_function()(any_key);
                          switch (action)
                          {
                            case GLFW_PRESS:
@@ -177,6 +175,7 @@ namespace Wave
                            
                            default:
                            {
+                             On_any_key_event any_key;
                              Glfw_window::get_event_callback_function()(any_key);
                              break;
                            }
@@ -209,18 +208,18 @@ namespace Wave
                                      break;
                                    }
                                    
-                                   default:break;
+                                   default: break;
                                  }
                                });
-//    (glfwSetCursorPosCallback(static_cast<GLFWwindow *>(this->get_native_window()),
+//    glfwSetCursorPosCallback(static_cast<GLFWwindow *>(this->get_native_window()),
 //
 //                                       [](GLFWwindow *window_, double x, double y)
 //                                       {
 //                                         Window &this_window_instance = *(Window *) glfwGetWindowUserPointer(window_);
 //                                         On_mouse_movement mouse_movement_event(
 //                                             Vector_2f(static_cast<float>(x), static_cast<float>(y)));
-//                                         this_window_instance.get_event_callback_function()(mouse_movement_event);
-//                                       }));
+//                                         Window::get_event_callback_function()(mouse_movement_event);
+//                                       });
     glfwSetWindowSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                               []([[maybe_unused]] GLFWwindow *window_, int32_t width_, int32_t height_)
                               {
@@ -376,12 +375,28 @@ namespace Wave
     return this->window_properties.title;
   }
   
-  float Glfw_window::get_width() const
+  int Glfw_window::get_framebuffer_width() const
+  {
+    if (!this->glfw_init) return 0;
+    int width;
+    glfwGetFramebufferSize((GLFWwindow *) this->window, &width, nullptr);
+    return width;
+  }
+  
+  int Glfw_window::get_framebuffer_height() const
+  {
+    if (!this->glfw_init) return 0;
+    int height;
+    glfwGetFramebufferSize((GLFWwindow *) this->window, nullptr, &height);
+    return height;
+  }
+  
+  int Glfw_window::get_width() const
   {
     return this->window_properties.width;
   }
   
-  float Glfw_window::get_height() const
+  int Glfw_window::get_height() const
   {
     return this->window_properties.height;
   }
@@ -428,7 +443,7 @@ namespace Wave
   
   int32_t Glfw_window::get_samples() const
   {
-    return this->samples;
+    return this->window_properties.sample_rate;
   }
   
   const std::function<void(Event &event)> &Glfw_window::get_event_callback_function()

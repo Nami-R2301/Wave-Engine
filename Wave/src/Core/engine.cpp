@@ -13,7 +13,7 @@ namespace Wave
   bool Engine::running_state = false;
   Engine_time Engine::current_time;
   int32_t Engine::exit_code = WAVE_ENGINE_NO_ERRORS;
-  [[maybe_unused]] Vector_2f Engine::last_mouse_position = Vector_2f(0);
+  Vector_2f Engine::last_mouse_position = Vector_2f(0);
 //  static std::mutex meshes_mutex;  // For async purposes.
   
   Engine::Engine()
@@ -246,7 +246,7 @@ namespace Wave
       {
         char title[50];
         const char *current_title = Engine::main_window->get_title();
-        alert(WAVE_LOG_INFO, "[Engine] --> Framerate : %ld", Engine::get_frame_drawn_counter());
+//        alert(WAVE_LOG_INFO, "[Engine] --> Framerate : %ld", Engine::get_frame_drawn_counter());
         if (snprintf(title, sizeof(title), "%s | OpenGL | %ld FPS",
                      current_title, Engine::get_frame_drawn_counter()) < 0)
           return;
@@ -294,6 +294,7 @@ namespace Wave
   {
     // Poll all context events
     Engine::main_window->poll_api_events();
+    Engine::last_mouse_position = Input::get_mouse_cursor_position();
     for (Layer *layer: this->layer_stack)
     {
       layer->on_update(time_step_);

@@ -32,6 +32,8 @@ namespace Wave
     [[nodiscard]] const Color &get_color() const;
     [[nodiscard]] const Vector_2f &get_tex_coord() const;
     
+    void set_id(int32_t id_);
+    
     void set_position(const Vector_2f &position_);
     void set_position(float x, float y);
     
@@ -47,6 +49,7 @@ namespace Wave
     bool operator==(const Vertex_2D &other_vertex);
     Vertex_2D &operator=(const Vertex_2D &other_vertex);
     private:
+    int32_t id = -1;
     Vector_2f position = Vector_2f(0.0f);
     Vector_2f normal = Vector_2f(0.0f);
     Color color;
@@ -84,6 +87,8 @@ namespace Wave
     [[nodiscard]] const Color &get_color() const;
     [[nodiscard]] const Vector_2f &get_tex_coord() const;
     
+    void set_id(int32_t id_);
+    
     void set_position(const Vector_3f &position_);
     void set_position(float x, float y, float z);
     
@@ -102,6 +107,7 @@ namespace Wave
     bool operator==(const Vertex_3D &);
     Vertex_3D &operator=(const Vertex_3D &);
     private:
+    int32_t id = -1;
     Vector_3f position = Vector_3f(0.0f);
     Vector_3f normal = Vector_3f(0, 0, 1);
     Color color;

@@ -151,6 +151,7 @@ namespace Wave
                                 
                                 initial_command.associated_shader = &shader_linked;
                                 
+                                b_elements.emplace_back(Buffer_data_type::Int, "Entity ID", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", true);
                                 b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
@@ -186,11 +187,12 @@ namespace Wave
                                 s_object_draw_commands.back()->batch_offset.emplace_back(0, 0, 0);
                                 
                                 // Set default shader layout for an 3D object.
+                                b_elements.emplace_back(Buffer_data_type::Int, "Entity ID", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_3f, "Position", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_3f, "Normal", true);
                                 b_elements.emplace_back(Buffer_data_type::Color_4f, "Color", true);
                                 b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", true);
-                                b_elements.emplace_back(Buffer_data_type::Matrix_4f, "Model Matrix", false);
+                                b_elements.emplace_back(Buffer_data_type::Matrix_4f, "Model Matrix", true);
                                 
                                 s_object_draw_commands.back()->vertex_array_buffer = Vertex_array_buffer::create();
                                 s_object_draw_commands.back()->vertex_array_buffer->set_index_buffer(
@@ -373,8 +375,10 @@ namespace Wave
       .vbo_offset = Gl_renderer::draw_commands[object_shader_id]->vertex_array_buffer->get_vertex_buffers()[0]->get_count()};
     
     Gl_renderer::draw_commands[object_shader_id]->associated_shader->bind();
-    Gl_renderer::draw_commands[object_shader_id]->associated_shader->set_uniform("u_sampler",
-                                                                                 s_texture_unit_number_assigned);
+    
+    if (!textures_.empty())
+      Gl_renderer::draw_commands[object_shader_id]->associated_shader->set_uniform("u_sampler",
+                                                                                   textures_[0]->get_texture_slot());
     
     unsigned int u_camera_block = glGetUniformBlockIndex(
       Gl_renderer::draw_commands[object_shader_id]->associated_shader->get_id(), "u_camera");
@@ -437,7 +441,8 @@ namespace Wave
     }
     
     Gl_renderer::draw_commands[shader_id]->associated_shader->bind();
-    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler", s_texture_unit_number_assigned);
+    Gl_renderer::draw_commands[shader_id]->associated_shader->set_uniform("u_sampler",
+                                                                          texture_atlas.get_texture_slot());
     
     // Update content of VBO memory.
     load_dynamic_vbo_data(vertices, vertex_count, vertex_size, shader_id, vbo_offset);
@@ -454,7 +459,7 @@ namespace Wave
   void Gl_renderer::flush()
   {
     for (const auto &texture: Gl_renderer::textures)
-      if (texture.second) texture.second->bind(texture.second->get_texture_slot());
+      if (texture.second) texture.second->bind(WAVE_VALUE_DONT_CARE);
     Gl_renderer::stats.textures_drawn_count = Gl_renderer::textures.size();
     
     for (auto &draw_command: Gl_renderer::draw_commands)

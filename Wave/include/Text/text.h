@@ -49,36 +49,45 @@ namespace Wave
   
   typedef struct Glyph_quad_s
   {
+    int32_t entity_id = -1;
     Vector_2f position = Vector_2f(0.0f);
     Color color = Color(1.0f, 1.0f, true);
     Vector_2f texture_offset = Vector_2f(0.0f);
   } Glyph_quad_s;
   
-  class Text_box : public Printable, public Movable, public Rotatable, public Copiable, public Scalable,
-                   public Sendable
+  class Text_box : public I_printable, public I_movable, public I_rotatable, public I_copiable, public I_scalable,
+                   public I_sendable, public I_identifiable
   {
     public:
     ~Text_box() override = default;
     
     static std::shared_ptr<Text_box> create();
-    static std::shared_ptr<Text_box> create(const std::shared_ptr<Shader> &associated_shader_);
+    static std::shared_ptr<Text_box> create(int32_t id_);
+    static std::shared_ptr<Text_box> create(const std::shared_ptr<Shader> &associated_shader_, int32_t id_ = 0);
     static std::shared_ptr<Text_box> create(const Vector_2f &pixel_size_,
-                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                            int32_t id_ = 0);
     static std::shared_ptr<Text_box> create(const std::string &text_,
-                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                            int32_t id_ = 0);
     static std::shared_ptr<Text_box> create(const char *font_file_path_, const std::string &text_,
-                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                            int32_t id_ = 0);
     static std::shared_ptr<Text_box> create(const Vector_2f &pixel_size_, const std::string &text_,
-                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                            int32_t id_ = 0);
     static std::shared_ptr<Text_box> create(const Vector_2f &pixel_size_, const std::string &text_,
                                             const char *font_file_path_,
-                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                            int32_t id_ = 0);
     static std::shared_ptr<Text_box> create(const char *font_file_path_, const std::string &text_,
                                             const Text_format_s &format_,
-                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                            int32_t id_ = 0);
     static std::shared_ptr<Text_box> create(const Vector_2f &pixel_size_, const std::string &text_,
                                             const Text_format_s &format_,
-                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr);
+                                            const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+                                            int32_t id_ = 0);
     
     virtual void prepare_vertices() = 0;
     
@@ -150,6 +159,7 @@ namespace Wave
     
     Glyph_s &operator[](uint8_t index);
     protected:
+    int32_t id = -1;
     std::string text;
     Text_format_s format;
     Vector_2f atlas_size;

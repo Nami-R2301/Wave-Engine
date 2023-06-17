@@ -26,7 +26,9 @@ namespace Wave
     std::vector<std::shared_ptr<Wave::Shader>> demo_shaders;
     std::vector<Entity> entities;
     std::shared_ptr<Scene> active_scene;
-    std::shared_ptr<Framebuffer> viewport_framebuffer;
+    Entity *selected_entity = nullptr;
+    std::shared_ptr<Framebuffer> viewport_ms_framebuffer;
+    std::shared_ptr<Framebuffer> viewport_non_ms_framebuffer;
     Color background_clear_color = Color(75.0f, 255.0f, false);  // Light gray.
     Vector_2f viewport_resolution = {0, 0};
     Vector_4f viewport_framebuffer_boundaries;

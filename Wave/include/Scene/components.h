@@ -44,6 +44,7 @@ namespace Wave
     Transform transform_component;
     
     Transform_component_s() = default;
+    Transform_component_s(const Transform_component_s &) = default;
     
     explicit Transform_component_s(const Transform &transform_)
     {

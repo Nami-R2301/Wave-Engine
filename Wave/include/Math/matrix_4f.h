@@ -10,7 +10,7 @@
 namespace Wave
 {
   
-  class Matrix_4f : public Printable
+  class Matrix_4f : public I_printable
   {
     public:
     Matrix_4f();

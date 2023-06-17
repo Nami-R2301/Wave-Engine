@@ -13,19 +13,20 @@ namespace Wave
   {
     public:
     UUID();
-    explicit UUID(int64_t uuid);
+    UUID(const UUID &) = default;
+    explicit UUID(uint64_t uuid);
     ~UUID() = default;
     
     void re_generate();
     
-    [[nodiscard]] int64_t get_id() const;
+    [[nodiscard]] uint64_t get_id() const;
     
     explicit operator uint64_t() const;
     bool operator<(const UUID &other_uuid) const;
     UUID &operator=(const UUID &other_uuid);
     bool operator==(const UUID &other_uuid) const;
     private:
-    int64_t uuid = 0;
+    uint64_t uuid = 0;
   };
 }
 

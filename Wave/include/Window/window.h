@@ -72,8 +72,10 @@ namespace Wave
     [[nodiscard]] virtual const char *get_title() const = 0;
     [[nodiscard]] virtual bool is_fullscreen() const = 0;
     [[nodiscard]] virtual const Vector_2f &get_window_pos() const = 0;
-    [[nodiscard]] virtual float get_width() const = 0;
-    [[nodiscard]] virtual float get_height() const = 0;
+    [[nodiscard]] virtual int get_framebuffer_width() const = 0;
+    [[nodiscard]] virtual int get_framebuffer_height() const = 0;
+    [[nodiscard]] virtual int get_width() const = 0;
+    [[nodiscard]] virtual int get_height() const = 0;
     [[nodiscard]] virtual const Vector_2f &get_aspect_ratio() const = 0;
     [[nodiscard]] virtual int32_t get_refresh_rate() const = 0;
     [[nodiscard]] virtual int32_t get_max_refresh_rate() const = 0;

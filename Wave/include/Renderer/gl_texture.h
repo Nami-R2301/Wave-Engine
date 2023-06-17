@@ -22,8 +22,8 @@ namespace Wave
     [[nodiscard]] int32_t convert_type_to_api(Texture_data_s texture_data_) override;
     [[nodiscard]] uint32_t &get_id() override;
     [[nodiscard]] Texture_type_e get_type() override;
-    [[nodiscard]] float get_width() const override;
-    [[nodiscard]] float get_height() const override;
+    [[nodiscard]] int32_t get_width() const override;
+    [[nodiscard]] int32_t get_height() const override;
     [[nodiscard]] float get_depth() const override;
     [[nodiscard]] int32_t get_texture_slot() const override;
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
@@ -35,9 +35,9 @@ namespace Wave
     
     [[nodiscard]] void *get_data() const override;
     void set_id(int id_texture) override;
-    void set_width(float width_) override;
-    void set_height(float height_) override;
-    void set_depth(float height_) override;
+    void set_width(int32_t width_) override;
+    void set_height(int32_t height_) override;
+    void set_depth(float depth_) override;
     void set_texture_slot(int32_t texture_slot_) override;
     void set_bits_per_pixel(int bits_per_pixel) override;
     
@@ -75,8 +75,8 @@ namespace Wave
     [[nodiscard]] int32_t convert_type_to_api(Texture_data_s data) override;
     [[nodiscard]] uint32_t &get_id() override;
     [[nodiscard]] Texture_type_e get_type() override;
-    [[nodiscard]] float get_width() const override;
-    [[nodiscard]] float get_height() const override;
+    [[nodiscard]] int32_t get_width() const override;
+    [[nodiscard]] int32_t get_height() const override;
     [[nodiscard]] float get_depth() const override;
     [[nodiscard]] int32_t get_texture_slot() const override;
     [[nodiscard]] int32_t get_bits_per_pixel() const override;
@@ -88,8 +88,8 @@ namespace Wave
     INTERFACE_PRINTABLE
     
     void set_id(int id_texture) override;
-    void set_width(float width_) override;
-    void set_height(float height_) override;
+    void set_width(int32_t width_) override;
+    void set_height(int32_t height_) override;
     void set_depth(float depth_) override;
     void set_texture_slot(int32_t texture_slot_) override;
     void set_bits_per_pixel(int bits_per_pixel) override;

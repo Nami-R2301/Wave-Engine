@@ -17,7 +17,7 @@ namespace Wave
     float diffuse_intensity;
   } Gpu_light_struct_s;
   
-  class Shader : public Printable, public Sendable
+  class Shader : public I_printable, public I_sendable
   {
     public:
     ~Shader() override = default;

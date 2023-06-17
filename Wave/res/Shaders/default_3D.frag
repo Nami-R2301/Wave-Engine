@@ -1,5 +1,6 @@
 #version 330 core
 
+flat in int vout_entity_ID;
 in vec4 vout_frag_color;// Base material color.
 in vec2 vout_tex_coords;// Texture coordinates.
 in vec3 vout_normal;// Normal coordinate.
@@ -7,6 +8,7 @@ in vec3 vout_frag_position;// Start of fragment position.
 in vec4 vout_directional_light_position;// Position of the light source.
 
 out vec4 fout_frag_color;
+out int fout_entity_ID;
 
 struct Light
 {
@@ -165,4 +167,5 @@ void main()
         light_result = vec4((ambient + diffuse + specular) * vout_frag_color.xyz, vout_frag_color.w);
     }
     fout_frag_color = material_color * light_result;
+    fout_entity_ID = vout_entity_ID;
 }

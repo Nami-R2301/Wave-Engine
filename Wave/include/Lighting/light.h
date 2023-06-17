@@ -13,7 +13,7 @@
 namespace Wave
 {
   
-  class Light : public Printable
+  class Light : public I_printable
   {
     public:
     enum class Light_type_e

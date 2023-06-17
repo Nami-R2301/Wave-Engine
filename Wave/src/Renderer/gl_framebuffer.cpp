@@ -21,6 +21,7 @@ namespace Wave
   {
     switch (target)
     {
+      case Framebuffer_target_e::ID_attachment:
       case Framebuffer_target_e::Color_attachment: return GL_COLOR_ATTACHMENT0 + attachment_index_;
       case Framebuffer_target_e::Depth_attachment: return GL_DEPTH_ATTACHMENT;
       case Framebuffer_target_e::Stencil_attachment: return GL_STENCIL_ATTACHMENT;
@@ -33,6 +34,7 @@ namespace Wave
   {
     switch (target)
     {
+      case Framebuffer_target_e::ID_attachment: return Texture::Texture_internal_format_e::ID_attachment;
       case Framebuffer_target_e::Color_attachment: return Texture::Texture_internal_format_e::Color_attachment;
       case Framebuffer_target_e::Depth_attachment: return Texture::Texture_internal_format_e::Depth_attachment;
       case Framebuffer_target_e::Stencil_attachment: return Texture::Texture_internal_format_e::Stencil_attachment;
@@ -45,11 +47,13 @@ namespace Wave
   {
     switch (target)
     {
+      case Framebuffer_target_e::ID_attachment: return "ID attachment";
       case Framebuffer_target_e::Color_attachment: return "Color attachment";
       case Framebuffer_target_e::Depth_attachment: return "Depth attachment";
       case Framebuffer_target_e::Stencil_attachment: return "Stencil attachment";
       case Framebuffer_target_e::Depth_stencil_attachment: return "Depth stencil attachment";
     }
+    return "Undefined target attachment!";
   }
   
   Gl_framebuffer::Gl_framebuffer(const Framebuffer_options_s &options_)
@@ -64,18 +68,17 @@ namespace Wave
       // Creating the 2D texture of our viewport.
       Framebuffer_attachment_s new_attachment = {attachment.buffer_target, attachment.attachment_index,
                                                  attachment.attachment_texture_slot};
+      
       new_attachment.attachment_texture = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
                                                                       texture_internal_format,
-                                                                      options.width,
-                                                                      options.height,
+                                                                      this->options.width,
+                                                                      this->options.height,
                                                                       0,
                                                                       attachment.attachment_texture_slot,
-                                                                      options.samples == WAVE_VALUE_DONT_CARE ? 0 :
-                                                                      options.samples,
+                                                                      this->options.samples,
                                                                       nullptr});
       
-      new_attachment.buffer_target == Framebuffer_target_e::Color_attachment ?
-      this->color_attachments.emplace_back(new_attachment) : this->depth_attachment = new_attachment;
+      add_attachment(new_attachment);
     }
   }
   
@@ -88,6 +91,48 @@ namespace Wave
     
     delete[] this->data.ibo_data;
     delete[] this->data.vbo_data;
+  }
+  
+  void Gl_framebuffer::add_attachment(const Framebuffer_attachment_s &attachment)
+  {
+    attachment.buffer_target == Framebuffer_target_e::Depth_attachment ||
+    attachment.buffer_target == Framebuffer_target_e::Depth_stencil_attachment ? this->depth_attachment = attachment :
+    this->color_attachments.emplace_back(attachment);
+  }
+  
+  void Gl_framebuffer::blit_color_attachments(int32_t framebuffer_id,
+                                              const std::vector<Framebuffer_attachment_s> &color_attachments_)
+  {
+    CHECK_GL_CALL(glBindFramebuffer(GL_READ_FRAMEBUFFER, this->renderer_id));
+    CHECK_GL_CALL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id));
+    
+    for (const auto &color_attachment: color_attachments_)
+    {
+      CHECK_GL_CALL(glReadBuffer(GL_COLOR_ATTACHMENT0 + color_attachment.attachment_index));
+      CHECK_GL_CALL(glDrawBuffer(GL_COLOR_ATTACHMENT0 + color_attachment.attachment_index));
+      CHECK_GL_CALL(glBlitFramebuffer(0, 0, this->options.width, this->options.height, 0, 0, this->options.width,
+                                      this->options.height, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+    }
+  }
+  
+  int32_t Gl_framebuffer::read_pixel(uint32_t attachment_index, int32_t position_x, int32_t position_y)
+  {
+    CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+    CHECK_GL_CALL(glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment_index));
+    int pixelData;
+    CHECK_GL_CALL(glReadPixels(position_x, position_y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData));
+    
+    return pixelData;
+  }
+  
+  void Gl_framebuffer::clear_attachment([[maybe_unused]] uint32_t attachment_index,
+                                        [[maybe_unused]] int32_t clear_value)
+  {
+    if (this->color_attachments.empty() && !this->depth_attachment.attachment_texture) return;
+    if (this->color_attachments.size() <= attachment_index) return;
+    
+    Framebuffer_attachment_s &attachment = this->color_attachments[attachment_index];
+    CHECK_GL_CALL(glClearTexImage(attachment.attachment_texture->get_id(), 0, GL_RED_INTEGER, GL_INT, &clear_value));
   }
   
   void Gl_framebuffer::send_gpu([[maybe_unused]] uint64_t instance_count)
@@ -170,8 +215,8 @@ namespace Wave
     {
       std::string type = buffer_type_to_string(attachment.buffer_target);
       char buffer_c[LINE_MAX]{0};
-      if (snprintf(buffer_c, sizeof(buffer_c), "%55sType --> %s\n%55sID --> %d\n%55sWidth --> %.2f\n"
-                                               "%55sHeight --> %.2f\n%55sSamples --> %d",
+      if (snprintf(buffer_c, sizeof(buffer_c), "%55sType --> %s\n%55sID --> %d\n%55sWidth --> %d\n"
+                                               "%55sHeight --> %d\n%55sSamples --> %d",
                    DEFAULT, type.c_str(), DEFAULT, this->renderer_id,
                    DEFAULT, this->options.width, DEFAULT, this->options.height, DEFAULT, this->options.samples) < 0)
       {
@@ -189,6 +234,7 @@ namespace Wave
       
       CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
       CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
+      
       
       for (Framebuffer_attachment_s &attachment: this->color_attachments)
       {
@@ -238,7 +284,7 @@ namespace Wave
       if (this->color_attachments.size() > 1)
       {
         GLenum buffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
-        glDrawBuffers((int) this->color_attachments.size(), buffers);
+        CHECK_GL_CALL(glDrawBuffers((int) this->color_attachments.size(), buffers));
       } else if (this->color_attachments.empty())
       {
         // Only depth-pass
@@ -254,21 +300,21 @@ namespace Wave
     if (!this->is_sent()) this->send_gpu(1);
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
-    Gl_renderer::set_viewport(this->options.width, this->options.height);
+    Gl_renderer::set_viewport((float) this->options.width, (float) this->options.height);
   }
   
-  void Gl_framebuffer::resize(float width, float height, void *data_)
+  void Gl_framebuffer::resize(int32_t width, int32_t height, void *data_)
   {
     assert(width > 0 && height > 0);
     if (width != this->options.width || height != this->options.height)
     {
-      alert(WAVE_LOG_INFO, "[GL Framebuffer] --> Resized framebuffer to (%.2f, %.2f)", width, height);
+      alert(WAVE_LOG_INFO, "[GL Framebuffer] --> Resized framebuffer to (%d, %d)", width, height);
     }
     this->options.width = width;
     this->options.height = height;
     
     this->reset();
-    this->on_resize_draw_data(data_);
+    if (data_) this->on_resize_draw_data(data_);
   }
   
   void Gl_framebuffer::on_resize_draw_data(void *data_)
@@ -328,6 +374,11 @@ namespace Wave
       return;
     }
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+  }
+  
+  uint32_t Gl_framebuffer::get_id() const
+  {
+    return this->renderer_id;
   }
   
   const Framebuffer_options_s &Gl_framebuffer::get_options() const

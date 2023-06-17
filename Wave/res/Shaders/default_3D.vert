@@ -1,11 +1,12 @@
 #version 330 core
 
 // Vertex attributes.
-layout (location = 0) in vec3 in_vertex_position;
-layout (location = 1) in vec3 in_vertex_normal;
-layout (location = 2) in vec4 in_color;
-layout (location = 3) in vec2 in_tex_coords;
-layout (location = 4) in mat4 in_model_matrix;
+layout (location = 0) in int in_entity_ID;
+layout (location = 1) in vec3 in_vertex_position;
+layout (location = 2) in vec3 in_vertex_normal;
+layout (location = 3) in vec4 in_color;
+layout (location = 4) in vec2 in_tex_coords;
+layout (location = 5) in mat4 in_model_matrix;
 
 // Camera matrix.
 layout (std140) uniform u_camera
@@ -23,11 +24,13 @@ out vec4 vout_frag_color;
 out vec3 vout_normal;
 out vec3 vout_frag_position;
 out vec4 vout_directional_light_position;
+flat out int vout_entity_ID;
 
 
 void main()
 {
     gl_Position = u_projection * u_view * (in_model_matrix * vec4(in_vertex_position.xyz + (gl_InstanceID * 5), 1.0));
+    vout_entity_ID = in_entity_ID;
     vout_tex_coords = in_tex_coords;
     vout_frag_color = in_color;
     mat3 normal_matrix = mat3(transpose(inverse(u_view * in_model_matrix)));

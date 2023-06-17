@@ -132,7 +132,6 @@ namespace Wave
                                                 element.normalized ? GL_TRUE : GL_FALSE,
                                                 static_cast<GLint>(layout.get_stride()),
                                                 (const void *) (element.offset + sizeof(float) * count * i)));
-            CHECK_GL_CALL(glVertexAttribDivisor(this->vertex_buffer_index, 0));
             this->vertex_buffer_index++;
           }
           break;
