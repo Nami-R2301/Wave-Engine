@@ -64,7 +64,7 @@ namespace Wave
   class On_mouse_movement : public Event
   {
     public:
-    explicit On_mouse_movement(const Vector_2f &position);
+    explicit On_mouse_movement(const Math::Vector_2f &position);
     ~On_mouse_movement() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_mouse_movement);
@@ -74,15 +74,15 @@ namespace Wave
     INTERFACE_PRINTABLE
     
     // MOUSE MOVEMENT INSTANCE FUNCTIONS.
-    [[nodiscard]] const Vector_2f &get_mouse_cursor_position() const;
+    [[nodiscard]] const Math::Vector_2f &get_mouse_cursor_position() const;
     private:
-    Vector_2f mouse_cursor_position = Vector_2f(0);
+    Math::Vector_2f mouse_cursor_position = Math::Vector_2f(0);
   };
   
   class On_mouse_wheel_scroll : public Event
   {
     public:
-    explicit On_mouse_wheel_scroll(const Vector_2f &mouse_scroll_offset_);
+    explicit On_mouse_wheel_scroll(const Math::Vector_2f &mouse_scroll_offset_);
     ~On_mouse_wheel_scroll() override = default;
     
     EVENT_CLASS_TYPE(Event_type::On_mouse_wheel_scroll);
@@ -92,8 +92,8 @@ namespace Wave
     INTERFACE_PRINTABLE
     
     // MOUSE MOVEMENT INSTANCE FUNCTIONS.
-    [[nodiscard]] const Vector_2f &get_mouse_wheel_offset() const;
+    [[nodiscard]] const Math::Vector_2f &get_mouse_wheel_offset() const;
     private:
-    Vector_2f mouse_wheel_offset = Vector_2f(0);
+    Math::Vector_2f mouse_wheel_offset = Math::Vector_2f(0);
   };
 }

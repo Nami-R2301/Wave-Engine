@@ -26,8 +26,8 @@
 namespace Wave
 {
   
-  constexpr int64_t max_vbo_buffer_size = 3'000'000;
-  constexpr int64_t max_ibo_buffer_size = 5'000'000;
+  constexpr int64_t c_max_vbo_buffer_size = 3'000'000;
+  constexpr int64_t c_max_ibo_buffer_size = 5'000'000;
   
   class Renderer
   {
@@ -44,18 +44,19 @@ namespace Wave
       uint64_t text_glyph_count = 0;
     } Renderer_stats_s;
     
-    struct Offset_s
+    typedef struct Offset_s
     {
-      uint64_t vertex_count = 0;
-      uint64_t index_count = 0;
-      uint64_t ibo_offset = 0;
-      uint64_t vbo_offset = 0;
-    };
+      uint64_t instance_count = 1;
+      uint64_t vertex_count = 0, index_count = 0;
+      uint64_t vertex_size = 0, index_size = 0;
+      uint64_t ibo_offset = 0, base_vertex = 0;
+      const void *vertex_data = nullptr, *index_data = nullptr;
+    } Offset_s;
     
     typedef struct Draw_command
     {
-      uint64_t global_vbo_offset = 0, instance_count = 1;
-      std::vector<struct Offset_s> batch_offset;
+      uint64_t batch_total_vbo_size = 0, batch_total_ibo_size = 0;
+      std::unordered_map<uint64_t, Offset_s> batch_offset;
       Shader *associated_shader = nullptr;
       std::shared_ptr<Vertex_array_buffer> vertex_array_buffer;
     } Draw_command;
@@ -79,22 +80,40 @@ namespace Wave
     // Framebuffer manipulations
     static void clear_bg();
     static void set_clear_color(const Color &bg_color);
-    static void set_viewport(const Vector_2f &viewport);
+    static void set_viewport(const Math::Vector_2f &viewport);
     
     // Events
     static void on_event(Event &event);
     
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(Shader &shader, const std::vector<std::shared_ptr<Texture>> &textures_,
-                            const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
-                            const void *indices, uint64_t index_count, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
-                            int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
-    static void send_text(Shader &shader, Texture &texture_atlas, const void *vertices, uint64_t vertex_count,
-                          uint64_t vertex_size, [[maybe_unused]] const void *indices = nullptr,
-                          [[maybe_unused]] uint64_t index_count = 0, int64_t vbo_offset = WAVE_VALUE_DONT_CARE,
-                          [[maybe_unused]] int64_t ibo_offset = WAVE_VALUE_DONT_CARE);
+    
+    // For 3D objects.
+    static void send_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                            const std::vector<uint32_t> &indices,
+                            std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded);
+    // For 2D objects.
+    static void send_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                            const std::vector<uint32_t> &indices,
+                            std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded);
+    // For text.
+    static void send_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                            const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    
+    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                               const std::vector<uint32_t> &indices,
+                               std::vector<std::shared_ptr<Texture>> &textures);
+    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                               const std::vector<uint32_t> &indices,
+                               std::vector<std::shared_ptr<Texture>> &textures);
+    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                               const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    
+    static void free_entity(uint64_t shader_id, uint64_t entity_id);
+    
+    static void batch_data();
     static void flush();
+    
     static void end();
     
     // Shutdown

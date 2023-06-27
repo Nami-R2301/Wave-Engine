@@ -250,6 +250,7 @@ namespace Wave
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGuizmo::BeginFrame();
   }
   
   void ImGui_layer::end()
@@ -268,8 +269,9 @@ namespace Wave
     }
   }
   
-  void ImGui_layer::draw_property(const std::string &label, Vector_2f &values, Vector_2f min_value, Vector_2f max_value,
-                                  Vector_2f speed_value, Vector_2f reset_value, float column_width)
+  void ImGui_layer::draw_property(const std::string &label, Math::Vector_2f &values, Math::Vector_2f min_value,
+                                  Math::Vector_2f max_value, Math::Vector_2f speed_value, Math::Vector_2f reset_value,
+                                  float column_width)
   {
     ImGuiIO &io = ImGui::GetIO();
     auto boldFont = io.Fonts->Fonts[1];
@@ -324,8 +326,9 @@ namespace Wave
   }
   
   void
-  ImGui_layer::display_property(const std::string &label, Vector_3f &values, Vector_3f min_value, Vector_3f max_value,
-                                Vector_3f speed_value, Vector_3f reset_value, float column_width)
+  ImGui_layer::display_property(const std::string &label, Math::Vector_3f &values, Math::Vector_3f min_value,
+                                Math::Vector_3f max_value, Math::Vector_3f speed_value, Math::Vector_3f reset_value,
+                                float column_width)
   {
     ImGuiIO &io = ImGui::GetIO();
     auto boldFont = io.Fonts->Fonts[0];

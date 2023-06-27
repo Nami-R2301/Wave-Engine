@@ -36,16 +36,18 @@ namespace Wave
     // Uniform handling.
     [[nodiscard]] const std::unordered_map<const char *, int> &get_uniforms() const override;
     [[nodiscard]] int get_uniform_location(const char *uniform_name) const override;
+    
+    void bind_texture_units() override;
+    
+    
     void set_uniform(const char *uniform_name, const Color &color) const override;
     void set_uniform(const char *uniform_name, const float *matrix_4f, bool transpose) const override;
-    
     void set_uniform(const char *uniform_name, bool value) const override;
     void set_uniform(const char *uniform_name, int32_t value) const override;
     void set_uniform(const char *uniform_name, uint32_t value) const override;
     void set_uniform(const char *uniform_name, float value) const override;
     void set_uniform(const std::string &uniform_name, const Gpu_light_struct_s &light_struct) const override;
-    
-    [[maybe_unused]] void set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const override;
+    void set_uniform(const char *uniform_name, const Math::Vector_3f &vector_3f) const override;
     
     bool operator==(const Shader &other_shader) const override;
     private:

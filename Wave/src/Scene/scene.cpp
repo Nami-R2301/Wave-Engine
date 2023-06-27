@@ -5,6 +5,7 @@
 #include <Renderer/renderer.h>
 #include <Scene/scene.h>
 #include <Scene/entity.h>
+#include <Events/scene_events.h>
 
 namespace Wave
 {
@@ -105,6 +106,8 @@ namespace Wave
   {
     this->entity_map.erase(entity.get_uuid());
     this->registry.destroy((entt::entity) entity);
+    
+    On_entity_delete on_entity_destroyed(entity);
   }
   
   void Scene::on_runtime_start()

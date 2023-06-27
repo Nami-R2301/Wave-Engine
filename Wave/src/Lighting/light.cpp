@@ -56,7 +56,7 @@ namespace Wave
   
   Point_light::Point_light() : Light()
   {
-    this->position = Vector_3f(0.0f);
+    this->position = Math::Vector_3f(0.0f);
     this->constant = 1.0f;
     this->linear = 0.0f;
     this->exponent = 0.0f;
@@ -64,7 +64,7 @@ namespace Wave
   }
   
   Point_light::Point_light(const Color &color_, float ambient_intensity_, float diffuse_intensity_,
-                           const Vector_3f &position_, float constant_, float linear_, float exponent_) :
+                           const Math::Vector_3f &position_, float constant_, float linear_, float exponent_) :
     Light(color_, ambient_intensity_, diffuse_intensity_)
   {
     this->position = position_;
@@ -100,7 +100,7 @@ namespace Wave
     return this->light_type;
   }
   
-  const Vector_3f &Point_light::get_position() const
+  const Math::Vector_3f &Point_light::get_position() const
   {
     return this->position;
   }

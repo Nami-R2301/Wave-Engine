@@ -8,7 +8,7 @@
 #include <cmath>
 #include <string>
 
-namespace Wave
+namespace Wave::Math
 {
   
   class Vector_2f

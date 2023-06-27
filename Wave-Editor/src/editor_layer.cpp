@@ -6,15 +6,15 @@
 
 namespace Wave
 {
-  
+  Scene_ui_panel Editor_layer::scene_panel = {nullptr, {}};
   static float s_imgui_app_performance_stat = 0.0f;
   static float s_imgui_app_performance_timer = 0.0f;
   
   Editor_layer::Editor_layer(const std::shared_ptr<Scene> &active_scene_,
                              const std::vector<Entity> &entities_,
-                             const std::shared_ptr<Framebuffer> &viewport_) : scene_panel(active_scene_, {}),
-                                                                              entities(entities_)
+                             const std::shared_ptr<Framebuffer> &viewport_) : entities(entities_)
   {
+    Editor_layer::scene_panel = Scene_ui_panel(active_scene_, {});
     this->layer_name = "Editor layer";
     this->framebuffer_viewport_data.viewport = viewport_;
     // Setup framebuffer shader.
@@ -35,31 +35,30 @@ namespace Wave
   
   void Editor_layer::on_attach()
   {
+    this->camera->set_position(0, 0, 0.0f);
     // Setup objects transformations.
-    this->objects[0]->translate(0, 0, 5);
-    this->objects[0]->rotate(0, 0, 0);
+    this->objects[0]->translate(-5, 2, 5);
+    this->objects[0]->rotate(90, 0, 0);
     
     this->objects[1]->translate(10, -10, 20);
     this->objects[1]->rotate(90, -90, 0);
     
-    this->objects[2]->translate(-3.5, -2, 6);
+    this->objects[2]->translate(10, 0, 10);
     this->objects[2]->rotate(45, 0, 0);
     
+    this->objects[3]->scale(0.1f, 0.1f, 0.1f);
+    
     // Setup how object behaves with lighting.
-    Point_light point_light = Point_light(Color(0xFFFFFFFF), 0.1f, 0.4f,
-                                          this->camera->get_position(),
-                                          0.3f, 0.2f, 0.1f);
-    Point_light point_light_2 = Point_light(Color(0xFFFFFFFF), 0.1f, 0.3f,
+//    Point_light point_light = Point_light(Color(0xFFFFFFFF), 1.0f, 1.0f,
+//                                          Math::Vector_3f(0, 0, 0),
+//                                          0.3f, 0.2f, 0.1f);
+    Point_light point_light_2 = Point_light(Color(0xFFFFFFFF), 0.0f, 0.5f,
                                             this->camera->get_position(),
                                             0.3f, 0.2f, 0.1f);
+
+//    this->objects[2]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
     
-    this->objects[0]->calculate_average_normals();
-    this->objects[0]->calculate_effect_by_light(point_light);
-    
-    this->objects[1]->calculate_average_normals();
-    this->objects[1]->calculate_effect_by_light(point_light_2);
-    
-    this->objects[2]->calculate_average_normals();
+    this->objects[0]->calculate_effect_by_light(point_light_2);
     this->objects[2]->calculate_effect_by_light(point_light_2);
   }
   
@@ -70,51 +69,29 @@ namespace Wave
   
   void Editor_layer::on_event([[maybe_unused]] Event &event)
   {
+    this->camera->on_event(event);
   }
   
   void Editor_layer::on_update(float time_step)
   {
     if (s_imgui_app_performance_timer == 0) s_imgui_app_performance_stat = Engine::get_time_step();
-    s_imgui_app_performance_timer += time_step;
-    this->camera->on_update(time_step);  // Update camera.
+    s_imgui_app_performance_timer += time_step;  // Update imgui performance counter.
+    this->camera->on_update(time_step);
+//    this->objects[1]->rotate(time_step * 10, 0, 0);
+//    this->objects[1]->send_gpu(1);
     
-    // Update window.
-    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
-    {
-      Wave::Display_settings::toggle_fullscreen(Wave::Engine::get_main_window());
-    }
+    this->objects[0]->rotate((cosf((float) glfwGetTime())), 0,
+                             (sinf((float) glfwGetTime())));
+//    this->objects[2]->rotate((cosf((float) glfwGetTime())), 0,
+//                             (sinf((float) glfwGetTime())));
     
-    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_V))
-    {
-      Wave::Display_settings::set_vsync(Wave::Engine::get_main_window(),
-                                        !Wave::Engine::get_main_window()->is_vsync());
-    }
-    
-    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_6))
-    {
-      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 60);
-    }
-    
-    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_3))
-    {
-      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 30);
-    }
-    
-    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_1))
-    {
-      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 1);
-    }
-    
-    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_9))
-    {
-      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 144);
-    }
-    
-    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_F4))
-    {
-      Wave::alert(WAVE_LOG_WARN, "[SETTING] --> Force shutdown");
-      Wave::Engine::get_main_window()->close();
-    }
+    this->objects[0]->translate((cosf((float) glfwGetTime()) * 20), 0,
+                                (sinf((float) glfwGetTime()) * 20) + 10);
+    this->objects[0]->send_gpu(1);
+    Point_light point_light_2 = Point_light(Color(0xFFFFFFFF), 0.0f, 0.5f,
+                                            this->camera->get_position(),
+                                            0.3f, 0.2f, 0.1f);
+    this->objects[2]->calculate_effect_by_light(point_light_2);
   }
   
   void Editor_layer::on_render()
@@ -175,7 +152,7 @@ namespace Wave
         {
           auto renderer_stats = Renderer::get_stats();
           ImGui::Text("Renderer 3D");
-          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + this->scene_panel.get_size_boundaries().get_z());
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + Editor_layer::scene_panel.get_size_boundaries().get_z());
           ImGui::Text("\t\tRenderer stats (per frame) :\n"
                       "\t\t\t\tDraw calls = %ld\n"
                       "\t\t\t\tTotal number of shaders sent = %ld"
@@ -203,8 +180,8 @@ namespace Wave
     // Render scene UI.
     ImGui::SetNextWindowViewport(viewport_->ID);
     
-    io.Fonts->Fonts[1]->Scale = this->scene_panel.get_font_scale();
-    this->scene_panel.on_ui_render();
+    io.Fonts->Fonts[1]->Scale = Editor_layer::scene_panel.get_font_scale();
+    Editor_layer::scene_panel.on_ui_render();
     io.Fonts->Fonts[1]->Scale = 1.0f;  // Reset scale for other components.
     
     // Render Viewport framebuffer UI.
@@ -213,6 +190,72 @@ namespace Wave
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     if (ImGui::Begin("Viewport"))
     {
+      auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+      auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+      auto viewportOffset = ImGui::GetWindowPos();
+      Math::Vector_2f min_bounds = {viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y};
+      Math::Vector_2f max_bounds = {viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y};
+      
+      // Gizmos
+      Entity selectedEntity = Editor_layer::scene_panel.get_selected_entity();
+      if (selectedEntity)
+      {
+        ImGuizmo::SetOrthographic(false);
+        ImGuizmo::SetDrawlist();
+        
+        ImGuizmo::SetRect(min_bounds.get_x(), min_bounds.get_y(),
+                          max_bounds.get_x() - min_bounds.get_x(),
+                          max_bounds.get_y() - min_bounds.get_y());
+        
+        // Camera
+        
+        // Runtime camera from entity
+        // auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+        // const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
+        // const glm::mat4& cameraProjection = camera.GetProjection();
+        // glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+        
+        // Editor camera
+        const Math::Matrix_4f &cameraProjection = this->camera->get_projection_matrix();
+        Math::Matrix_4f cameraView = this->camera->get_view_matrix();
+        
+        // Entity transform
+        if (selectedEntity.has_component<std::shared_ptr<Object>>())
+        {
+          auto &tc = selectedEntity.get_component<std::shared_ptr<Object>>();
+          Math::Matrix_4f model_matrix = tc->get_model_matrix();
+          const Math::Transform &transform = tc->get_model_transform();
+          this->guizmo_type = ImGuizmo::OPERATION::TRANSLATE;
+          
+          // Snapping
+          bool snap = Input::is_key_held(WAVE_KEY_LEFT_ALT);
+          if (snap) this->guizmo_type = ImGuizmo::OPERATION::ROTATE;
+          float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+          // Snap to 45 degrees for rotation
+          if (this->guizmo_type == ImGuizmo::OPERATION::ROTATE)
+            snapValue = 45.0f;
+          
+          float snapValues[3] = {snapValue, snapValue, snapValue};
+          
+          ImGuizmo::Manipulate(&cameraView.get_matrix()[0][0], &cameraProjection.get_matrix()[0][0],
+                               (ImGuizmo::OPERATION) this->guizmo_type, ImGuizmo::WORLD,
+                               &model_matrix.get_matrix()[0][0],
+                               nullptr, snap ? snapValues : nullptr);
+          
+          if (ImGuizmo::IsUsing())
+          {
+            Math::Vector_3f translation, rotation, scale;
+            Wave::Math::Matrix_4f::decompose_matrix(model_matrix, translation, rotation, scale);
+            if (this->guizmo_type == ImGuizmo::OPERATION::ROTATE &&
+                rotation != transform.get_rotation())
+              rotation += transform.get_rotation();
+            else rotation = transform.get_rotation();
+            
+            tc->set_model_transform(Math::Transform(translation, rotation, scale));
+            tc->send_gpu(1);
+          }
+        }
+      }
       ImGuiDockNode *viewport_dock_node;
       viewport_dock_node = ImGui::DockBuilderGetNode(ImGui_layer::viewport_panel_dock_id);
       if (viewport_dock_node) viewport_dock_node->HostWindow->DrawList->Flags |= ImDrawListFlags_AntiAliasedLines;

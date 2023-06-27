@@ -20,10 +20,8 @@ namespace Wave
     ID_component_s() = default;
     ID_component_s(const ID_component_s &) = default;
     
-    explicit ID_component_s(const UUID &uuid)
-    {
-      this->ID = uuid;
-    };
+    explicit ID_component_s(const UUID &uuid) : ID(uuid)
+    {}
   };
   
   struct Tag_component_s
@@ -41,51 +39,55 @@ namespace Wave
   
   struct Transform_component_s
   {
-    Transform transform_component;
+    Math::Transform transform_component;
+    Math::Matrix_4f model_matrix = Math::Matrix_4f(1.0f);
     
     Transform_component_s() = default;
     Transform_component_s(const Transform_component_s &) = default;
     
-    explicit Transform_component_s(const Transform &transform_)
-    {
-      this->transform_component = transform_;
-    }
+    explicit Transform_component_s(const Math::Transform &transform_) : transform_component(transform_)
+    {}
     
-    explicit Transform_component_s(const Vector_3f &translation, const Vector_3f &rotation, const Vector_3f &scale)
+    explicit Transform_component_s(const Math::Vector_3f &translation, const Math::Vector_3f &rotation,
+                                   const Math::Vector_3f &scale)
     {
       this->transform_component.set_translation(translation);
       this->transform_component.set_rotation(rotation);
       this->transform_component.set_scale(scale);
     }
     
-    [[nodiscard]] const Transform &get_transform() const
+    [[nodiscard]] const Math::Transform &get_transform() const
     {
       return this->transform_component;
     }
     
-    [[nodiscard]] Transform &get_transform()
+    [[nodiscard]] Math::Transform &get_transform()
     {
       return this->transform_component;
+    }
+    
+    [[nodiscard]] Math::Matrix_4f get_transform_matrix() const
+    {
+      return this->transform_component.get_transform_matrix();
     }
   };
   
   struct Sprite_component_s
   {
-    Vector_4f Color{1.0f, 1.0f, 1.0f, 1.0f};
+    Math::Vector_4f Color{1.0f, 1.0f, 1.0f, 1.0f};
     std::shared_ptr<Texture> texture;
     float TilingFactor = 1.0f;
     
     Sprite_component_s() = default;
     Sprite_component_s(const Sprite_component_s &) = default;
     
-    explicit Sprite_component_s(const Vector_4f &color)
-      : Color(color)
+    explicit Sprite_component_s(const Math::Vector_4f &color) : Color(color)
     {}
   };
   
   struct Circle_component_s
   {
-    Vector_4f Color{1.0f, 1.0f, 1.0f, 1.0f};
+    Math::Vector_4f Color{1.0f, 1.0f, 1.0f, 1.0f};
     float Thickness = 1.0f;
     float Fade = 0.005f;
     
@@ -151,8 +153,8 @@ namespace Wave
   
   struct Box_collider_2D_component_s
   {
-    Vector_2f Offset = {0.0f, 0.0f};
-    Vector_2f Size = {0.5f, 0.5f};
+    Math::Vector_2f Offset = {0.0f, 0.0f};
+    Math::Vector_2f Size = {0.5f, 0.5f};
     
     float Density = 1.0f;
     float Friction = 0.5f;
@@ -168,7 +170,7 @@ namespace Wave
   
   struct Circle_collider_2D_component_s
   {
-    Vector_2f Offset = {0.0f, 0.0f};
+    Math::Vector_2f Offset = {0.0f, 0.0f};
     float Radius = 0.5f;
     
     float Density = 1.0f;

@@ -80,14 +80,30 @@ namespace Wave
     
     // Rendering objects.
     static void begin(std::shared_ptr<Camera> &camera);
-    static void send_object(Shader &shader, const std::vector<std::shared_ptr<Texture>> &textures_,
-                            const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
-                            const void *indices, uint64_t index_count, int64_t vbo_offset, int64_t ibo_offset);
-    static void send_text(Shader &shader, Texture &texture_atlas, const void *vertices, uint64_t vertex_count,
-                          uint64_t vertex_size, [[maybe_unused]] const void *indices,
-                          [[maybe_unused]] uint64_t index_count, int64_t vbo_offset,
-                          [[maybe_unused]] int64_t ibo_offset);
+    
+    static void send_entity(uint64_t entity_id, Shader &shader,
+                            const std::vector<Vertex_2D> &vertices, const std::vector<uint32_t> &indices,
+                            std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded);
+    static void send_entity(uint64_t entity_id, Shader &shader,
+                            const std::vector<Vertex_3D> &vertices, const std::vector<uint32_t> &indices,
+                            std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded);
+    static void send_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                            const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    
+    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                               const std::vector<uint32_t> &indices,
+                               std::vector<std::shared_ptr<Texture>> &textures);
+    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                               const std::vector<uint32_t> &indices,
+                               std::vector<std::shared_ptr<Texture>> &textures);
+    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                               const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    
+    static void free_entity(uint64_t shader_id, uint64_t entity_id);
+    
+    static void batch_data();
     static void flush();
+    
     static void end();
     
     // Error handling.
@@ -113,11 +129,11 @@ namespace Wave
     private:
     // Loading assets and buffers.
     static void load_dynamic_vbo_data(const void *vertices, uint64_t count, uint64_t size, uint64_t command_index,
-                                      int64_t vbo_offset);
+                                      uint64_t vbo_offset);
     static void load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index,
-                                      int64_t ibo_offset);
-    static void init_object_draw_command(Shader &shader_linked);
-    static void init_text_draw_command(Shader &shader_linked);
+                                      uint64_t ibo_offset);
+    static void init_object_draw_command(uint32_t entity_id, Shader &shader_linked, bool flat_shaded);
+    static void init_text_draw_command(uint32_t entity_id, Shader &shader_linked);
   };
 }
 

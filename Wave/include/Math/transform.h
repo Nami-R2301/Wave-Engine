@@ -7,7 +7,7 @@
 #include <Core/interfaces.h>
 #include <Math/matrix_4f.h>
 
-namespace Wave
+namespace Wave::Math
 {
   
   class Transform : public I_printable

@@ -15,3 +15,6 @@
 [submodule "Wave/Wave/include/Dependencies/glm"]
 	path = Wave/Wave/include/Dependencies/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Wave/include/Dependencies/ImGuizmo"]
+	path = Wave/include/Dependencies/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

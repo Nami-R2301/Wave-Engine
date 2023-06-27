@@ -118,14 +118,14 @@ namespace Wave
     return previous_mouse_btn_state == WAVE_PRESS && Input::mouse_button_states[mouse_button] == WAVE_RELEASE;
   }
   
-  void Input::set_mouse_cursor_position(const Vector_2f &position)
+  void Input::set_mouse_cursor_position(const Math::Vector_2f &position)
   {
     (
       glfwSetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), position.get_x(),
                        position.get_y()));
   }
   
-  Vector_2f Input::get_mouse_cursor_position()
+  Math::Vector_2f Input::get_mouse_cursor_position()
   {
     double position_x = 0.0f, position_y = 0.0f;
     glfwGetCursorPos(static_cast<GLFWwindow *>(Engine::get_main_window()->get_native_window()), &position_x,

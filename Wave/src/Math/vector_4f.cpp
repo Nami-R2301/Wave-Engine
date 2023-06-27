@@ -4,7 +4,7 @@
 
 #include <Math/vector.h>
 
-namespace Wave
+namespace Wave::Math
 {
   
   Vector_4f::Vector_4f(float uniform_scalar)

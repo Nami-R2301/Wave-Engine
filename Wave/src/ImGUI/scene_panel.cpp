@@ -15,15 +15,15 @@ namespace Wave
     this->scene_ui_data = scene_ui_data_;
   }
   
-  void Scene_ui_panel::translate(const Vector_3f &position)
+  void Scene_ui_panel::translate(const Math::Vector_3f &position)
   {
-    this->scene_ui_data.origin = (Vector_2f) position;
+    this->scene_ui_data.origin = (Math::Vector_2f) position;
     this->moved = true;
   }
   
   void Scene_ui_panel::translate(float x, float y, [[maybe_unused]] float z)
   {
-    this->scene_ui_data.origin = Vector_2f(x, y);
+    this->scene_ui_data.origin = Math::Vector_2f(x, y);
     this->moved = true;
   }
   
@@ -41,25 +41,25 @@ namespace Wave
     
     ImGuiDockNode *scene_dock_node;
     scene_dock_node = ImGui::DockBuilderGetNode(ImGui_layer::scene_panel_dock_id);
-    Vector_2f current_position, current_size;
+    Math::Vector_2f current_position, current_size;
     if (scene_dock_node)
     {
-      current_position = Vector_2f(scene_dock_node->Pos.x, scene_dock_node->Pos.y),
-        current_size = Vector_2f(scene_dock_node->Size.x, scene_dock_node->Size.y);
+      current_position = Math::Vector_2f(scene_dock_node->Pos.x, scene_dock_node->Pos.y),
+        current_size = Math::Vector_2f(scene_dock_node->Size.x, scene_dock_node->Size.y);
       
       if (current_position != this->scene_ui_data.origin)
       {
-        this->translate(Vector_3f(current_position));
+        this->translate(Math::Vector_3f(current_position));
         
         scene_dock_node->Pos = ImVec2(this->scene_ui_data.origin.get_x(), this->scene_ui_data.origin.get_y());
       }
       
       
-      if (Vector_2f(this->get_size_boundaries().get_x(), this->get_size_boundaries().get_y()) != current_size)
+      if (Math::Vector_2f(this->get_size_boundaries().get_x(), this->get_size_boundaries().get_y()) != current_size)
       {
-        this->scene_ui_data.size_boundaries = Vector_4f(this->get_size_boundaries().get_x(),
-                                                        this->get_size_boundaries().get_y(),
-                                                        current_size.get_x(), current_size.get_y());
+        this->scene_ui_data.size_boundaries = Math::Vector_4f(this->get_size_boundaries().get_x(),
+                                                              this->get_size_boundaries().get_y(),
+                                                              current_size.get_x(), current_size.get_y());
         
         scene_dock_node->Size = ImVec2(this->scene_ui_data.size_boundaries.get_z(),
                                        this->scene_ui_data.size_boundaries.get_w());
@@ -97,12 +97,17 @@ namespace Wave
     ImGui::PopStyleVar();  // Window padding
   }
   
-  const Vector_2f &Scene_ui_panel::get_position() const
+  const Entity &Scene_ui_panel::get_selected_entity() const
+  {
+    return this->selected_entity;
+  }
+  
+  const Math::Vector_2f &Scene_ui_panel::get_position() const
   {
     return this->scene_ui_data.origin;
   }
   
-  const Vector_4f &Scene_ui_panel::get_size_boundaries() const
+  const Math::Vector_4f &Scene_ui_panel::get_size_boundaries() const
   {
     return this->scene_ui_data.size_boundaries;
   }
@@ -117,12 +122,17 @@ namespace Wave
     return this->scene_ui_data.font_scale;
   }
   
-  void Scene_ui_panel::set_position(const Vector_2f &position_)
+  void Scene_ui_panel::set_selected_entity(const Entity &entity_)
+  {
+    this->selected_entity = entity_;
+  }
+  
+  void Scene_ui_panel::set_position(const Math::Vector_2f &position_)
   {
     this->scene_ui_data.origin = position_;
   }
   
-  void Scene_ui_panel::set_size_boundaries(const Vector_4f &size_boundaries_)
+  void Scene_ui_panel::set_size_boundaries(const Math::Vector_4f &size_boundaries_)
   {
     this->scene_ui_data.size_boundaries = size_boundaries_;
   }
@@ -164,29 +174,39 @@ namespace Wave
                                          ImGuiTreeNodeFlags_SpanAvailWidth |
                                          ImGuiTreeNodeFlags_FramePadding))
       {
-        if (entity.has_component<Transform_component_s>())
+        
+        if (entity.has_component<std::shared_ptr<Object>>())
         {
+          Math::Transform component_transform = entity.get_component<std::shared_ptr<Object>>()->get_model_transform();
+          
           ImGui_layer::display_property("Translation",
-                                        entity.get_component<Transform_component_s>().get_transform().get_translation(),
-                                        Vector_3f(0.0f),
-                                        Vector_3f(0.0f),
-                                        Vector_3f(5.0f),
-                                        Vector_3f(0.0f),
+                                        component_transform.get_translation(),
+                                        Math::Vector_3f(0.0f),
+                                        Math::Vector_3f(0.0f),
+                                        Math::Vector_3f(5.0f),
+                                        Math::Vector_3f(0.0f),
                                         120.0f);
           ImGui_layer::display_property("Rotation",
-                                        entity.get_component<Transform_component_s>().get_transform().get_rotation(),
-                                        Vector_3f(0.0f),
-                                        Vector_3f(0.0f),
-                                        Vector_3f(10.0f),
-                                        Vector_3f(0.0f),
+                                        component_transform.get_rotation(),
+                                        Math::Vector_3f(0.0f),
+                                        Math::Vector_3f(0.0f),
+                                        Math::Vector_3f(10.0f),
+                                        Math::Vector_3f(0.0f),
                                         120.0f);
           ImGui_layer::display_property("Scale",
-                                        entity.get_component<Transform_component_s>().get_transform().get_scale(),
-                                        Vector_3f(0.0f),
-                                        Vector_3f(0.0f),
-                                        Vector_3f(0.1f),
-                                        Vector_3f(0.0f),
+                                        component_transform.get_scale(),
+                                        Math::Vector_3f(0.0f),
+                                        Math::Vector_3f(0.0f),
+                                        Math::Vector_3f(0.1f),
+                                        Math::Vector_3f(0.0f),
                                         120.0f);
+          
+          if (component_transform != entity.get_component<std::shared_ptr<Object>>()->get_model_transform())
+          {
+            entity.get_component<std::shared_ptr<Object>>()->set_model_transform(component_transform);
+            entity.get_component<std::shared_ptr<Object>>()->send_gpu(1);
+//            entity.add_or_replace_component<Transform_component_s>(component_transform);
+          }
         }
         ImGui::TreePop();  // Transform.
       }
@@ -194,6 +214,9 @@ namespace Wave
       ImGui::TreePop();  // Entity.
     }
     
-    if (entityDeleted) this->context->destroy_entity(entity);
+    if (entityDeleted)
+    {
+      this->context->destroy_entity(entity);
+    }
   }
 }

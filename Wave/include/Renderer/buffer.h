@@ -7,6 +7,8 @@
 #include <wave_pch.h>
 #include <Renderer/color.h>
 
+#include <utility>
+
 namespace Wave
 {
   enum class Buffer_data_type
@@ -54,8 +56,9 @@ namespace Wave
     public:
     Buffer_element() = default;
     
-    Buffer_element(Buffer_data_type type, std::string name, bool normalized = false)
-      : name(std::move(name)), type(type), size(Buffer_data_type_size(type)), offset(0), normalized(normalized)
+    Buffer_element(Buffer_data_type type, std::string name, bool normalized = false, bool flat = false)
+      : name(std::move(name)), type(type), size(Buffer_data_type_size(type)), offset(0), normalized(normalized),
+        flat(flat)
     {
     }
     
@@ -87,6 +90,7 @@ namespace Wave
     uint64_t size = 0;
     size_t offset = 0;
     bool normalized = false;
+    bool flat = false;
   };
   
   class Buffer_layout
@@ -163,8 +167,8 @@ namespace Wave
     virtual void set_layout(const Buffer_layout &layout) = 0;
     
     static std::shared_ptr<Vertex_buffer> create(uint64_t size, uint64_t count);
-    static std::shared_ptr<Vertex_buffer>
-    create(const void *vertices, uint64_t size, uint64_t count, Buffer_type buffer_type);
+    static std::shared_ptr<Vertex_buffer> create(const void *vertices, uint64_t size, uint64_t count,
+                                                 Buffer_type buffer_type);
     protected:
     bool bound = false;
   };

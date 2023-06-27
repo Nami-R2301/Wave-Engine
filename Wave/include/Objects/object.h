@@ -46,21 +46,21 @@ namespace Wave
   
   typedef struct Object_2D_data_s
   {
-    Vector_2f origin;
+    Math::Vector_2f origin;
     std::vector<Vertex_2D> vertices;
     std::vector<Face_2D_s> indices;
-    std::vector<Vector_2f> normals;
-    std::vector<Vector_2f> tex_coords;
+    std::vector<Math::Vector_2f> normals;
+    std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
   } Object_2D_data_s;
   
   typedef struct Object_3D_data_s
   {
-    Vector_3f origin;
+    Math::Vector_3f origin;
     std::vector<Vertex_3D> vertices;
     std::vector<Face_3D_s> indices;
-    std::vector<Vector_3f> normals;
-    std::vector<Vector_2f> tex_coords;
+    std::vector<Math::Vector_3f> normals;
+    std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
   } Object_3D_data_s;
   
@@ -84,6 +84,8 @@ namespace Wave
                                           const std::shared_ptr<Shader> &associated_shader_ = nullptr,
                                           int32_t id_ = 0);
     
+    [[nodiscard]] virtual int32_t get_id() const = 0;
+    [[nodiscard]] virtual bool is_flat_shaded() const = 0;
     [[nodiscard]] virtual const void *get_vertices() const = 0;
     [[nodiscard]] virtual uint64_t get_vertex_count() const = 0;
     [[nodiscard]] virtual uint64_t get_vertex_size() const = 0;
@@ -91,23 +93,24 @@ namespace Wave
     [[nodiscard]] virtual uint64_t get_face_count() const = 0;
     [[nodiscard]] virtual const std::vector<std::shared_ptr<Texture>> &get_textures() const = 0;
     [[nodiscard]] virtual uint64_t get_texture_count() const = 0;
-    [[nodiscard]] virtual const Matrix_4f &get_model_matrix() const = 0;
-    [[nodiscard]] virtual const Transform &get_model_transform() const = 0;
+    [[nodiscard]] virtual const Math::Matrix_4f &get_model_matrix() const = 0;
+    [[nodiscard]] virtual const Math::Transform &get_model_transform() const = 0;
     [[nodiscard]] virtual const std::shared_ptr<Shader> &get_shader() const = 0;
     
     INTERFACE_IDENTIFIABLE;
     
-    virtual void set_position(const Vector_3f &position_) = 0;
+    virtual void set_position(const Math::Vector_3f &position_) = 0;
     virtual void set_color(const Color &color) = 0;
     virtual void add_texture(const std::shared_ptr<Texture> &texture_) = 0;
     virtual void replace_texture(uint64_t index, const std::shared_ptr<Texture> &texture_) = 0;
     virtual void set_textures(const std::vector<std::shared_ptr<Texture>> &textures_) = 0;
     
-    virtual void set_texture_coord(uint64_t index, const Vector_2f &tex_coords_) = 0;
-    virtual void set_texture_coords(const std::vector<Vector_2f> &tex_coords_) = 0;
-    virtual void set_model_transform(const Transform &model_transform_) = 0;
-    virtual void set_model_matrix(const Matrix_4f &mat) = 0;
+    virtual void set_texture_coord(uint64_t index, const Math::Vector_2f &tex_coords_) = 0;
+    virtual void set_texture_coords(const std::vector<Math::Vector_2f> &tex_coords_) = 0;
+    virtual void set_model_transform(const Math::Transform &model_transform_) = 0;
+    virtual void set_model_matrix(const Math::Matrix_4f &mat) = 0;
     
+    virtual void enable_flat_shading() = 0;
     virtual void calculate_average_normals() = 0;
     virtual void calculate_effect_by_light(const Light &light_source) = 0;
     virtual void normalize() = 0;
@@ -136,33 +139,35 @@ namespace Wave
     INTERFACE_ROTATABLE;
     INTERFACE_SCALABLE;
     
+    [[nodiscard]] int32_t get_id() const override;
+    [[nodiscard]] bool is_flat_shaded() const override;
     [[nodiscard]] Object_type_e get_type() const;
-    [[nodiscard]] const Vector_2f &get_position() const;
+    [[nodiscard]] const Math::Vector_2f &get_position() const;
     [[nodiscard]] const void *get_vertices() const override;
     [[nodiscard]] const Vertex_2D &get_vertex(uint64_t index) const;
     [[nodiscard]] uint64_t get_vertex_count() const override;
     [[nodiscard]] uint64_t get_vertex_size() const override;
     [[nodiscard]] const void *get_faces() const override;
     [[nodiscard]] uint64_t get_face_count() const override;
-    [[nodiscard]] const std::vector<Vector_2f> &get_normals() const;
-    [[nodiscard]] const std::vector<Vector_2f> &get_tex_coords() const;
+    [[nodiscard]] const std::vector<Math::Vector_2f> &get_normals() const;
+    [[nodiscard]] const std::vector<Math::Vector_2f> &get_tex_coords() const;
     [[nodiscard]] const std::vector<std::shared_ptr<Texture>> &get_textures() const override;
     [[nodiscard]] uint64_t get_texture_count() const override;
-    [[nodiscard]] const Matrix_4f &get_model_matrix() const override;
-    [[nodiscard]] const Transform &get_model_transform() const override;
+    [[nodiscard]] const Math::Matrix_4f &get_model_matrix() const override;
+    [[nodiscard]] const Math::Transform &get_model_transform() const override;
     [[nodiscard]] const std::shared_ptr<Shader> &get_shader() const override;
     
-    void set_origin(const Vector_2f &origin_);
+    void set_origin(const Math::Vector_2f &origin_);
     void set_color(const Color &color) override;
-    void set_position(const Vector_3f &position) override;
+    void set_position(const Math::Vector_3f &position) override;
     void reset_position();
     
     void add_face(uint32_t face);
     void replace_face(uint64_t index, uint32_t face_);
     void set_faces(const std::vector<uint32_t> &faces_);
     
-    void set_normal(uint64_t index, const Vector_2f &normal_);
-    void set_normals(const std::vector<Vector_2f> &normal_);
+    void set_normal(uint64_t index, const Math::Vector_2f &normal_);
+    void set_normals(const std::vector<Math::Vector_2f> &normal_);
     
     void add_vertex(const Vertex_2D &vertex_);
     void replace_vertex(uint64_t index, const Vertex_2D &new_vertex);
@@ -172,11 +177,12 @@ namespace Wave
     void replace_texture(uint64_t index, const std::shared_ptr<Texture> &texture_) override;
     void set_textures(const std::vector<std::shared_ptr<Texture>> &textures_) override;
     
-    void set_texture_coord(uint64_t index, const Vector_2f &tex_coords_) override;
-    void set_texture_coords(const std::vector<Vector_2f> &tex_coords_) override;
-    void set_model_transform(const Transform &model_transform_) override;
-    void set_model_matrix(const Matrix_4f &mat) override;
+    void set_texture_coord(uint64_t index, const Math::Vector_2f &tex_coords_) override;
+    void set_texture_coords(const std::vector<Math::Vector_2f> &tex_coords_) override;
+    void set_model_transform(const Math::Transform &model_transform_) override;
+    void set_model_matrix(const Math::Matrix_4f &mat) override;
     
+    void enable_flat_shading() override;
     void calculate_average_normals() override;
     void calculate_effect_by_light(const Light &light_source) override;
     void normalize() override;
@@ -187,16 +193,17 @@ namespace Wave
     protected:
     Object_type_e object_type_e = Object_type_e::Object_2D;
     uint64_t vertex_size = sizeof(Vertex_2D);
-    Vector_2f origin{0.0f};
+    Math::Vector_2f origin{0.0f};
     std::vector<Vertex_2D> vertices;
-    std::vector<Vector_2f> normals;
+    std::vector<Math::Vector_2f> normals;
     std::vector<uint32_t> faces;
-    std::vector<Vector_2f> tex_coords;
+    std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
-    Matrix_4f model_matrix = Matrix_4f(1.0f);
-    Transform model_transform{};
+    Math::Matrix_4f model_matrix = Math::Matrix_4f(1.0f);
+    Math::Transform model_transform{};
     std::shared_ptr<Shader> associated_shader;
     bool sent = false;
+    bool flat_shaded = false;
     protected:
     void prepare_vertices(const Object_2D_data_s &sprite);
   };
@@ -275,33 +282,35 @@ namespace Wave
     INTERFACE_ROTATABLE;
     INTERFACE_SCALABLE;
     
+    [[nodiscard]] int32_t get_id() const override;
+    [[nodiscard]] bool is_flat_shaded() const override;
     [[nodiscard]] Object_type_e get_type() const;
-    [[nodiscard]] const Vector_3f &get_position() const;
+    [[nodiscard]] const Math::Vector_3f &get_position() const;
     [[nodiscard]] const void *get_vertices() const override;
     [[nodiscard]] const Vertex_3D &get_vertex(uint64_t index) const;
     [[nodiscard]] uint64_t get_vertex_count() const override;
     [[nodiscard]] uint64_t get_vertex_size() const override;
     [[nodiscard]] const void *get_faces() const override;
     [[nodiscard]] uint64_t get_face_count() const override;
-    [[nodiscard]] const std::vector<Vector_3f> &get_normals() const;
-    [[nodiscard]] const std::vector<Vector_2f> &get_tex_coords() const;
+    [[nodiscard]] const std::vector<Math::Vector_3f> &get_normals() const;
+    [[nodiscard]] const std::vector<Math::Vector_2f> &get_tex_coords() const;
     [[nodiscard]] const std::vector<std::shared_ptr<Texture>> &get_textures() const override;
     [[nodiscard]] uint64_t get_texture_count() const override;
-    [[nodiscard]] const Matrix_4f &get_model_matrix() const override;
-    [[nodiscard]] const Transform &get_model_transform() const override;
+    [[nodiscard]] const Math::Matrix_4f &get_model_matrix() const override;
+    [[nodiscard]] const Math::Transform &get_model_transform() const override;
     [[nodiscard]] const std::shared_ptr<Shader> &get_shader() const override;
     
-    void set_origin(const Vector_3f &origin_);
+    void set_origin(const Math::Vector_3f &origin_);
     void set_color(const Color &color) override;
-    void set_position(const Vector_3f &position) override;
+    void set_position(const Math::Vector_3f &position) override;
     void reset_position();
     
     void add_face(uint32_t face);
     void replace_face(uint64_t index, uint32_t face_);
     void set_faces(const std::vector<uint32_t> &faces_);
     
-    void set_normal(uint64_t index, const Vector_3f &normal_);
-    void set_normals(const std::vector<Vector_3f> &normal_);
+    void set_normal(uint64_t index, const Math::Vector_3f &normal_);
+    void set_normals(const std::vector<Math::Vector_3f> &normal_);
     
     void add_vertex(const Vertex_3D &vertex_);
     void replace_vertex(uint64_t index, const Vertex_3D &new_vertex);
@@ -311,11 +320,12 @@ namespace Wave
     void replace_texture(uint64_t index, const std::shared_ptr<Texture> &texture_) override;
     void set_textures(const std::vector<std::shared_ptr<Texture>> &textures_) override;
     
-    void set_texture_coord(uint64_t index, const Vector_2f &tex_coords_) override;
-    void set_texture_coords(const std::vector<Vector_2f> &tex_coords_) override;
-    void set_model_transform(const Transform &model_transform_) override;
-    void set_model_matrix(const Matrix_4f &mat) override;
+    void set_texture_coord(uint64_t index, const Math::Vector_2f &tex_coords_) override;
+    void set_texture_coords(const std::vector<Math::Vector_2f> &tex_coords_) override;
+    void set_model_transform(const Math::Transform &model_transform_) override;
+    void set_model_matrix(const Math::Matrix_4f &mat) override;
     
+    void enable_flat_shading() override;
     void calculate_average_normals() override;
     void calculate_effect_by_light(const Light &light_source) override;
     void convert_in_2D();
@@ -328,15 +338,16 @@ namespace Wave
     protected:
     Object_type_e object_type_e = Object_type_e::Object_3D;
     uint64_t vertex_size = sizeof(Vertex_3D);
-    Vector_3f origin{0.0f};
+    Math::Vector_3f origin{0.0f};
     std::vector<Vertex_3D> vertices;
-    std::vector<Vector_3f> normals;
+    std::vector<Math::Vector_3f> normals;
     std::vector<uint32_t> faces;
-    std::vector<Vector_2f> tex_coords;
+    std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
-    Matrix_4f model_matrix = Matrix_4f(1.0f);
-    Transform model_transform{};
+    Math::Matrix_4f model_matrix = Math::Matrix_4f(1.0f);
+    Math::Transform model_transform{};
     bool sent = false;
+    bool flat_shaded = false;
     std::shared_ptr<Shader> associated_shader;
     protected:
     void prepare_vertices(const Object_3D_data_s &mesh);
@@ -347,9 +358,9 @@ namespace Wave
   class Cube : public Object_3D
   {
     public:
-    Cube(const Vector_3f &scale = Vector_3f(1.0f), const Color &color = Color(), int32_t id_ = 0);
+    Cube(const Math::Vector_3f &scale = Math::Vector_3f(1.0f), const Color &color = Color(), int32_t id_ = 0);
     Cube(const Object_3D_data_s &mesh,
-         const Vector_3f &scale = Vector_3f(1.0f), const Color &color = Color(), int32_t id_ = 0);
+         const Math::Vector_3f &scale = Math::Vector_3f(1.0f), const Color &color = Color(), int32_t id_ = 0);
     ~Cube() override = default;
     
     bool operator==(const Object &other_object);

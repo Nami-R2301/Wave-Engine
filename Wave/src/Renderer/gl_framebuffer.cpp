@@ -319,7 +319,7 @@ namespace Wave
   
   void Gl_framebuffer::on_resize_draw_data(void *data_)
   {
-    auto *viewport_rectangle = (Vector_4f *) data_;
+    auto *viewport_rectangle = (Math::Vector_4f *) data_;
     
     // defines the vertices of the viewport quad
     const float vertex_buffer_data[16]

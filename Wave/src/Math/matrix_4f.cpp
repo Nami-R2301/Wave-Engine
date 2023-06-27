@@ -5,7 +5,7 @@
 #include <Math/matrix_4f.h>
 #include <Utilities/logger.h>
 
-namespace Wave
+namespace Wave::Math
 {
   
   Matrix_4f::Matrix_4f(float identity)
@@ -234,6 +234,34 @@ namespace Wave
       {
         set_value(j, i, original.get_value(i, j));
       }
+    }
+  }
+  
+  void Matrix_4f::decompose_matrix(const Matrix_4f &matrix_to_decompose, Vector_3f &translation_address,
+                                   Vector_3f &rotation_address, Vector_3f &scale_address)
+  {
+    // Translation extraction.
+    translation_address = Vector_3f(matrix_to_decompose.get_value(3, 0), matrix_to_decompose.get_value(3, 1),
+                                    matrix_to_decompose.get_value(3, 2));
+    
+    // Scale extraction.
+    scale_address.set_x(Vector_3f(matrix_to_decompose.get_value(0, 0), matrix_to_decompose.get_value(0, 1),
+                                  matrix_to_decompose.get_value(0, 2)).length());
+    scale_address.set_y(Vector_3f(matrix_to_decompose.get_value(1, 0), matrix_to_decompose.get_value(1, 1),
+                                  matrix_to_decompose.get_value(1, 2)).length());
+    scale_address.set_z(Vector_3f(matrix_to_decompose.get_value(2, 0), matrix_to_decompose.get_value(2, 1),
+                                  matrix_to_decompose.get_value(2, 2)).length());
+    
+    // Rotation extraction.
+    rotation_address.set_y(asinf(-matrix_to_decompose.get_value(0, 2)));
+    if (cosf(rotation_address.get_y()) != 0)
+    {
+      rotation_address.set_x(atan2f(matrix_to_decompose.get_value(1, 2), matrix_to_decompose.get_value(2, 2)));
+      rotation_address.set_z(atan2f(matrix_to_decompose.get_value(0, 1), matrix_to_decompose.get_value(0, 0)));
+    } else
+    {
+      rotation_address.set_x(atan2f(-matrix_to_decompose.get_value(2, 0), matrix_to_decompose.get_value(1, 1)));
+      rotation_address.set_z(0);
     }
   }
   

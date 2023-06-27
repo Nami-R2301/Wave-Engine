@@ -25,9 +25,6 @@ Example_scene_3D::Example_scene_3D(std::vector<Wave::Entity> &entities_,
 
 void Example_scene_3D::on_attach()
 {
-//  this->objects[0]->add_texture(Wave::Texture_2D::create("../Wave/res/Textures/tiles.png"));
-//  this->objects[0]->get_textures().back()->set_texture_slot(1);
-  
   // Setup objects transformations.
   this->objects[0]->translate(0, 0, 5);
   this->objects[0]->rotate(0, 0, 0);
@@ -35,22 +32,17 @@ void Example_scene_3D::on_attach()
   this->objects[1]->translate(10, -10, 20);
   this->objects[1]->rotate(90, -90, 0);
   
-  this->objects[2]->translate(-3.5, -2, 6);
-  this->objects[2]->rotate(45, 0, 0);
-  
   Wave::Point_light point_light = Wave::Point_light(Wave::Color(0xFFFFFFFF), 0.1f, 0.4f,
-                                                    Wave::Vector_3f(0.0f, 0.0f, 0.0f),
+                                                    Wave::Math::Vector_3f(0.0f, 0.0f, 0.0f),
                                                     0.3f, 0.2f, 0.1f);
   this->objects[0]->calculate_average_normals();
   this->objects[1]->calculate_average_normals();
-  this->objects[2]->calculate_average_normals();
   
   this->objects[0]->calculate_effect_by_light(point_light);
   
   // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
   this->objects[0]->send_gpu(1);
   this->objects[1]->send_gpu(1);
-  this->objects[2]->send_gpu(1);
 }
 
 void Example_scene_3D::on_detach()
@@ -61,16 +53,6 @@ void Example_scene_3D::on_detach()
 void Example_scene_3D::on_update(float time_step)
 {
   // Update camera.
-  float velocity = 10.0f;
-  if (Wave::Input::is_key_held(WAVE_KEY_W))
-    this->camera->move(this->camera->get_up(), velocity * time_step);
-  if (Wave::Input::is_key_held(WAVE_KEY_A))
-    this->camera->move(this->camera->get_left(), velocity * time_step);
-  if (Wave::Input::is_key_held(WAVE_KEY_S))
-    this->camera->move(this->camera->get_up(), -velocity * time_step);
-  if (Wave::Input::is_key_held(WAVE_KEY_D))
-    this->camera->move(this->camera->get_right(), velocity * time_step);
-  
   this->camera->on_update(time_step);
 }
 

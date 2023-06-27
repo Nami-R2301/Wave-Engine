@@ -150,6 +150,8 @@ namespace Wave
                        []([[maybe_unused]] GLFWwindow *window_, int32_t key, [[maybe_unused]] int32_t scancode,
                           int32_t action, [[maybe_unused]] int32_t mods)
                        {
+                         On_any_key_event any_key;
+                         Glfw_window::get_event_callback_function()(any_key);
                          switch (action)
                          {
                            case GLFW_PRESS:
@@ -175,7 +177,6 @@ namespace Wave
                            
                            default:
                            {
-                             On_any_key_event any_key;
                              Glfw_window::get_event_callback_function()(any_key);
                              break;
                            }
@@ -231,8 +232,8 @@ namespace Wave
                           []([[maybe_unused]] GLFWwindow *window_, double x_offset, double y_offset)
                           {
                             On_mouse_wheel_scroll wheel_input(
-                              Vector_2f(static_cast<float>(x_offset),
-                                        static_cast<float>(y_offset)));
+                              Math::Vector_2f(static_cast<float>(x_offset),
+                                              static_cast<float>(y_offset)));
                             Glfw_window::get_event_callback_function()(wheel_input);
                           });
   }
@@ -401,7 +402,7 @@ namespace Wave
     return this->window_properties.height;
   }
   
-  const Vector_2f &Glfw_window::get_aspect_ratio() const
+  const Math::Vector_2f &Glfw_window::get_aspect_ratio() const
   {
     return this->aspect_ratio;
   }
@@ -421,7 +422,7 @@ namespace Wave
     return this->window_properties.vsync;
   }
   
-  const Vector_2f &Glfw_window::get_window_pos() const
+  const Math::Vector_2f &Glfw_window::get_window_pos() const
   {
     return this->position_on_screen;
   }
@@ -508,12 +509,12 @@ namespace Wave
     this->window_properties.height = height_;
   }
   
-  void Glfw_window::set_aspect_ratio(const Vector_2f &aspect_ratio_)
+  void Glfw_window::set_aspect_ratio(const Math::Vector_2f &aspect_ratio_)
   {
     this->aspect_ratio = aspect_ratio_;
-    (glfwSetWindowAspectRatio(static_cast<GLFWwindow *>(get_native_window()),
-                              static_cast<int32_t>(aspect_ratio_.get_x()),
-                              static_cast<int32_t>(aspect_ratio_.get_y())));
+    glfwSetWindowAspectRatio(static_cast<GLFWwindow *>(get_native_window()),
+                             static_cast<int32_t>(aspect_ratio_.get_x()),
+                             static_cast<int32_t>(aspect_ratio_.get_y()));
   }
   
   void Glfw_window::resize(float width_, float height_)

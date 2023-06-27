@@ -7,12 +7,12 @@
 
 namespace Wave
 {
-  static Vector_2f s_pixel_size_previous_value, s_text_box_offset;
+  static Math::Vector_2f s_pixel_size_previous_value, s_text_box_offset;
   static Color s_text_color_previous_value;
   static bool s_info_visible = true;
   
   Text_layer::Text_layer(const std::vector<Entity> &entities_,
-                         const Vector_2f *viewport_size_,
+                         const Math::Vector_2f *viewport_size_,
                          bool imgui_render) : entities(entities_),
                                               viewport_size(viewport_size_), imgui_enabled(imgui_render)
   {
@@ -97,24 +97,24 @@ namespace Wave
                                                  ImGuiTreeNodeFlags_SpanFullWidth |
                                                  ImGuiTreeNodeFlags_FramePadding))
               {
-                ImGui_layer::draw_property("Translation", s_text_box_offset, Vector_2f(0.0f),
-                                           Vector_2f(this->viewport_size->get_x() -
-                                                     this->text_boxes.back()->get_text_length(),
-                                                     this->viewport_size->get_y() -
-                                                     this->text_boxes.back()->get_pixel_size().get_y()),
-                                           Vector_2f(5.0f),
-                                           Vector_2f(0.0f), 120.0f);
-                ImGui_layer::draw_property("Rotation", (Vector_2f & )
-                this->text_boxes.back()->get_text_transform().get_rotation(),
-                  Vector_2f(0.0f),
-                  Vector_2f(8000.0f),
-                  Vector_2f(5.0f, 5.0f),
-                  Vector_2f(0.0f), 120.0f);
+                ImGui_layer::draw_property("Translation", s_text_box_offset, Math::Vector_2f(0.0f),
+                                           Math::Vector_2f(this->viewport_size->get_x() -
+                                                           this->text_boxes.back()->get_text_length(),
+                                                           this->viewport_size->get_y() -
+                                                           this->text_boxes.back()->get_pixel_size().get_y()),
+                                           Math::Vector_2f(5.0f),
+                                           Math::Vector_2f(0.0f), 120.0f);
+                ImGui_layer::draw_property("Rotation", (Math::Vector_2f &)
+                                             this->text_boxes.back()->get_text_transform().get_rotation(),
+                                           Math::Vector_2f(0.0f),
+                                           Math::Vector_2f(8000.0f),
+                                           Math::Vector_2f(5.0f, 5.0f),
+                                           Math::Vector_2f(0.0f), 120.0f);
                 ImGui_layer::draw_property("Scale", this->text_boxes.back()->get_text_scale(),
-                                           Vector_2f(1.0f),
-                                           Vector_2f(500.0f),
-                                           Vector_2f(0.1f),
-                                           Vector_2f(0.0f), 120.0f);
+                                           Math::Vector_2f(1.0f),
+                                           Math::Vector_2f(500.0f),
+                                           Math::Vector_2f(0.1f),
+                                           Math::Vector_2f(0.0f), 120.0f);
                 ImGui::TreePop();  // Transform.
               }
               

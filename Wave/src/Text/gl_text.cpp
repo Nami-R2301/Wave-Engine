@@ -52,7 +52,8 @@ namespace Wave
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::shared_ptr<Shader> &associated_shader_,
+                           int32_t id_)
   {
     this->id = id_;
     this->format.text_size = pixel_size;
@@ -87,7 +88,7 @@ namespace Wave
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_,
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &text_,
                            const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
     this->id = id_;
@@ -106,7 +107,7 @@ namespace Wave
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_, const char *font_file_name,
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &text_, const char *font_file_name,
                            const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
     this->id = id_;
@@ -125,7 +126,8 @@ namespace Wave
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format,
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &string_,
+                           const Text_format_s &text_format,
                            const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
     this->id = id_;
@@ -229,9 +231,9 @@ namespace Wave
         this->characters.contains(character) ? this->characters.at(character).color : glyph_default_color,
         this->face->glyph->bitmap.width,
         this->face->glyph->bitmap.rows,
-        Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
+        Math::Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
         // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-        Vector_2f((float) (this->face->glyph->advance.x >> 6), (float) (this->face->glyph->advance.y >> 6))
+        Math::Vector_2f((float) (this->face->glyph->advance.x >> 6), (float) (this->face->glyph->advance.y >> 6))
       };
       this->characters[character] = character_glyph;
       
@@ -300,13 +302,14 @@ namespace Wave
     }
     
     this->prepare_vertices();
-    if (!this->is_sent())
-      Renderer::send_text(*this->associated_shader, *this->texture_atlas, get_vertices(),
-                          get_vertex_count(), get_vertex_size());
-    else
-      Renderer::send_text(*this->associated_shader, *this->texture_atlas, get_vertices(),
-                          get_vertex_count(), get_vertex_size(), nullptr,
-                          0, 0);  // If we are overwriting the current text_box vbo.
+    if (this->is_sent())
+    {
+      // If we are overwriting the current text_box vbo.
+      Renderer::replace_entity(this->id, *this->associated_shader, this->glyph_vertices, {}, *this->texture_atlas);
+      return;
+    }
+    for (uint64_t i = 0; i < instance_count; ++i)
+      Renderer::send_entity(this->id, *this->associated_shader, this->glyph_vertices, {}, *this->texture_atlas);
     this->sent = true;
   }
   
@@ -319,7 +322,7 @@ namespace Wave
     }
     
     float offset_x = get_text_offset().get_x(), offset_y = get_text_offset().get_y();
-    const Vector_2f &scale = get_text_scale();
+    const Math::Vector_2f &scale = get_text_scale();
     
     for (char character: this->text)
     {
@@ -345,53 +348,53 @@ namespace Wave
       this->glyph_vertices.emplace_back(Glyph_quad_s
                                           {
                                             this->id,
-                                            Vector_2f(x_pos, -y_pos),
+                                            Math::Vector_2f(x_pos, -y_pos),
                                             Color(red, green, blue, alpha, true),
-                                            Vector_2f(texture_offset_x + 0.0001f, 0)
+                                            Math::Vector_2f(texture_offset_x + 0.0001f, 0)
                                           });
       
       this->glyph_vertices.emplace_back(Glyph_quad_s
                                           {
                                             this->id,
-                                            Vector_2f(x_pos + w, -y_pos),
+                                            Math::Vector_2f(x_pos + w, -y_pos),
                                             Color(red, green, blue, alpha, true),
-                                            Vector_2f(
+                                            Math::Vector_2f(
                                               texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0)
                                           });
       
       this->glyph_vertices.emplace_back(Glyph_quad_s
                                           {
                                             this->id,
-                                            Vector_2f(x_pos, (-y_pos - h)),
+                                            Math::Vector_2f(x_pos, (-y_pos - h)),
                                             Color(red, green, blue, alpha, true),
-                                            Vector_2f(texture_offset_x + 0.0001f,
-                                                      (float) (glyph.size_y - 1) / atlas_size.get_y())
+                                            Math::Vector_2f(texture_offset_x + 0.0001f,
+                                                            (float) (glyph.size_y - 1) / atlas_size.get_y())
                                           });
       
       this->glyph_vertices.emplace_back(Glyph_quad_s
                                           {
                                             this->id,
-                                            Vector_2f(x_pos + w, -y_pos),
+                                            Math::Vector_2f(x_pos + w, -y_pos),
                                             Color(red, green, blue, alpha, true),
-                                            Vector_2f(
+                                            Math::Vector_2f(
                                               texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0)
                                           });
       
       this->glyph_vertices.emplace_back(Glyph_quad_s
                                           {
                                             this->id,
-                                            Vector_2f(x_pos, (-y_pos - h)),
+                                            Math::Vector_2f(x_pos, (-y_pos - h)),
                                             Color(red, green, blue, alpha, true),
-                                            Vector_2f(texture_offset_x + 0.0001f,
-                                                      (float) (glyph.size_y - 1) / atlas_size.get_y())
+                                            Math::Vector_2f(texture_offset_x + 0.0001f,
+                                                            (float) (glyph.size_y - 1) / atlas_size.get_y())
                                           });
       
       this->glyph_vertices.emplace_back(Glyph_quad_s
                                           {
                                             this->id,
-                                            Vector_2f(x_pos + w, (-y_pos - h)),
+                                            Math::Vector_2f(x_pos + w, (-y_pos - h)),
                                             Color(red, green, blue, alpha, true),
-                                            Vector_2f(
+                                            Math::Vector_2f(
                                               texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(),
                                               (float) (glyph.size_y - 1) /
                                               atlas_size.get_y())
@@ -407,6 +410,8 @@ namespace Wave
       FT_Done_FreeType(this->library);
       this->sent = false;
       this->texture_atlas->free_gpu(instance_count);
+      if (Renderer::get_state().code != WAVE_RENDERER_SHUTDOWN)
+        Renderer::free_entity(this->associated_shader->get_id(), this->id);
       this->glyph_vertices.clear();
       this->glyph_vertices.resize(0);
     }
@@ -467,19 +472,19 @@ namespace Wave
     return buffer;
   }
   
-  void Gl_text_box::translate(const Wave::Vector_3f &position)
+  void Gl_text_box::translate(const Math::Vector_3f &position)
   {
-    this->format.offset += (Vector_2f) position;
+    this->format.offset += (Math::Vector_2f) position;
   }
   
   void Gl_text_box::translate(float x, float y, [[maybe_unused]] float z)
   {
-    this->format.offset += Vector_2f(x, y);
+    this->format.offset += Math::Vector_2f(x, y);
   }
   
-  void Gl_text_box::rotate(const Wave::Vector_3f &angle)
+  void Gl_text_box::rotate(const Math::Vector_3f &angle)
   {
-    Vector_3f temp_angle = angle;
+    Math::Vector_3f temp_angle = angle;
     // Get angles and convert to radiant.
     temp_angle.set_x((float) (angle.get_x() * (M_PI / 180)));
     temp_angle.set_y((float) (angle.get_y() * (M_PI / 180)));
@@ -498,14 +503,14 @@ namespace Wave
     this->format.offset.set_y(cosf(angle_y) + sinf(angle_x));
   }
   
-  void Gl_text_box::scale(const Wave::Vector_3f &scalar)
+  void Gl_text_box::scale(const Math::Vector_3f &scalar)
   {
-    this->format.scale *= (Vector_2f) scalar;
+    this->format.scale *= (Math::Vector_2f) scalar;
   }
   
   void Gl_text_box::scale(float x, float y, [[maybe_unused]] float z)
   {
-    this->format.scale *= Vector_2f(x, y);
+    this->format.scale *= Math::Vector_2f(x, y);
   }
   
   void *Gl_text_box::copy() const

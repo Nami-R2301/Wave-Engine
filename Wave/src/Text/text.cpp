@@ -96,7 +96,7 @@ namespace Wave
     }
   }
   
-  std::shared_ptr<Text_box> Text_box::create(const Vector_2f &pixel_size,
+  std::shared_ptr<Text_box> Text_box::create(const Math::Vector_2f &pixel_size,
                                              const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
     switch (Renderer::get_api())
@@ -125,7 +125,7 @@ namespace Wave
     }
   }
   
-  std::shared_ptr<Text_box> Text_box::create(const Vector_2f &pixel_size_, const std::string &text_,
+  std::shared_ptr<Text_box> Text_box::create(const Math::Vector_2f &pixel_size_, const std::string &text_,
                                              const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
     switch (Renderer::get_api())
@@ -184,7 +184,7 @@ namespace Wave
   }
   
   std::shared_ptr<Text_box>
-  Text_box::create(const Vector_2f &pixel_size_, const std::string &text_, const Text_format_s &format_,
+  Text_box::create(const Math::Vector_2f &pixel_size_, const std::string &text_, const Text_format_s &format_,
                    const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
     switch (Renderer::get_api())
@@ -214,7 +214,7 @@ namespace Wave
     }
   }
   
-  std::shared_ptr<Text_box> Text_box::create(const Vector_2f &pixel_size_, const std::string &text_,
+  std::shared_ptr<Text_box> Text_box::create(const Math::Vector_2f &pixel_size_, const std::string &text_,
                                              const char *font_file_path_,
                                              const std::shared_ptr<Shader> &associated_shader_,
                                              int32_t id_)
@@ -309,7 +309,7 @@ namespace Wave
   
   /********************** EVENTS **************************/
   
-  void Text_box::on_box_resize(const Vector_2f &new_size)
+  void Text_box::on_box_resize(const Math::Vector_2f &new_size)
   {
     if (new_size.get_x() < 0.0f || new_size.get_y() < 0 || new_size.get_x() > 8000.0f || new_size.get_y() > 8000.0f)
     {
@@ -319,7 +319,7 @@ namespace Wave
     }
     
     if (this->get_pixel_size().get_y() > new_size.get_y())
-      this->format.box_size += Vector_2f(0.0f, this->get_pixel_size().get_y() + 25.0f);
+      this->format.box_size += Math::Vector_2f(0.0f, this->get_pixel_size().get_y() + 25.0f);
     
     // Append overflowing text to the bottom left of the box to mimic newlines.
     float length = 0;
@@ -331,8 +331,8 @@ namespace Wave
         new_line_advance_offset = -length;
         length = this->characters.at(character).advance.get_x();
         if (this->characters.contains(character))
-          this->characters.at(character).advance = Vector_2f(new_line_advance_offset,
-                                                             this->get_pixel_size().get_y() + 25.0f);
+          this->characters.at(character).advance = Math::Vector_2f(new_line_advance_offset,
+                                                                   this->get_pixel_size().get_y() + 25.0f);
       }
       if (this->characters.contains(character))
         length += (float) this->characters.at(character).advance.get_x() * this->format.scale.get_x();
@@ -349,7 +349,7 @@ namespace Wave
     }
     
     if (this->get_text_length() > new_width)
-      this->format.box_size += Vector_2f(0.0f, this->get_pixel_size().get_y() + 25.0f);
+      this->format.box_size += Math::Vector_2f(0.0f, this->get_pixel_size().get_y() + 25.0f);
     
     // Append overflowing text to the bottom left of the box to mimic newlines.
     float length = 0;
@@ -362,8 +362,8 @@ namespace Wave
         if (this->characters.contains(character))
         {
           length = this->characters.at(character).advance.get_x();
-          this->characters.at(character).advance = Vector_2f(new_line_advance_offset,
-                                                             this->get_pixel_size().get_y() + 25.0f);
+          this->characters.at(character).advance = Math::Vector_2f(new_line_advance_offset,
+                                                                   this->get_pixel_size().get_y() + 25.0f);
         }
       }
       if (this->characters.contains(character))
@@ -371,7 +371,7 @@ namespace Wave
     }
   }
   
-  void Text_box::on_text_resize(const Vector_2f &new_size, const std::string &section_resized)
+  void Text_box::on_text_resize(const Math::Vector_2f &new_size, const std::string &section_resized)
   {
     if (new_size.get_x() < 0.0f || new_size.get_y() < 0.0f || new_size.get_x() > 500.0f || new_size.get_y() > 500.0f)
     {
@@ -417,7 +417,7 @@ namespace Wave
     }
   }
   
-  void Text_box::on_move(const Vector_2f &new_position)
+  void Text_box::on_move(const Math::Vector_2f &new_position)
   {
     if (this->format.offset == new_position) return;
     this->format.offset = new_position;
@@ -425,16 +425,16 @@ namespace Wave
   
   void Text_box::on_move(float new_x_coord, float new_y_coord)
   {
-    if (this->format.offset == Vector_2f(new_x_coord, new_y_coord)) return;
-    this->format.offset = Vector_2f(new_x_coord, new_y_coord);
+    if (this->format.offset == Math::Vector_2f(new_x_coord, new_y_coord)) return;
+    this->format.offset = Math::Vector_2f(new_x_coord, new_y_coord);
   }
   
-  const Vector_2f &Text_box::get_pixel_size() const
+  const Math::Vector_2f &Text_box::get_pixel_size() const
   {
     return this->format.text_size;
   }
   
-  Vector_2f &Text_box::get_pixel_size()
+  Math::Vector_2f &Text_box::get_pixel_size()
   {
     return this->format.text_size;
   }
@@ -449,12 +449,12 @@ namespace Wave
     return this->format;
   }
   
-  const Vector_2f &Text_box::get_text_offset() const
+  const Math::Vector_2f &Text_box::get_text_offset() const
   {
     return this->format.offset;
   }
   
-  Vector_2f &Text_box::get_text_offset()
+  Math::Vector_2f &Text_box::get_text_offset()
   {
     return this->format.offset;
   }
@@ -484,12 +484,12 @@ namespace Wave
     return this->characters.at(character).color;
   }
   
-  const Vector_2f &Text_box::get_text_scale() const
+  const Math::Vector_2f &Text_box::get_text_scale() const
   {
     return this->format.scale;
   }
   
-  Vector_2f &Text_box::get_text_scale()
+  Math::Vector_2f &Text_box::get_text_scale()
   {
     return this->format.scale;
   }
@@ -514,12 +514,12 @@ namespace Wave
     return length > 0 ? length : 0.0f;
   }
   
-  const Vector_2f &Text_box::get_text_box_size() const
+  const Math::Vector_2f &Text_box::get_text_box_size() const
   {
     return this->format.box_size;
   }
   
-  Vector_2f &Text_box::get_text_box_size()
+  Math::Vector_2f &Text_box::get_text_box_size()
   {
     return this->format.box_size;
   }
@@ -550,23 +550,23 @@ namespace Wave
   
   void Text_box::set_text_offset_x(float offset_x)
   {
-    on_move(Vector_2f(offset_x, this->get_text_offset().get_y()));
+    on_move(Math::Vector_2f(offset_x, this->get_text_offset().get_y()));
   }
   
   void Text_box::set_text_offset_y(float offset_y)
   {
-    on_move(Vector_2f(this->get_text_offset().get_x(), offset_y));
+    on_move(Math::Vector_2f(this->get_text_offset().get_x(), offset_y));
   }
   
-  void Text_box::set_text_offset(const Vector_2f &offset_coords)
+  void Text_box::set_text_offset(const Math::Vector_2f &offset_coords)
   {
     on_move(offset_coords);
   }
   
   void Text_box::set_text_offset(float offset_x, float offset_y)
   {
-    if (this->format.offset == Vector_2f(offset_x, offset_y)) return;
-    this->format.offset = Vector_2f(offset_x, offset_y);
+    if (this->format.offset == Math::Vector_2f(offset_x, offset_y)) return;
+    this->format.offset = Math::Vector_2f(offset_x, offset_y);
   }
   
   void Text_box::blend_text_color(char character, const Color &character_color)
@@ -590,7 +590,7 @@ namespace Wave
     on_recolor(color, this->text);
   }
   
-  void Text_box::set_text_scale(const Vector_2f &scale_)
+  void Text_box::set_text_scale(const Math::Vector_2f &scale_)
   {
     if (this->format.scale == scale_) return;
     this->format.scale = scale_;
@@ -612,12 +612,12 @@ namespace Wave
     this->text = text_;
   }
   
-  void Text_box::set_text_box_size(const Vector_2f &size)
+  void Text_box::set_text_box_size(const Math::Vector_2f &size)
   {
     this->format.box_size = size;
   }
   
-  void Text_box::set_pixel_size(const Vector_2f &size)
+  void Text_box::set_pixel_size(const Math::Vector_2f &size)
   {
     if (this->format.text_size == size) return;
     on_text_resize(size, this->text);
@@ -626,7 +626,7 @@ namespace Wave
   
   void Text_box::set_pixel_size(float x, float y)
   {
-    this->format.text_size = Vector_2f(x, y);
+    this->format.text_size = Math::Vector_2f(x, y);
   }
   
   void Text_box::set_text_box_color(const Color &color)
@@ -637,8 +637,6 @@ namespace Wave
   void Text_box::set_text_uniform_color(const Color &uniform_color)
   {
     if (this->format.text_uniform_color == uniform_color) return;
-    alert(WAVE_LOG_DEBUG, "Current text uniform color --> (%.2f, %.2f, %.2f, %.2f)", uniform_color.get_red(),
-          uniform_color.get_green(), uniform_color.get_blue(), uniform_color.get_alpha());
     this->format.text_uniform_color = uniform_color;
     for (const auto &character: this->text)
     {
@@ -646,12 +644,12 @@ namespace Wave
     }
   }
   
-  const Transform &Text_box::get_text_transform() const
+  const Math::Transform &Text_box::get_text_transform() const
   {
     return this->text_transform;
   }
   
-  Transform &Text_box::get_text_transform()
+  Math::Transform &Text_box::get_text_transform()
   {
     return this->text_transform;
   }
@@ -675,7 +673,7 @@ namespace Wave
     return this->glyph_vertices.size();
   }
   
-  uint64_t Text_box::get_vertex_size() const
+  uint64_t Text_box::get_vertex_size()
   {
     return sizeof(Glyph_quad_s);
   }

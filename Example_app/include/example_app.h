@@ -26,5 +26,5 @@ public:
   std::vector<Wave::Entity> entities;
   std::shared_ptr<Wave::Scene> active_scene;
   Wave::Color background_clear_color = Wave::Color(78.0f, 255.0f, false);
-  Wave::Vector_2f viewport;
+  Wave::Math::Vector_2f viewport;
 };

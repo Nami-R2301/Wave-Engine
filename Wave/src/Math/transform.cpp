@@ -4,7 +4,7 @@
 
 #include <Math/transform.h>
 
-namespace Wave
+namespace Wave::Math
 {
   
   Transform::Transform()

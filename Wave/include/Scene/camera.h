@@ -26,62 +26,62 @@ namespace Wave
       return this->height;
     };
     
-    [[nodiscard]] const Vector_2f &get_center_position() const
+    [[nodiscard]] const Math::Vector_2f &get_center_position() const
     {
       return this->center_position;
     };
     
-    [[nodiscard]] const Vector_3f &get_position() const
+    [[nodiscard]] const Math::Vector_3f &get_position() const
     {
       return this->position;
     };
     
-    [[nodiscard]] Vector_3f &get_position()
+    [[nodiscard]] Math::Vector_3f &get_position()
     {
       return this->position;
     };
     
-    [[nodiscard]] Vector_3f get_forward() const
+    [[nodiscard]] Math::Vector_3f get_forward() const
     {
       return this->forward;
     };
     
-    [[nodiscard]] const Vector_4f &get_orientation() const
+    [[nodiscard]] const Math::Vector_4f &get_orientation() const
     {
       return this->orientation;
     };
     
-    [[nodiscard]] Vector_3f get_up() const
+    [[nodiscard]] Math::Vector_3f get_up() const
     {
       return this->up;
     };
     
-    [[nodiscard]] Vector_3f get_left() const
+    [[nodiscard]] Math::Vector_3f get_left() const
     {
       return this->forward.cross(this->up).normalize();
     };
     
-    [[nodiscard]] Vector_3f get_right() const
+    [[nodiscard]] Math::Vector_3f get_right() const
     {
       return this->up.cross(this->forward).normalize();
     };
     
-    [[nodiscard]] const Matrix_4f &get_view_matrix() const
+    [[nodiscard]] const Math::Matrix_4f &get_view_matrix() const
     {
       return this->view_matrix;
     };
     
-    [[nodiscard]] Matrix_4f &get_view_matrix()
+    [[nodiscard]] Math::Matrix_4f &get_view_matrix()
     {
       return this->view_matrix;
     };
     
-    [[nodiscard]] const Matrix_4f &get_projection_matrix() const
+    [[nodiscard]] const Math::Matrix_4f &get_projection_matrix() const
     {
       return this->projection_matrix;
     };
     
-    [[nodiscard]] Matrix_4f &get_projection_matrix()
+    [[nodiscard]] Math::Matrix_4f &get_projection_matrix()
     {
       return this->projection_matrix;
     };
@@ -111,15 +111,15 @@ namespace Wave
     
     void set_center_position(float x, float y)
     {
-      this->center_position = Vector_2f(x, y);
+      this->center_position = Math::Vector_2f(x, y);
     };
     
-    void set_center_position(const Vector_2f &coords)
+    void set_center_position(const Math::Vector_2f &coords)
     {
       this->center_position = coords;
     };
     
-    void set_position(const Vector_3f &position_)
+    void set_position(const Math::Vector_3f &position_)
     {
       this->position = position_;
       update_view_matrix();
@@ -127,31 +127,31 @@ namespace Wave
     
     void set_orientation(float x, float y, float z, float w)
     {
-      this->orientation = Vector_4f(x, y, z, w);
+      this->orientation = Math::Vector_4f(x, y, z, w);
     }
     
-    void set_orientation(const Vector_4f &orientation_)
+    void set_orientation(const Math::Vector_4f &orientation_)
     {
       this->orientation = orientation_;
     };
     
     void set_position(float x, float y, float z)
     {
-      this->position = Vector_3f(x, y, z);
+      this->position = Math::Vector_3f(x, y, z);
       update_view_matrix();
     };
     
-    void set_view_matrix(const Matrix_4f &matrix)
+    void set_view_matrix(const Math::Matrix_4f &matrix)
     {
       this->view_matrix = matrix;
     };
     
-    void set_forward(const Vector_3f &forward_)
+    void set_forward(const Math::Vector_3f &forward_)
     {
       this->forward = forward_.normalize();
     };
     
-    void set_up(const Vector_3f &up_)
+    void set_up(const Math::Vector_3f &up_)
     {
       this->up = up_.normalize();
     };
@@ -161,7 +161,7 @@ namespace Wave
     virtual void on_framebuffer_resize(On_framebuffer_resize &resize_event) = 0;
     virtual void on_update(float time_step) = 0;
     virtual void on_event(Event &event) = 0;
-    virtual void move(const Vector_3f &direction, float amount) = 0;
+    virtual void move(const Math::Vector_3f &direction, float amount) = 0;
     virtual void move(float x, float y, float z, float amount) = 0;
     virtual void rotate_x(float angle) = 0;
     virtual void rotate_y(float angle) = 0;
@@ -171,13 +171,13 @@ namespace Wave
     float width = 640;
     float height = 480;
     float aspect_ratio = 640.0f / 480.0f;
-    Vector_2f center_position = Vector_2f(0);
-    Vector_3f position = Vector_3f(0, 0, -1);
-    Vector_3f forward = Vector_3f(0);
-    Vector_3f up = Vector_3f(0);
-    Vector_4f orientation = Vector_4f(0);
-    Matrix_4f view_matrix{};
-    Matrix_4f projection_matrix{};
+    Math::Vector_2f center_position = Math::Vector_2f(0);
+    Math::Vector_3f position = Math::Vector_3f(0, 0, -1);
+    Math::Vector_3f forward = Math::Vector_3f(0);
+    Math::Vector_3f up = Math::Vector_3f(0);
+    Math::Vector_4f orientation = Math::Vector_4f(0);
+    Math::Matrix_4f view_matrix{};
+    Math::Matrix_4f projection_matrix{};
   };
   
   class Perspective_camera : public Camera
@@ -191,7 +191,7 @@ namespace Wave
     void on_framebuffer_resize(On_framebuffer_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;
-    void look_at(const Vector_3f &direction);
+    void look_at(const Math::Vector_3f &direction);
     void look_at(float x, float y, float z);
     
     INTERFACE_PRINTABLE
@@ -199,7 +199,7 @@ namespace Wave
     [[nodiscard]] const char *get_type() const override;
     void on_update(float time_step) override;
     void on_event(Event &event) override;
-    void move(const Vector_3f &direction, float amount) override;
+    void move(const Math::Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;
     void rotate_y(float angle) override;
@@ -226,7 +226,7 @@ namespace Wave
     
     [[nodiscard]] const char *get_type() const override;
     void on_update(float time_step) override;
-    void move(const Vector_3f &direction, float amount) override;
+    void move(const Math::Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;
     void rotate_y(float angle) override;

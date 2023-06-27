@@ -24,13 +24,13 @@ namespace Wave
     static std::shared_ptr<Texture> load_texture_source(const char *file_path);
     
     private:
-    static Vector_2f load_object_2D_vertex(FILE *file_ptr);
+    static Math::Vector_2f load_object_2D_vertex(FILE *file_ptr);
     static Face_2D_s load_object_2D_face(FILE *file_ptr);
-    static Vector_2f load_object_2D_normal(FILE *file_ptr);
+    static Math::Vector_2f load_object_2D_normal(FILE *file_ptr);
     
-    static Vector_3f load_object_3D_vertex(FILE *file_ptr);
+    static Math::Vector_3f load_object_3D_vertex(FILE *file_ptr);
     static Face_3D_s load_object_3D_face(FILE *file_ptr);
-    static Vector_3f load_object_3D_normal(FILE *file_ptr);
-    static Vector_2f load_object_texture_coords(FILE *file_ptr);
+    static Math::Vector_3f load_object_3D_normal(FILE *file_ptr);
+    static Math::Vector_2f load_object_texture_coords(FILE *file_ptr);
   };
 }

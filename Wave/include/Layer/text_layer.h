@@ -19,7 +19,7 @@ namespace Wave
   {
     public:
     Text_layer(const std::vector<Entity> &entities_,
-               const Vector_2f *viewport_size,
+               const Math::Vector_2f *viewport_size,
                bool imgui_render = false);
     ~Text_layer() override;
     
@@ -33,7 +33,7 @@ namespace Wave
     std::vector<Entity> entities;
     std::vector<std::shared_ptr<Text_box>> text_boxes;
     Orthographic_camera projection;
-    const Vector_2f *viewport_size;
+    const Math::Vector_2f *viewport_size;
     bool imgui_enabled;
   };
 }

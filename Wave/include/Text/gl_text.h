@@ -18,15 +18,15 @@ namespace Wave
     explicit Gl_text_box(const std::shared_ptr<Shader> &associated_shader_, int32_t id_);
     explicit Gl_text_box(const std::string &string_, const std::shared_ptr<Shader> &associated_shader_ = nullptr,
                          int32_t id_ = 0);
-    explicit Gl_text_box(const Vector_2f &pixel_size, const std::shared_ptr<Shader> &associated_shader_ = nullptr,
+    explicit Gl_text_box(const Math::Vector_2f &pixel_size, const std::shared_ptr<Shader> &associated_shader_ = nullptr,
                          int32_t id_ = 0);
-    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_,
+    Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &string_,
                 const std::shared_ptr<Shader> &associated_shader_ = nullptr, int32_t id_ = 0);
     Gl_text_box(const char *font_file_name, const std::string &string_,
                 const std::shared_ptr<Shader> &associated_shader_ = nullptr, int32_t id_ = 0);
-    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format,
+    Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format,
                 const std::shared_ptr<Shader> &associated_shader_ = nullptr, int32_t id_ = 0);
-    Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const char *font_file_path,
+    Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &string_, const char *font_file_path,
                 const std::shared_ptr<Shader> &associated_shader_ = nullptr, int32_t id_ = 0);
     Gl_text_box(const char *font_file_name, const std::string &string_, Text_format_s text_format_,
                 const std::shared_ptr<Shader> &associated_shader_ = nullptr, int32_t id_ = 0);

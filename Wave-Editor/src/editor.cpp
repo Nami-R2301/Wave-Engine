@@ -44,8 +44,14 @@ namespace Wave
     
     this->entities.emplace_back(this->active_scene->create_entity("Object : Cube"));
     auto cube = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj"),
-                               sphere->get_shader(), (int32_t) (uint32_t) this->entities.back());
+                               nullptr, (int32_t) (uint32_t) this->entities.back());
+    cube->enable_flat_shading();
     this->entities.back().add_component<std::shared_ptr<Object>>(cube);
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Point Light : light bulb"));
+    auto light_bulb = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/Lamp.obj"),
+                                     nullptr, (int32_t) (uint32_t) this->entities.back());
+    this->entities.back().add_component<std::shared_ptr<Object>>(light_bulb);
     
     // Add framebuffers.
     
@@ -74,11 +80,18 @@ namespace Wave
     
     // Add text strings
     this->entities.emplace_back(this->active_scene->create_entity("Text Box : Title"));
-    auto text_box = Text_box::create(Vector_2f(0.0f, 50.0f), "~ Wave Engine ~", nullptr,
+    auto text_box = Text_box::create(Math::Vector_2f(0.0f, 50.0f), "~ Wave Engine ~", nullptr,
                                      (int32_t) (uint32_t) this->entities.back());
     text_box->append_text(" By : Nami Reghbati ");
     
     this->entities.back().add_component<std::shared_ptr<Text_box>>(text_box);
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Text Box : Menu Title"));
+    auto text_box_2 = Text_box::create(Math::Vector_2f(0.0f, 50.0f), "Game Title", nullptr,
+                                       (int32_t) (uint32_t) this->entities.back());
+    text_box_2->set_text_offset_x(text_box->get_text_length() + 50.0f);
+    
+    this->entities.back().add_component<std::shared_ptr<Text_box>>(text_box_2);
   }
   
   void Editor::on_init()
@@ -90,7 +103,7 @@ namespace Wave
     
     push_overlay(new ImGui_layer());
     push_layer(new Editor_layer(this->active_scene, this->entities, this->viewport_ms_framebuffer));
-    push_layer(new Text_layer(this->entities, &this->viewport_resolution, false));
+    push_layer(new Text_layer(this->entities, &this->viewport_resolution, true));
     
     // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
     this->active_scene->send_gpu();
@@ -121,10 +134,10 @@ namespace Wave
       {
         /********************** MOUSE PICKING **********************/
         
-        Vector_2f position = Input::get_mouse_cursor_position();
+        Math::Vector_2f position = Input::get_mouse_cursor_position();
         
-        Vector_2f viewport_size = Vector_2f(this->viewport_framebuffer_boundaries[2],
-                                            this->viewport_framebuffer_boundaries[3]);
+        Math::Vector_2f viewport_size = Math::Vector_2f(this->viewport_framebuffer_boundaries[2],
+                                                        this->viewport_framebuffer_boundaries[3]);
         // Set cursor offset for viewport window.
         position.set_x(position.get_x() - s_scene_hierarchy_panel_width);
         // Flip y-axis to start at the bottom left of the viewport, in order to match it with texture coordinates,
@@ -148,6 +161,7 @@ namespace Wave
           {
             delete this->selected_entity;
             this->selected_entity = new Entity((entt::entity) pixelData, this->active_scene.get());
+            Editor_layer::scene_panel.set_selected_entity(*this->selected_entity);
           } else
           {
             delete this->selected_entity;
@@ -168,10 +182,10 @@ namespace Wave
   
   bool Editor::on_viewport_resize(On_framebuffer_resize &resize)
   {
-    this->viewport_framebuffer_boundaries = Vector_4f(resize.get_position_x(),
-                                                      resize.get_position_y(),
-                                                      resize.get_width(),
-                                                      resize.get_height() + s_viewport_title_bar_height);
+    this->viewport_framebuffer_boundaries = Math::Vector_4f(resize.get_position_x(),
+                                                            resize.get_position_y(),
+                                                            resize.get_width(),
+                                                            resize.get_height() + s_viewport_title_bar_height);
     
     this->viewport_ms_framebuffer->resize((int32_t) resize.get_width(),
                                           (int32_t) resize.get_height(),

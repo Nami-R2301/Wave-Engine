@@ -101,6 +101,7 @@ namespace Wave
                                               element.normalized ? GL_TRUE : GL_FALSE,
                                               static_cast<GLint>(layout.get_stride()),
                                               (const void *) element.offset));
+          if (element.flat) glVertexAttribDivisor(this->vertex_buffer_index, 1);
           this->vertex_buffer_index++;
           break;
         }
@@ -116,6 +117,7 @@ namespace Wave
                                                convert_buffer_data_type_to_gl(element.type),
                                                static_cast<GLint>(layout.get_stride()),
                                                (const void *) element.offset));
+          if (element.flat) glVertexAttribDivisor(this->vertex_buffer_index, 1);
           this->vertex_buffer_index++;
           break;
         }
@@ -132,6 +134,7 @@ namespace Wave
                                                 element.normalized ? GL_TRUE : GL_FALSE,
                                                 static_cast<GLint>(layout.get_stride()),
                                                 (const void *) (element.offset + sizeof(float) * count * i)));
+            if (element.flat) glVertexAttribDivisor(this->vertex_buffer_index, 1);
             this->vertex_buffer_index++;
           }
           break;

@@ -48,7 +48,7 @@ namespace Wave
   {
     public:
     virtual ~I_movable() = default;
-    virtual void translate(const Vector_3f &position) = 0;
+    virtual void translate(const Math::Vector_3f &position) = 0;
     virtual void translate(float x, float y, float z) = 0;
   };
   
@@ -57,7 +57,7 @@ namespace Wave
   {
     public:
     virtual ~I_rotatable() = default;
-    virtual void rotate(const Vector_3f &position) = 0;
+    virtual void rotate(const Math::Vector_3f &position) = 0;
     virtual void rotate(float x, float y, float z) = 0;
   };
   
@@ -66,7 +66,7 @@ namespace Wave
   {
     public:
     virtual ~I_scalable() = default;
-    virtual void scale(const Vector_3f &scalar) = 0;
+    virtual void scale(const Math::Vector_3f &scalar) = 0;
     virtual void scale(float x, float y, float z) = 0;
   };
   
@@ -117,18 +117,18 @@ namespace Wave
                                     this->id = entity_id; \
                                   }
 // Translate dynamic entities from one screen coordinate to the other.
-#define INTERFACE_MOVABLE  void translate(const Vector_3f &position) override; \
+#define INTERFACE_MOVABLE  void translate(const Math::Vector_3f &position) override; \
                            void translate(float x, float y, float z) override
 
 // Able to be rotated on the x and y-axis.
-#define INTERFACE_ROTATABLE  void rotate(const Vector_3f &angle) override; \
+#define INTERFACE_ROTATABLE  void rotate(const Math::Vector_3f &angle) override; \
                            void rotate(float x, float y, float z) override
 
 // Transfer data from one entity onto the other, useful for duplication and testing of various similar entities.
 #define INTERFACE_COPIABLE [[nodiscard]] void *copy() const override
 
 // Able to get its size scaled on the x, y and z-axis.
-#define INTERFACE_SCALABLE void scale(const Vector_3f &scalar) override; \
+#define INTERFACE_SCALABLE void scale(const Math::Vector_3f &scalar) override; \
                            void scale(float x, float y, float z) override
 
 // Able to initialize its members explicitly without relying on the ambiguity of constructors.

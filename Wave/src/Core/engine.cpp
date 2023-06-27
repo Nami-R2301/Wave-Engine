@@ -13,7 +13,7 @@ namespace Wave
   bool Engine::running_state = false;
   Engine_time Engine::current_time;
   int32_t Engine::exit_code = WAVE_ENGINE_NO_ERRORS;
-  Vector_2f Engine::last_mouse_position = Vector_2f(0);
+  Math::Vector_2f Engine::last_mouse_position = Math::Vector_2f(0);
 //  static std::mutex meshes_mutex;  // For async purposes.
   
   Engine::Engine()
@@ -281,6 +281,43 @@ namespace Wave
         break;
       }
       default:break;
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
+    {
+      Wave::Display_settings::toggle_fullscreen(Wave::Engine::get_main_window());
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_V))
+    {
+      Wave::Display_settings::set_vsync(Wave::Engine::get_main_window(),
+                                        !Wave::Engine::get_main_window()->is_vsync());
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_6))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 60);
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_3))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 30);
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_1))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 1);
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_9))
+    {
+      Wave::Display_settings::set_refresh_rate(Wave::Engine::get_main_window(), 144);
+    }
+    
+    if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_F4))
+    {
+      Wave::alert(WAVE_LOG_WARN, "[SETTING] --> Force shutdown");
+      Wave::Engine::get_main_window()->close();
     }
     
     for (auto &it: std::ranges::reverse_view(this->layer_stack))

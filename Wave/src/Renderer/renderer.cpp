@@ -177,7 +177,7 @@ namespace Wave
     }
   }
   
-  void Renderer::set_viewport(const Vector_2f &viewport)
+  void Renderer::set_viewport(const Math::Vector_2f &viewport)
   {
     switch (Renderer::api_in_use)
     {
@@ -203,38 +203,101 @@ namespace Wave
     }
   }
   
-  void Renderer::send_object(Shader &shader, const std::vector<std::shared_ptr<Texture>> &textures,
-                             const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
-                             const void *indices,
-                             uint64_t index_count,
-                             int64_t vbo_offset,
-                             int64_t ibo_offset)
+  void Renderer::send_entity(uint64_t entity_id, Shader &shader,
+                             const std::vector<Vertex_2D> &vertices, const std::vector<uint32_t> &indices,
+                             std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_object(shader, textures, vertices, vertex_count, vertex_size, indices,
-                                 index_count, vbo_offset, ibo_offset);
+        Gl_renderer::send_entity(entity_id, shader, vertices, indices, textures, flat_shaded);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::send_text(Shader &shader, Texture &texture_atlas,
-                           const void *vertices, uint64_t vertex_count, uint64_t vertex_size,
-                           const void *indices,
-                           uint64_t index_count,
-                           int64_t vbo_offset,
-                           int64_t ibo_offset)
+  void Renderer::send_entity(uint64_t entity_id, Shader &shader,
+                             const std::vector<Vertex_3D> &vertices, const std::vector<uint32_t> &indices,
+                             std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_text(shader, texture_atlas, vertices, vertex_count, vertex_size,
-                               indices, index_count, vbo_offset, ibo_offset);
+        Gl_renderer::send_entity(entity_id, shader, vertices, indices, textures, flat_shaded);
+        break;
+      }
+      default:break;
+    }
+  }
+  
+  void Renderer::send_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                             const std::vector<uint32_t> &indices, Texture &texture_atlas)
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::send_entity(entity_id, shader, vertices, indices, texture_atlas);
+        break;
+      }
+      default:break;
+    }
+  }
+  
+  void Renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                                const std::vector<uint32_t> &indices,
+                                std::vector<std::shared_ptr<Texture>> &textures)
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::replace_entity(entity_id, shader, vertices, indices, textures);
+        break;
+      }
+      default:break;
+    }
+  }
+  
+  void Renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                                const std::vector<uint32_t> &indices,
+                                std::vector<std::shared_ptr<Texture>> &textures)
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::replace_entity(entity_id, shader, vertices, indices, textures);
+        break;
+      }
+      default:break;
+    }
+  }
+  
+  void Renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                                const std::vector<uint32_t> &indices, Texture &texture_atlas)
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::replace_entity(entity_id, shader, vertices, indices, texture_atlas);
+        break;
+      }
+      default:break;
+    }
+  }
+  
+  void Renderer::free_entity(uint64_t shader_id, uint64_t entity_id)
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::free_entity(shader_id, entity_id);
         break;
       }
       default:break;
@@ -261,6 +324,19 @@ namespace Wave
       case Renderer_api::OpenGL:
       {
         Gl_renderer::end();
+        break;
+      }
+      default:break;
+    }
+  }
+  
+  void Renderer::batch_data()
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::batch_data();
         break;
       }
       default:break;

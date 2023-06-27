@@ -43,7 +43,7 @@ namespace Wave
     [[nodiscard]] int get_framebuffer_height() const override;
     [[nodiscard]] int get_width() const override;
     [[nodiscard]] int get_height() const override;
-    [[nodiscard]] const Vector_2f &get_aspect_ratio() const override;
+    [[nodiscard]] const Math::Vector_2f &get_aspect_ratio() const override;
     [[nodiscard]] int32_t get_refresh_rate() const override;
     [[nodiscard]] int32_t get_max_refresh_rate() const override;
     [[nodiscard]] int32_t get_samples() const override;
@@ -53,7 +53,7 @@ namespace Wave
     [[nodiscard]] bool is_hovered() const override;
     [[nodiscard]] float get_x_scale() const override;
     [[nodiscard]] float get_y_scale() const override;
-    [[nodiscard]] const Vector_2f &get_window_pos() const override;
+    [[nodiscard]] const Math::Vector_2f &get_window_pos() const override;
     
     static void glfw_error_callback(int error_code, const char *description);
     
@@ -66,7 +66,7 @@ namespace Wave
     void set_native_monitor(void *monitor_) override;
     void set_width(float width) override;
     void set_height(float height) override;
-    void set_aspect_ratio(const Vector_2f &aspect_ratio_) override;
+    void set_aspect_ratio(const Math::Vector_2f &aspect_ratio_) override;
     void resize(float width_, float height_) override;
     void set_fullscreen(bool fullscreen_state) override;
     void set_refresh_rate(int32_t refresh_rate) override;
@@ -88,12 +88,12 @@ namespace Wave
     int32_t samples = 4;  // Framebuffer multisampling.
     
     // Default Window attributes (Center).
-    Vector_2f position_on_screen;
+    Math::Vector_2f position_on_screen;
     
     float x_scale = 1.0f;
     float y_scale = 1.0f;
-    Vector_2f aspect_ratio = {16.0f,
-                              9.0f};
+    Math::Vector_2f aspect_ratio = {16.0f,
+                                    9.0f};
     bool fullscreen = false;
     bool request_closing = false;
     Api_info api_info{};

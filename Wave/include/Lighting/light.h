@@ -44,7 +44,8 @@ namespace Wave
   {
     public:
     Point_light();
-    Point_light(const Color &color_, float ambient_intensity_, float diffuse_intensity_, const Vector_3f &position_,
+    Point_light(const Color &color_, float ambient_intensity_, float diffuse_intensity_,
+                const Math::Vector_3f &position_,
                 float constant_, float linear_, float exponent_);
     ~Point_light() override = default;
     
@@ -52,7 +53,7 @@ namespace Wave
     
     [[nodiscard]] const Light_type_e &get_type() const override;
     [[nodiscard]] int64_t get_count() const;
-    [[nodiscard]] const Vector_3f &get_position() const;
+    [[nodiscard]] const Math::Vector_3f &get_position() const;
     [[nodiscard]] float get_constant() const;
     [[nodiscard]] float get_linear() const;
     [[nodiscard]] float get_exponent() const;
@@ -60,7 +61,7 @@ namespace Wave
     private:
     Light_type_e light_type = Light_type_e::Point_light;
     int64_t count = 0;
-    Vector_3f position;
+    Math::Vector_3f position;
     float constant;
     float linear;
     float exponent;

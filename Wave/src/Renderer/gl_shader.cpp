@@ -159,8 +159,8 @@ namespace Wave
     }
     return buffer;
   }
-
-//TODO : Extract vertex shader and fragment shader in one source shader file.
+  
+  //TODO : Extract vertex shader and fragment shader in one source shader file.
 //  Gl_shader::Gl_shader(const char *program_file_path)
 //  {
   const std::unordered_map<const char *, int> &Gl_shader::get_uniforms() const
@@ -189,6 +189,17 @@ namespace Wave
     return this->uniform_cache[uniform_name];
   }
   
+  void Gl_shader::bind_texture_units()
+  {
+//    bind();
+//    int samplers = get_uniform_location("u_samplers");
+//
+//    for (int32_t i = 0; i < samplers; ++i)
+//    {
+//      set_uniform("u_samplers")
+//    }
+  }
+  
   void Gl_shader::set_uniform(const char *uniform_name, const float *matrix, bool transpose) const
   {
     CHECK_GL_CALL(glUniformMatrix4fv(get_uniform_location(uniform_name), 1, transpose, matrix));
@@ -214,7 +225,7 @@ namespace Wave
     CHECK_GL_CALL(glUniform1f(get_uniform_location(uniform_name), float_value));
   }
   
-  void Gl_shader::set_uniform(const char *uniform_name, const Vector_3f &vector_3f) const
+  void Gl_shader::set_uniform(const char *uniform_name, const Math::Vector_3f &vector_3f) const
   {
     CHECK_GL_CALL(glUniform3f(get_uniform_location(uniform_name), vector_3f.get_x(),
                               vector_3f.get_y(),

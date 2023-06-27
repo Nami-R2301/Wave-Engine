@@ -32,11 +32,12 @@ namespace Wave
     void on_render() override;
     void on_ui_render(float time_step) override;
     private:
-    Scene_ui_panel scene_panel = {nullptr, {}};
+    static Scene_ui_panel scene_panel;
     std::vector<Entity> entities;
     std::shared_ptr<Wave::Camera> camera;
     std::vector<std::shared_ptr<Wave::Object>> objects;
     Framebuffer_draw_data framebuffer_viewport_data;
+    int32_t guizmo_type = -1;
     private:
     static void draw_viewport_quad(const ImDrawList *parentList, const ImDrawCmd *cmd);
     

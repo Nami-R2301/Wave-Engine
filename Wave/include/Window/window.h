@@ -71,12 +71,12 @@ namespace Wave
     [[nodiscard]] virtual void *get_native_monitor() const = 0;
     [[nodiscard]] virtual const char *get_title() const = 0;
     [[nodiscard]] virtual bool is_fullscreen() const = 0;
-    [[nodiscard]] virtual const Vector_2f &get_window_pos() const = 0;
+    [[nodiscard]] virtual const Math::Vector_2f &get_window_pos() const = 0;
     [[nodiscard]] virtual int get_framebuffer_width() const = 0;
     [[nodiscard]] virtual int get_framebuffer_height() const = 0;
     [[nodiscard]] virtual int get_width() const = 0;
     [[nodiscard]] virtual int get_height() const = 0;
-    [[nodiscard]] virtual const Vector_2f &get_aspect_ratio() const = 0;
+    [[nodiscard]] virtual const Math::Vector_2f &get_aspect_ratio() const = 0;
     [[nodiscard]] virtual int32_t get_refresh_rate() const = 0;
     [[nodiscard]] virtual int32_t get_max_refresh_rate() const = 0;
     [[nodiscard]] virtual int32_t get_samples() const = 0;
@@ -93,7 +93,7 @@ namespace Wave
     virtual void set_title(const char *title) = 0;
     virtual void set_width(float width) = 0;
     virtual void set_height(float height) = 0;
-    virtual void set_aspect_ratio(const Vector_2f &aspect_ratio_) = 0;
+    virtual void set_aspect_ratio(const Math::Vector_2f &aspect_ratio_) = 0;
     virtual void resize(float width_, float height_) = 0;
     virtual void set_fullscreen(bool fullscreen_state) = 0;
     virtual void set_refresh_rate(int32_t refresh_rate) = 0;

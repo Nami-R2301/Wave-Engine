@@ -69,7 +69,7 @@ namespace Wave
     private:
     entt::registry registry;
     std::unordered_map<UUID, entt::entity> entity_map;
-    Vector_2f viewport_dimensions = Vector_2f(0.0f);
+    Math::Vector_2f viewport_dimensions = Math::Vector_2f(0.0f);
     bool running = false;
     bool paused = false;
     int step_frames = 0;
