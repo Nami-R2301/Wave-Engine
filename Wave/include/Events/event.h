@@ -37,6 +37,10 @@ namespace Wave
     On_app_framerate_change,
     On_app_update,
     On_app_render,
+    On_scene_load,
+    On_entity_add,
+    On_entity_delete,
+    On_entity_duplicate,
     On_window_error,
     On_renderer_error,
     On_key_event,
@@ -55,9 +59,9 @@ namespace Wave
 #define EVENT_CLASS_TYPE(type) static Event_type get_static_type() { return type; }\
                  Event_type get_event_type() const override { return get_static_type(); }
 
-#define EVENT_CLASS_CATEGORY(category) virtual int get_category_flags() const override { return (int) category; }
+#define EVENT_CLASS_CATEGORY(category) virtual int get_category_flags() const override { return (int) (category); }
   
-  class Event : public Printable
+  class Event : public I_printable
   {
     friend class Event_dispatcher;
     

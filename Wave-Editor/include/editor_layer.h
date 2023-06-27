@@ -19,9 +19,8 @@ namespace Wave
   class Editor_layer : public Layer
   {
     public:
-    Editor_layer(const std::shared_ptr<Wave::Camera> &demo_perspective_camera_,
-                 const std::vector<std::shared_ptr<Wave::Shader>> &shaders_,
-                 const std::vector<std::shared_ptr<Wave::Object>> &objects_,
+    Editor_layer(const std::shared_ptr<Scene> &active_scene_,
+                 const std::vector<Entity> &entities_,
                  const std::shared_ptr<Framebuffer> &viewport_);
     ~Editor_layer() override = default;
     
@@ -33,13 +32,12 @@ namespace Wave
     void on_render() override;
     void on_ui_render(float time_step) override;
     private:
-    static bool system_panel_dock_open;
-    Scene_ui_panel scene_panel = {nullptr, {}};
-    std::vector<std::shared_ptr<Renderer::Draw_command>> pre_rendered_shaders;
+    static Scene_ui_panel scene_panel;
+    std::vector<Entity> entities;
     std::shared_ptr<Wave::Camera> camera;
-    std::vector<std::shared_ptr<Wave::Shader>> shaders;
     std::vector<std::shared_ptr<Wave::Object>> objects;
     Framebuffer_draw_data framebuffer_viewport_data;
+    int32_t guizmo_type = -1;
     private:
     static void draw_viewport_quad(const ImDrawList *parentList, const ImDrawCmd *cmd);
     

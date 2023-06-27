@@ -85,7 +85,7 @@ namespace Wave
     static float engine_framerate;
     static Engine_time current_time;
     static int32_t exit_code;  // Document the program_id exit code for maintenance.
-    [[maybe_unused]] static Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
+    [[maybe_unused]] static Math::Vector_2f last_mouse_position;  // Useful for determining mouse position delta between the last frame and the current one.
     static std::unique_ptr<Window> main_window;  // Default to OpenGL implementation.
     Layer_stack layer_stack;  // List containing all of our app layers.
     std::future<void> demo_futures;  // For async job handling.

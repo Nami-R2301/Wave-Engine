@@ -243,6 +243,18 @@
     <ClInclude Include="include\Window\glfw\glfw_window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Dependencies\ImGuizmo\ImGuizmo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Lighting\light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\uuid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Events\scene_events.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Utilities\logger.cpp">
@@ -402,6 +414,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Window\glfw\glfw_window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Dependencies\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Lighting\light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\uuid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Events\scene_events.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

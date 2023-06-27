@@ -90,17 +90,17 @@ namespace Wave
   
   /********************* MOUSE CURSOR EVENT ***********************/
   
-  On_mouse_movement::On_mouse_movement(const Vector_2f &position)
+  On_mouse_movement::On_mouse_movement(const Math::Vector_2f &position)
   {
     this->mouse_cursor_position = position;
   }
   
-  const Vector_2f &On_mouse_movement::get_mouse_cursor_position() const
+  const Math::Vector_2f &On_mouse_movement::get_mouse_cursor_position() const
   {
     return this->mouse_cursor_position;
   }
   
-  On_mouse_wheel_scroll::On_mouse_wheel_scroll(const Vector_2f &mouse_scroll_offset_)
+  On_mouse_wheel_scroll::On_mouse_wheel_scroll(const Math::Vector_2f &mouse_scroll_offset_)
   {
     this->mouse_wheel_offset = mouse_scroll_offset_;
   }
@@ -108,7 +108,7 @@ namespace Wave
   std::string On_mouse_movement::to_string() const
   {
     std::string output("[On mouse cursor movement] :\n");
-    Vector_2f position = get_mouse_cursor_position();
+    Math::Vector_2f position = get_mouse_cursor_position();
     
     char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer),
@@ -124,7 +124,7 @@ namespace Wave
   
   /************************** MOUSE WHEEL *********************************/
   
-  const Vector_2f &On_mouse_wheel_scroll::get_mouse_wheel_offset() const
+  const Math::Vector_2f &On_mouse_wheel_scroll::get_mouse_wheel_offset() const
   {
     return this->mouse_wheel_offset;
   }
@@ -132,7 +132,7 @@ namespace Wave
   std::string On_mouse_wheel_scroll::to_string() const
   {
     std::string output("[On mouse wheel input] :\n");
-    Vector_2f offset = get_mouse_wheel_offset();
+    Math::Vector_2f offset = get_mouse_wheel_offset();
     
     char buffer[FILENAME_MAX]{0};
     if (snprintf(buffer, sizeof(buffer),

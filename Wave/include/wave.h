@@ -4,6 +4,9 @@
 #include <Renderer/renderer.h>
 #include <Renderer/shader.h>
 
+/************************* Lighting ********************************/
+#include <Lighting/light.h>
+
 /************************* Core ********************************/
 #include <Core/core.h>
 #include <Core/interfaces.h>
@@ -17,6 +20,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+/************************* Imguizmo ********************************/
+#include <ImGuizmo/ImGuizmo.h>
 /************************* Utilities ********************************/
 #include <Utilities/logger.h>
 #include <Utilities/resource_loader.h>
@@ -34,6 +39,7 @@
 #include <Events/app_event.h>
 #include <Events/key_event.h>
 #include <Events/mouse_event.h>
+#include <Events/scene_events.h>
 #include <Events/renderer_event.h>
 #include <Events/event_dispatcher.h>
 

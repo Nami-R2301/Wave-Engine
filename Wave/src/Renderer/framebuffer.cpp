@@ -3,11 +3,13 @@
 //
 
 #include <Renderer/gl_renderer.h>
+#include <Renderer/framebuffer.h>
+
 
 namespace Wave
 {
   
-  std::shared_ptr<Framebuffer> Framebuffer::create(const Framebuffer_options &opt)
+  std::shared_ptr<Framebuffer> Framebuffer::create(const Framebuffer_options_s &target)
   {
     switch (Renderer::get_api())
     {
@@ -15,7 +17,7 @@ namespace Wave
         alert(WAVE_LOG_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::OpenGL:return std::make_shared<Gl_framebuffer>(opt);
+      case Renderer_api::OpenGL:return std::make_shared<Gl_framebuffer>(target);
       case Renderer_api::Vulkan:
         alert(WAVE_LOG_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);

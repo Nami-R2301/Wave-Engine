@@ -57,8 +57,8 @@ namespace Wave
   {
     std::vector<Vertex_2D> vertices;
     std::vector<Face_2D_s> face_indices;
-    std::vector<Vector_3f> normals;
-    std::vector<Vector_2f> tex_coords;
+    std::vector<Math::Vector_2f> normals;
+    std::vector<Math::Vector_2f> tex_coords;
     
     FILE *file_ptr = fopen(file_path, "rb");
     if (!file_ptr)
@@ -78,7 +78,7 @@ namespace Wave
       line = std::string(line_c);
       
       if (line == "v")
-        vertices.emplace_back(load_object_2D_vertex(file_ptr), Vector_2f(0, 0));  // Load vertex coordinates.
+        vertices.emplace_back(load_object_2D_vertex(file_ptr), Math::Vector_2f(0, 0));  // Load vertex coordinates.
       if (line == "f") face_indices.emplace_back(load_object_2D_face(file_ptr));  // Load index coordinates.
       if (line == "vn") normals.emplace_back(load_object_2D_normal(file_ptr));  // Load normal coordinates.
       if (line == "vt") tex_coords.emplace_back(load_object_texture_coords(file_ptr));  // Load texture coordinates.
@@ -102,19 +102,19 @@ namespace Wave
     {
       Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any texture coordinates!",
                   file_path);
-      tex_coords.resize(face_indices.size(), Vector_2f(-1));
+      tex_coords.resize(face_indices.size(), Math::Vector_2f(-1));
     }
     
     fclose(file_ptr);
-    return {Vector_2f(0.0f), vertices, face_indices, tex_coords, {}};
+    return {Math::Vector_2f(0.0f), vertices, face_indices, normals, tex_coords, {}};
   }
   
   Object_3D_data_s Resource_loader::load_object_3D_source(const char *file_path)
   {
     std::vector<Vertex_3D> vertices;
     std::vector<Face_3D_s> face_indices;
-    std::vector<Vector_3f> normals;
-    std::vector<Vector_2f> tex_coords;
+    std::vector<Math::Vector_3f> normals;
+    std::vector<Math::Vector_2f> tex_coords;
     
     FILE *file_ptr = fopen(file_path, "rb");
     if (!file_ptr)
@@ -134,7 +134,7 @@ namespace Wave
       line = std::string(line_c);
       
       if (line == "v")
-        vertices.emplace_back(load_object_3D_vertex(file_ptr), Vector_2f(0, 0));  // Load vertex coordinates.
+        vertices.emplace_back(load_object_3D_vertex(file_ptr), Math::Vector_2f(0, 0));  // Load vertex coordinates.
       if (line == "f") face_indices.emplace_back(load_object_3D_face(file_ptr));  // Load index coordinates.
       if (line == "vn") normals.emplace_back(load_object_3D_normal(file_ptr));  // Load normal coordinates.
       if (line == "vt") tex_coords.emplace_back(load_object_texture_coords(file_ptr));  // Load texture coordinates.
@@ -158,14 +158,14 @@ namespace Wave
     {
       Wave::alert(WAVE_LOG_WARN, "[Resource loader] --> Object 3D source '%s' doesn't contain any texture coordinates!",
                   file_path);
-      tex_coords.resize(face_indices.size(), Vector_2f(-1));
+      tex_coords.resize(face_indices.size(), Math::Vector_2f(-1));
     }
     
     fclose(file_ptr);
-    return {Vector_3f(0), vertices, face_indices, normals, tex_coords, {}};
+    return {Math::Vector_3f(0), vertices, face_indices, normals, tex_coords, {}};
   }
   
-  Vector_2f Resource_loader::load_object_2D_vertex(FILE *file_ptr)
+  Math::Vector_2f Resource_loader::load_object_2D_vertex(FILE *file_ptr)
   {
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
@@ -176,7 +176,7 @@ namespace Wave
     return {strtof(x, nullptr), strtof(y, nullptr)};
   }
   
-  Vector_3f Resource_loader::load_object_3D_vertex(FILE *file_ptr)
+  Math::Vector_3f Resource_loader::load_object_3D_vertex(FILE *file_ptr)
   {
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
@@ -258,19 +258,19 @@ namespace Wave
     }
     
     Face_3D_s face_3D_indices = {indices[0] - 1,
-                                 indices[1] - 1,
-                                 indices[2] - 1,
+                                 indices[1] > 0 ? indices[1] - 1 : indices[1],
+                                 indices[2] > 0 ? indices[2] - 1 : indices[2],
                                  indices[3] - 1,
-                                 indices[4] - 1,
-                                 indices[5] - 1,
+                                 indices[4] > 0 ? indices[4] - 1 : indices[4],
+                                 indices[5] > 0 ? indices[5] - 1 : indices[5],
                                  indices[6] - 1,
-                                 indices[7] - 1,
-                                 indices[8] - 1};
+                                 indices[7] > 0 ? indices[7] - 1 : indices[7],
+                                 indices[8] > 0 ? indices[8] - 1 : indices[8]};
     
     return face_3D_indices;
   }
   
-  Vector_2f Resource_loader::load_object_2D_normal(FILE *file_ptr)
+  Math::Vector_2f Resource_loader::load_object_2D_normal(FILE *file_ptr)
   {
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
@@ -281,7 +281,7 @@ namespace Wave
     return {strtof(x, nullptr), strtof(y, nullptr)};
   }
   
-  Vector_3f Resource_loader::load_object_3D_normal(FILE *file_ptr)
+  Math::Vector_3f Resource_loader::load_object_3D_normal(FILE *file_ptr)
   {
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0}, z[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s %s\n", x, y, z) == EOF)
@@ -292,7 +292,7 @@ namespace Wave
     return {strtof(x, nullptr), strtof(y, nullptr), strtof(z, nullptr)};
   }
   
-  Vector_2f Resource_loader::load_object_texture_coords(FILE *file_ptr)
+  Math::Vector_2f Resource_loader::load_object_texture_coords(FILE *file_ptr)
   {
     char x[sizeof(double) * 4]{0}, y[sizeof(double) * 4]{0};
     if (fscanf(file_ptr, "%s %s", x, y) == EOF)

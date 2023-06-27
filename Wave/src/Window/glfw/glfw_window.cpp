@@ -90,7 +90,7 @@ namespace Wave
     if (this->window_properties.width == WAVE_VALUE_DONT_CARE) this->set_width(static_cast<float>(mode->width));
     if (this->window_properties.height == WAVE_VALUE_DONT_CARE) this->set_height(static_cast<float>(mode->height));
     if (this->window_properties.refresh_rate == WAVE_VALUE_DONT_CARE) this->set_refresh_rate(mode->refreshRate);
-    if (this->window_properties.refresh_rate == WAVE_VALUE_DONT_CARE) this->set_max_refresh_rate(mode->refreshRate);
+    this->set_max_refresh_rate(mode->refreshRate);
     if (!this->window_properties.title) this->set_title("No title");
     this->set_vsync(this->window_properties.vsync);
     
@@ -209,18 +209,18 @@ namespace Wave
                                      break;
                                    }
                                    
-                                   default:break;
+                                   default: break;
                                  }
                                });
-//    (glfwSetCursorPosCallback(static_cast<GLFWwindow *>(this->get_native_window()),
+//    glfwSetCursorPosCallback(static_cast<GLFWwindow *>(this->get_native_window()),
 //
 //                                       [](GLFWwindow *window_, double x, double y)
 //                                       {
 //                                         Window &this_window_instance = *(Window *) glfwGetWindowUserPointer(window_);
 //                                         On_mouse_movement mouse_movement_event(
 //                                             Vector_2f(static_cast<float>(x), static_cast<float>(y)));
-//                                         this_window_instance.get_event_callback_function()(mouse_movement_event);
-//                                       }));
+//                                         Window::get_event_callback_function()(mouse_movement_event);
+//                                       });
     glfwSetWindowSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                               []([[maybe_unused]] GLFWwindow *window_, int32_t width_, int32_t height_)
                               {
@@ -232,8 +232,8 @@ namespace Wave
                           []([[maybe_unused]] GLFWwindow *window_, double x_offset, double y_offset)
                           {
                             On_mouse_wheel_scroll wheel_input(
-                              Vector_2f(static_cast<float>(x_offset),
-                                        static_cast<float>(y_offset)));
+                              Math::Vector_2f(static_cast<float>(x_offset),
+                                              static_cast<float>(y_offset)));
                             Glfw_window::get_event_callback_function()(wheel_input);
                           });
   }
@@ -275,9 +275,8 @@ namespace Wave
     }
   }
   
-  bool Glfw_window::is_minimized()
+  bool Glfw_window::is_minimized() const
   {
-    this->window_properties.refresh_rate = 30.0f;
     return glfwGetWindowAttrib(static_cast<GLFWwindow *>(this->get_native_window()), GLFW_ICONIFIED);
   }
   
@@ -344,7 +343,7 @@ namespace Wave
   {
     if (this->glfw_init)
     {
-      WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Closing window", this->close());
+      WAVE_LOG_INSTRUCTION("GLFW window", DEFAULT, "Closing window", this->close())
       
       glfwDestroyWindow(static_cast<GLFWwindow *>(get_native_window()));
       glfwTerminate();
@@ -377,17 +376,33 @@ namespace Wave
     return this->window_properties.title;
   }
   
-  float Glfw_window::get_width() const
+  int Glfw_window::get_framebuffer_width() const
+  {
+    if (!this->glfw_init) return 0;
+    int width;
+    glfwGetFramebufferSize((GLFWwindow *) this->window, &width, nullptr);
+    return width;
+  }
+  
+  int Glfw_window::get_framebuffer_height() const
+  {
+    if (!this->glfw_init) return 0;
+    int height;
+    glfwGetFramebufferSize((GLFWwindow *) this->window, nullptr, &height);
+    return height;
+  }
+  
+  int Glfw_window::get_width() const
   {
     return this->window_properties.width;
   }
   
-  float Glfw_window::get_height() const
+  int Glfw_window::get_height() const
   {
     return this->window_properties.height;
   }
   
-  const Vector_2f &Glfw_window::get_aspect_ratio() const
+  const Math::Vector_2f &Glfw_window::get_aspect_ratio() const
   {
     return this->aspect_ratio;
   }
@@ -407,7 +422,7 @@ namespace Wave
     return this->window_properties.vsync;
   }
   
-  const Vector_2f &Glfw_window::get_window_pos() const
+  const Math::Vector_2f &Glfw_window::get_window_pos() const
   {
     return this->position_on_screen;
   }
@@ -429,7 +444,7 @@ namespace Wave
   
   int32_t Glfw_window::get_samples() const
   {
-    return this->samples;
+    return this->window_properties.sample_rate;
   }
   
   const std::function<void(Event &event)> &Glfw_window::get_event_callback_function()
@@ -494,12 +509,12 @@ namespace Wave
     this->window_properties.height = height_;
   }
   
-  void Glfw_window::set_aspect_ratio(const Vector_2f &aspect_ratio_)
+  void Glfw_window::set_aspect_ratio(const Math::Vector_2f &aspect_ratio_)
   {
     this->aspect_ratio = aspect_ratio_;
-    (glfwSetWindowAspectRatio(static_cast<GLFWwindow *>(get_native_window()),
-                              static_cast<int32_t>(aspect_ratio_.get_x()),
-                              static_cast<int32_t>(aspect_ratio_.get_y())));
+    glfwSetWindowAspectRatio(static_cast<GLFWwindow *>(get_native_window()),
+                             static_cast<int32_t>(aspect_ratio_.get_x()),
+                             static_cast<int32_t>(aspect_ratio_.get_y()));
   }
   
   void Glfw_window::resize(float width_, float height_)

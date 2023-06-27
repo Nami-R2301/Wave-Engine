@@ -4,11 +4,7 @@
 
 #include <Math/vector.h>
 
-#ifdef _WIN32
-#define _USE_MATH_DEFINES  // For Visual Studio.
-#endif
-
-namespace Wave
+namespace Wave::Math
 {
   
   Vector_4f::Vector_4f(float uniform_scalar)

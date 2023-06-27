@@ -7,19 +7,23 @@
 #include <Core/interfaces.h>
 #include <Math/matrix_4f.h>
 
-namespace Wave
+namespace Wave::Math
 {
   
-  class Transform : public Printable
+  class Transform : public I_printable
   {
     public:
     Transform();
+    Transform(const Transform &) = default;
     Transform(const Vector_3f &translation_, const Vector_3f &rotation_, const Vector_3f &scale_);
     ~Transform() override = default;
     
     [[nodiscard]] const Vector_3f &get_translation() const;
+    [[nodiscard]] Vector_3f &get_translation();
     [[nodiscard]] const Vector_3f &get_rotation() const;
+    [[nodiscard]] Vector_3f &get_rotation();
     [[nodiscard]] const Vector_3f &get_scale() const;
+    [[nodiscard]] Vector_3f &get_scale();
     [[nodiscard]] Matrix_4f get_transform_matrix() const;
     
     void set_rotation(const Vector_3f &rotation_);

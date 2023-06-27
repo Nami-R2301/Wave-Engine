@@ -38,7 +38,7 @@ namespace Wave
   {
     if (Input::is_key_held(WAVE_KEY_LEFT_CONTROL))
     {
-      Vector_2f delta = (Input::get_mouse_cursor_position() - this->initial_mouse_position) * 0.04587f;
+      Math::Vector_2f delta = (Input::get_mouse_cursor_position() - this->initial_mouse_position) * 0.04587f;
       this->initial_mouse_position = Input::get_mouse_cursor_position();
       
       if (Input::is_mouse_button_held(WAVE_MOUSE_BUTTON_LEFT)) mouse_rotate(delta);
@@ -47,7 +47,7 @@ namespace Wave
       update_editor_view();
     }
     // Synchronous tasks.
-    float velocity = 15.0f;
+    float velocity = 10.0f;
     if (Input::is_key_held(WAVE_KEY_W)) this->move(this->get_up(), velocity * time_step);
     if (Input::is_key_held(WAVE_KEY_A)) this->move(this->get_left(), velocity * time_step);
     if (Input::is_key_held(WAVE_KEY_S)) this->move(this->get_up(), -velocity * time_step);
@@ -78,17 +78,17 @@ namespace Wave
     }
   }
   
-  Vector_3f Editor_camera::get_focal_point() const
+  Math::Vector_3f Editor_camera::get_focal_point() const
   {
     return this->focal_point;
   }
   
   void Editor_camera::set_focal_point(float x, float y, float z)
   {
-    this->focal_point = Vector_3f(x, y, z);
+    this->focal_point = Math::Vector_3f(x, y, z);
   }
   
-  void Editor_camera::set_focal_point(const Vector_3f &focal_point_)
+  void Editor_camera::set_focal_point(const Math::Vector_3f &focal_point_)
   {
     this->focal_point = focal_point_;
   }
@@ -103,17 +103,17 @@ namespace Wave
     this->distance = distance_;
   }
   
-  Matrix_4f Editor_camera::get_view_projection() const
+  Math::Matrix_4f Editor_camera::get_view_projection() const
   {
     return this->projection_matrix * this->view_matrix;
   }
   
   void Editor_camera::calculate_orientation()
   {
-    this->orientation = Vector_4f(Vector_3f(-this->pitch, -this->yaw, 0.0f));
+    this->orientation = Math::Vector_4f(Math::Vector_3f(-this->pitch, -this->yaw, 0.0f));
   }
   
-  Vector_3f Editor_camera::calculate_position() const
+  Math::Vector_3f Editor_camera::calculate_position() const
   {
     return this->focal_point - get_forward() * this->distance;
   }
@@ -137,16 +137,16 @@ namespace Wave
     return false;
   }
   
-  void Editor_camera::mouse_pan(const Vector_2f &delta)
+  void Editor_camera::mouse_pan(const Math::Vector_2f &delta)
   {
-    Vector_2f speed = pan_speed();
-    Vector_3f inverse_right = {-get_right().get_x(), -get_right().get_y(), -get_right().get_z()};
+    Math::Vector_2f speed = pan_speed();
+    Math::Vector_3f inverse_right = {-get_right().get_x(), -get_right().get_y(), -get_right().get_z()};
     
     this->focal_point += inverse_right * delta.get_x() * speed.get_x() * this->distance;
     this->focal_point += get_up() * delta.get_y() * speed.get_y() * this->distance;
   }
   
-  void Editor_camera::mouse_rotate(const Vector_2f &delta)
+  void Editor_camera::mouse_rotate(const Math::Vector_2f &delta)
   {
     float yaw_sign = get_up().get_y() < 0 ? -1.0f : 1.0f;
     this->yaw += yaw_sign * delta.get_x() * rotation_speed();
@@ -163,7 +163,7 @@ namespace Wave
     }
   }
   
-  Vector_2f Editor_camera::pan_speed() const
+  Math::Vector_2f Editor_camera::pan_speed() const
   {
     float x = std::min(this->width / 1000.0f, 2.7f);
     float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;

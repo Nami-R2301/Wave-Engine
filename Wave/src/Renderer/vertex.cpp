@@ -9,37 +9,29 @@ namespace Wave
 {
   
   Vertex_2D::Vertex_2D(float x_coord, float y_coord, float red, float green, float blue, float alpha)
+    : position(x_coord, y_coord), color(red, green, blue, alpha)
   {
-    this->position = Vector_2f(x_coord, y_coord);
-    this->color = Color(red, green, blue, alpha);
   }
   
-  Vertex_2D::Vertex_2D(const Vector_2f &position_, const Color &color_)
+  Vertex_2D::Vertex_2D(const Math::Vector_2f &position_, const Color &color_)
+    : position(position_), color(color_)
   {
-    this->position = position_;
-    this->color = color_;
   }
   
-  Vertex_2D::Vertex_2D(const Vector_2f &position_, const Vector_2f &tex_coord_)
+  Vertex_2D::Vertex_2D(const Math::Vector_2f &position_, const Math::Vector_2f &tex_coord_)
+    : position(position_), tex_coord(tex_coord_)
   {
-    this->position = position_;
-    this->tex_coord = tex_coord_;
   }
   
-  Vertex_2D::Vertex_2D(const Vector_2f &position_, const Color &color_, const Vector_2f &tex_coord_)
+  Vertex_2D::Vertex_2D(const Math::Vector_2f &position_, const Color &color_, const Math::Vector_2f &tex_coord_)
+    : position(position_), color(color_), tex_coord(tex_coord_)
   {
-    this->position = position_;
-    this->color = color_;
-    this->tex_coord = tex_coord_;
   }
   
-  Vertex_2D::Vertex_2D(const Vector_2f &position_, const Vector_2f &normal_, const Color &color_,
-                       const Vector_2f &tex_coord_)
+  Vertex_2D::Vertex_2D(const Math::Vector_2f &position_, const Math::Vector_2f &normal_, const Color &color_,
+                       const Math::Vector_2f &tex_coord_) : position(position_), normal(normal_),
+                                                            color(color_), tex_coord(tex_coord_)
   {
-    this->position = position_;
-    this->normal = normal_;
-    this->color = color_;
-    this->tex_coord = tex_coord_;
   }
   
   Vertex_2D::Vertex_2D(const Vertex_2D &other_vertex)
@@ -55,12 +47,12 @@ namespace Wave
     return this->position.length();
   }
   
-  Vector_2f Vertex_2D::get_position() const
+  Math::Vector_2f Vertex_2D::get_position() const
   {
     return this->position;
   }
   
-  Vector_2f Vertex_2D::get_normal() const
+  Math::Vector_2f Vertex_2D::get_normal() const
   {
     return this->normal;
   }
@@ -70,29 +62,34 @@ namespace Wave
     return this->color;
   }
   
-  const Vector_2f &Vertex_2D::get_tex_coord() const
+  const Math::Vector_2f &Vertex_2D::get_tex_coord() const
   {
     return this->tex_coord;
   }
   
-  void Vertex_2D::set_position(const Vector_2f &position_)
+  void Vertex_2D::set_id(int32_t id_)
+  {
+    this->id = id_;
+  }
+  
+  void Vertex_2D::set_position(const Math::Vector_2f &position_)
   {
     this->position = position_;
   }
   
   void Vertex_2D::set_position(float x, float y)
   {
-    this->position = Vector_2f(x, y);
+    this->position = Math::Vector_2f(x, y);
   }
   
-  void Vertex_2D::set_normal(const Vector_2f &normal_)
+  void Vertex_2D::set_normal(const Math::Vector_2f &normal_)
   {
     this->normal = normal_;
   }
   
   void Vertex_2D::set_normal(float x, float y)
   {
-    this->normal = Vector_2f(x, y);
+    this->normal = Math::Vector_2f(x, y);
   }
   
   void Vertex_2D::set_color(const Color &color_)
@@ -105,14 +102,14 @@ namespace Wave
     this->color = Color(r, g, b, a);
   }
   
-  void Vertex_2D::set_tex_coord(const Vector_2f &texCoord_)
+  void Vertex_2D::set_tex_coord(const Math::Vector_2f &texCoord_)
   {
     this->tex_coord = texCoord_;
   }
   
   void Vertex_2D::set_tex_coord(float x, float y)
   {
-    this->tex_coord = Vector_2f(x, y);
+    this->tex_coord = Math::Vector_2f(x, y);
   }
   
   bool Vertex_2D::operator==(const Vertex_2D &other_vertex)
@@ -133,13 +130,17 @@ namespace Wave
   
   std::string Vertex_2D::to_string() const
   {
-    std::string output("[VERTEX 2D] :\n");
-    
-    output += "Position on screen --> " + this->position.to_string();
-    output += "Color --> " + this->color.to_string();
-    output += "Texture coordinates --> " + this->tex_coord.to_string();
-    
-    return output;
+    char buffer[FILENAME_MAX * 4]{0};
+    if (snprintf(buffer, sizeof(buffer), "[Vertex 2D] :\n%55sObject ID --> %d\n%55sPosition --> %s%55sNormal --> %s"
+                                         "%55sColor --> %s%55sTexture coordinates --> %s",
+                 DEFAULT, this->id, DEFAULT, this->position.to_string().c_str(), DEFAULT,
+                 this->normal.to_string().c_str(), DEFAULT,
+                 this->color.to_string().c_str(),
+                 DEFAULT, this->tex_coord.to_string().c_str()) < 0)
+    {
+      return "ERROR : Snprintf error when trying to display [Vertex_2D]!";
+    }
+    return buffer;
   }
   
   void Vertex_2D::print() const
@@ -156,70 +157,55 @@ namespace Wave
   
   /*************************** 3D *******************************/
   
-  Vertex_3D::Vertex_3D(const Vector_2f &vector_2f, const Color &color)
+  Vertex_3D::Vertex_3D(const Math::Vector_2f &position_2D, const Color &color_)
+    : position(position_2D), color(color_)
   {
-    this->position = Vector_3f(vector_2f.get_x(), vector_2f.get_y(), 0.0f);
-    this->color = color;
   }
   
-  Vertex_3D::Vertex_3D(const Vector_3f &vector_3f, const Color &color)
+  Vertex_3D::Vertex_3D(const Math::Vector_3f &position_, const Color &color_)
+    : position(position_), color(color_)
   {
-    this->position = vector_3f;
-    this->color = color;
   }
   
-  Vertex_3D::Vertex_3D(const Vector_3f &position, const Vector_2f &tex_coord)
+  Vertex_3D::Vertex_3D(const Math::Vector_3f &position_, const Math::Vector_2f &tex_coord_)
+    : position(position_), tex_coord(tex_coord_)
   {
-    this->position = position;
-    this->color = Color("#FFFFFFFF");
-    this->tex_coord = tex_coord;
   }
   
-  Vertex_3D::Vertex_3D(const Vector_3f &position_, const Color &color_, const Vector_2f &tex_coord_)
+  Vertex_3D::Vertex_3D(const Math::Vector_3f &position_, const Color &color_, const Math::Vector_2f &tex_coord_)
+    : position(position_), color(color_), tex_coord(tex_coord_)
   {
-    this->position = position_;
-    this->color = color_;
-    this->tex_coord = tex_coord_;
   }
   
-  Vertex_3D::Vertex_3D(const Vector_3f &position_, const Color &color_, const Vector_3f &normal_)
+  Vertex_3D::Vertex_3D(const Math::Vector_3f &position_, const Color &color_, const Math::Vector_3f &normal_)
+    : position(position_), normal(normal_), color(color_)
   {
-    this->position = position_;
-    this->color = color_;
-    this->normal = normal_;
   }
   
-  Vertex_3D::Vertex_3D(const Vector_3f &position_, const Vector_3f &normal_, const Vector_2f &tex_coord_)
+  Vertex_3D::Vertex_3D(const Math::Vector_3f &position_, const Math::Vector_3f &normal_,
+                       const Math::Vector_2f &tex_coord_)
+    : position(position_), normal(normal_), tex_coord(tex_coord_)
   {
-    this->position = position_;
-    this->normal = normal_;
-    this->tex_coord = tex_coord_;
   }
   
-  Vertex_3D::Vertex_3D(const Vector_3f &position_, const Color &color_, const Vector_3f &normal_,
-                       const Vector_2f &tex_coord_)
+  Vertex_3D::Vertex_3D(const Math::Vector_3f &position_, const Color &color_, const Math::Vector_3f &normal_,
+                       const Math::Vector_2f &tex_coord_) : position(position_), normal(normal_),
+                                                            color(color_), tex_coord(tex_coord_)
   {
-    this->position = position_;
-    this->color = color_;
-    this->normal = normal_;
-    this->tex_coord = tex_coord_;
+  }
+  
+  Vertex_3D::Vertex_3D(float x_coord, float y_coord, float z_coord, float red_, float green_,
+                       float blue_, float alpha_) : position(x_coord, y_coord, z_coord),
+                                                    color(red_, green_, blue_, alpha_)
+  {
   }
   
   Vertex_3D::Vertex_3D(const Vertex_2D &vertex_2D)
   {
-    this->position = Vector_3f(vertex_2D.get_position().get_x(), vertex_2D.get_position().get_y(), 0);
+    this->position = Math::Vector_3f(vertex_2D.get_position().get_x(), vertex_2D.get_position().get_y(), 0);
     this->color = vertex_2D.get_color();
-    this->normal = Vector_3f(0);
+    this->normal = Math::Vector_3f(0);
     this->tex_coord = vertex_2D.get_tex_coord();
-  }
-  
-  Vertex_3D::Vertex_3D(float x_coord, float y_coord, float z_coord, float _red_, float _green_,
-                       float _blue_, float _alpha_)
-  {
-    this->position.set_x(x_coord);
-    this->position.set_y(y_coord);
-    this->position.set_z(z_coord);
-    this->color = Color(_red_, _green_, _blue_, _alpha_);
   }
   
   Vertex_3D::Vertex_3D(const Vertex_3D &other_vertex)
@@ -247,9 +233,9 @@ namespace Wave
   std::string Vertex_3D::to_string() const
   {
     char buffer[FILENAME_MAX * 4]{0};
-    if (snprintf(buffer, sizeof(buffer), "[VERTEX 3D] :\n%55sPosition on screen --> %s%55sNormal --> %s"
+    if (snprintf(buffer, sizeof(buffer), "[Vertex 3D] :\n%55sObject ID --> %d\n%55sPosition --> %s%55sNormal --> %s"
                                          "%55sColor --> %s%55sTexture coordinates --> %s",
-                 DEFAULT, this->position.to_string().c_str(), DEFAULT,
+                 DEFAULT, this->id, DEFAULT, this->position.to_string().c_str(), DEFAULT,
                  this->normal.to_string().c_str(), DEFAULT,
                  this->color.to_string().c_str(),
                  DEFAULT, this->tex_coord.to_string().c_str()) < 0)
@@ -271,17 +257,17 @@ namespace Wave
     alert(WAVE_LOG_INFO, "%s", this->to_string().c_str());
   }
   
-  Vector_3f Vertex_3D::get_position() const
+  Math::Vector_3f Vertex_3D::get_position() const
   {
     return this->position;
   }
   
-  Vector_3f Vertex_3D::get_normal() const
+  Math::Vector_3f Vertex_3D::get_normal() const
   {
     return this->normal;
   }
   
-  const Vector_2f &Vertex_3D::get_tex_coord() const
+  const Math::Vector_2f &Vertex_3D::get_tex_coord() const
   {
     return tex_coord;
   }
@@ -291,34 +277,39 @@ namespace Wave
     return color;
   }
   
-  void Vertex_3D::set_position(const Vector_3f &position_)
+  void Vertex_3D::set_id(int32_t id_)
+  {
+    this->id = id_;
+  }
+  
+  void Vertex_3D::set_position(const Math::Vector_3f &position_)
   {
     this->position = position_;
   }
   
   void Vertex_3D::set_position(float x, float y, float z)
   {
-    this->position = Vector_3f(x, y, z);
+    this->position = Math::Vector_3f(x, y, z);
   }
   
-  void Vertex_3D::set_normal(const Vector_3f &normal_)
+  void Vertex_3D::set_normal(const Math::Vector_3f &normal_)
   {
     this->normal = normal_;
   }
   
   void Vertex_3D::set_normal(float x, float y, float z)
   {
-    this->normal = Vector_3f(x, y, z);
+    this->normal = Math::Vector_3f(x, y, z);
   }
   
-  void Vertex_3D::set_tex_coord(const Vector_2f &texCoord)
+  void Vertex_3D::set_tex_coord(const Math::Vector_2f &texCoord)
   {
     Vertex_3D::tex_coord = texCoord;
   }
   
   void Vertex_3D::set_tex_coord(float x, float y)
   {
-    this->tex_coord = Vector_2f(x, y);
+    this->tex_coord = Math::Vector_2f(x, y);
   }
   
   void Vertex_3D::set_color(const Color &color_)
@@ -329,6 +320,17 @@ namespace Wave
   void Vertex_3D::set_color(float r, float g, float b, float a)
   {
     this->color = Color(r, g, b, a);
+  }
+  
+  void Vertex_3D::set_model_matrix(const Math::Matrix_4f &model_matrix_)
+  {
+    for (int i = 0; i < model_matrix_.get_num_rows(); ++i)
+    {
+      for (int j = 0; j < model_matrix_.get_num_cols(); ++j)
+      {
+        this->model_matrix[i][j] = model_matrix_.get_value(i, j);
+      }
+    }
   }
   
   Vertex_3D::operator Vertex_2D() const

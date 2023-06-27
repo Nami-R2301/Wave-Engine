@@ -16,110 +16,184 @@ namespace Wave
    * is calculated --> (viewport y cursor position += title bar height); (viewport full height - position height).
    */
   static float s_viewport_title_bar_height = 0.0f;
+  static float s_scene_hierarchy_panel_width = 0.0f;
+  static ImGuiWindow *s_viewport_window = nullptr;
   
   Editor::Editor() : Engine(Renderer_api::OpenGL, Context_api_e::Glfw,
                             Engine::App_type::Editor)
   {
     // Add Cameras
-    this->editor_camera = std::make_shared<Editor_camera>(Engine::get_main_window()->get_width(),
-                                                          Engine::get_main_window()->get_height(),
-                                                          90.0f, 0.1f, 1000.0f);
+    this->active_scene = std::make_shared<Scene>();
+    this->entities.emplace_back(this->active_scene->create_entity("Editor Camera"));
     
-    // Add shaders
-    this->demo_shaders.emplace_back(Wave::Shader::create("Object",
-                                                         Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/default_3D.vert"),
-                                                         Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/default_3D.frag")));
-    this->demo_shaders.emplace_back(Wave::Shader::create("Text_box",
-                                                         Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.vert"),
-                                                         Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.frag")));
-    this->demo_shaders.emplace_back(Wave::Shader::create("Text_box",
-                                                         Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.vert"),
-                                                         Wave::Resource_loader::load_shader_source(
-                                                           "../Wave/res/Shaders/text-glyph.frag")));
+    this->entities.back().add_component<std::shared_ptr<Camera>>(
+      std::make_shared<Editor_camera>(Engine::get_main_window()->get_width(),
+                                      Engine::get_main_window()->get_height(),
+                                      90.0f, 0.1f, 1000.0f));
     
     // Add objects
-    this->demo_objects.emplace_back(
-      Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj")));
+    this->entities.emplace_back(this->active_scene->create_entity("Object : Sphere"));
+    auto sphere = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/sphere.obj"), nullptr,
+                                 (int32_t) (uint32_t) this->entities.back());
+    this->entities.back().add_component<std::shared_ptr<Object>>(sphere);
     
-    // Add framebuffer.
-    int32_t max_samples = Engine::get_main_window()->get_samples();
-    // Setup default viewport framebuffer specs.
-    Framebuffer_options fbSpec;
-    fbSpec.width = Engine::get_main_window()->get_width();  // Windowed docked size.
-    fbSpec.height = Engine::get_main_window()->get_height();  // Windowed docked size.
-    fbSpec.samples = max_samples / 4 <= 4 ? max_samples : max_samples / 4;
-    this->viewport_resolution = {fbSpec.width,
-                                 fbSpec.height};
-    this->viewport_framebuffer = Framebuffer::create(fbSpec);
+    this->entities.emplace_back(this->active_scene->create_entity("Object : Awp"));
+    auto awp = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/awp.obj"),
+                              sphere->get_shader(), (int32_t) (uint32_t) this->entities.back());
+    this->entities.back().add_component<std::shared_ptr<Object>>(awp);
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Object : Cube"));
+    auto cube = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/cube.obj"),
+                               nullptr, (int32_t) (uint32_t) this->entities.back());
+    cube->enable_flat_shading();
+    this->entities.back().add_component<std::shared_ptr<Object>>(cube);
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Point Light : light bulb"));
+    auto light_bulb = Object::create(Resource_loader::load_object_3D_source("../Wave/res/Models/Lamp.obj"),
+                                     nullptr, (int32_t) (uint32_t) this->entities.back());
+    this->entities.back().add_component<std::shared_ptr<Object>>(light_bulb);
+    
+    // Add framebuffers.
+    
+    // Setup default framebuffer's attachments.
+    Framebuffer_attachment_s color_attachment = {Framebuffer_target_e::Color_attachment, 0, 2};
+    
+    // Add id attachment to framebuffer for mouse picking.
+    Framebuffer_attachment_s ms_id_attachment = {Framebuffer_target_e::ID_attachment, 1, 3};
+    Framebuffer_attachment_s non_ms_id_attachment = {Framebuffer_target_e::ID_attachment, 1, 5};
+    
+    Framebuffer_attachment_s depth_attachment = {Framebuffer_target_e::Depth_stencil_attachment, 0, 4};
+    
+    Framebuffer_options_s ms_options = {Engine::get_main_window()->get_framebuffer_width(),
+                                        Engine::get_main_window()->get_framebuffer_height(),
+                                        {color_attachment, ms_id_attachment, depth_attachment},
+                                        Engine::get_main_window()->get_samples()};
+    
+    Framebuffer_options_s non_ms_options = {Engine::get_main_window()->get_framebuffer_width(),
+                                            Engine::get_main_window()->get_framebuffer_height(),
+                                            {non_ms_id_attachment},
+                                            1};
+    
+    this->viewport_resolution = {(float) ms_options.width, (float) ms_options.height};
+    this->viewport_ms_framebuffer = Framebuffer::create(ms_options);
+    this->viewport_non_ms_framebuffer = Framebuffer::create(non_ms_options);
     
     // Add text strings
-    this->demo_texts.emplace_back(Text_box::create(Vector_2f(0.0f, 50.0f), "~ Wave Engine ~"));
-    this->demo_texts[0]->set_text_offset_y((this->viewport_resolution.get_y() -
-                                            this->demo_texts[0]->get_pixel_size().get_y()));
-    this->demo_texts[0]->set_text_color('~', Color(0xFF0000FF));
-    this->demo_texts[0]->append_text(" Nami Reghbati");
+    this->entities.emplace_back(this->active_scene->create_entity("Text Box : Title"));
+    auto text_box = Text_box::create(Math::Vector_2f(0.0f, 50.0f), "~ Wave Engine ~", nullptr,
+                                     (int32_t) (uint32_t) this->entities.back());
+    text_box->append_text(" By : Nami Reghbati ");
+    
+    this->entities.back().add_component<std::shared_ptr<Text_box>>(text_box);
+    
+    this->entities.emplace_back(this->active_scene->create_entity("Text Box : Menu Title"));
+    auto text_box_2 = Text_box::create(Math::Vector_2f(0.0f, 50.0f), "Game Title", nullptr,
+                                       (int32_t) (uint32_t) this->entities.back());
+    text_box_2->set_text_offset_x(text_box->get_text_length() + 50.0f);
+    
+    this->entities.back().add_component<std::shared_ptr<Text_box>>(text_box_2);
   }
   
   void Editor::on_init()
   {
     Engine::on_init();
     
-    push_layer(new Editor_layer(this->editor_camera,
-                                this->demo_shaders,
-                                this->demo_objects,
-                                this->viewport_framebuffer));
-    push_layer(new Text_layer(this->demo_texts, this->demo_shaders, &this->viewport_resolution,
-                              true));
-    push_layer(new ImGui_layer());
+    this->viewport_ms_framebuffer->bind();
+    this->viewport_non_ms_framebuffer->bind();
+    
+    push_overlay(new ImGui_layer());
+    push_layer(new Editor_layer(this->active_scene, this->entities, this->viewport_ms_framebuffer));
+    push_layer(new Text_layer(this->entities, &this->viewport_resolution, true));
+    
+    // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
+    this->active_scene->send_gpu();
   }
   
   void Editor::on_destroy()
   {
-    for (auto &shader: this->demo_shaders) shader->free_gpu();
-    for (auto &text_box: this->demo_texts) text_box->free_gpu();
-    for (auto &object: this->demo_objects) object->free_gpu();
-    this->viewport_framebuffer->free_gpu();
+    for (auto &shader: this->demo_shaders) shader->free_gpu(1);
+    this->viewport_ms_framebuffer->free_gpu(1);
+    delete this->selected_entity;
     
+    Engine::shutdown();
     Engine::on_destroy();
   }
   
   void Editor::on_event(Event &event)
   {
+    Engine::on_event(event);
     switch (event.get_event_type())
     {
       case Wave::Event_type::None:return;
       case Wave::Event_type::On_framebuffer_resize:
       {
-        Event_dispatcher viewport_dispatcher(event);
-        viewport_dispatcher.dispatch<On_framebuffer_resize>(BIND_EVENT_FUNCTION(on_viewport_resize));
+        on_viewport_resize(dynamic_cast<On_framebuffer_resize &>(event));
+        break;
+      }
+      case Wave::Event_type::On_mouse_button_press:
+      {
+        /********************** MOUSE PICKING **********************/
+        
+        Math::Vector_2f position = Input::get_mouse_cursor_position();
+        
+        Math::Vector_2f viewport_size = Math::Vector_2f(this->viewport_framebuffer_boundaries[2],
+                                                        this->viewport_framebuffer_boundaries[3]);
+        // Set cursor offset for viewport window.
+        position.set_x(position.get_x() - s_scene_hierarchy_panel_width);
+        // Flip y-axis to start at the bottom left of the viewport, in order to match it with texture coordinates,
+        // since the ID attachment texture is not flipped.
+        position.set_y((viewport_size.get_y() + s_viewport_title_bar_height) - position.get_y());
+        
+        // If mouse is within the viewport window.
+        if ((int) position.get_x() >= 0 && (int) position.get_y() >= 0 &&
+            (int) position.get_x() <= (int) viewport_size.get_x() &&
+            (int) position.get_y() <= (int) viewport_size.get_y() - (int) s_viewport_title_bar_height)
+        {
+          // Setup default framebuffer and copy the ID attachment texture info from the original framebuffer, since
+          // we cannot just read pixels from a multi-sampled framebuffer.
+          this->viewport_ms_framebuffer->blit_color_attachments((int32_t) this->viewport_non_ms_framebuffer->get_id(),
+                                                                {this->viewport_ms_framebuffer->get_color_attachments()[1]});
+          
+          int pixelData = this->viewport_non_ms_framebuffer->read_pixel(1, (int32_t) position.get_x(),
+                                                                        (int32_t) position.get_y());
+          
+          if (pixelData != -1)
+          {
+            delete this->selected_entity;
+            this->selected_entity = new Entity((entt::entity) pixelData, this->active_scene.get());
+            Editor_layer::scene_panel.set_selected_entity(*this->selected_entity);
+          } else
+          {
+            delete this->selected_entity;
+            this->selected_entity = nullptr;
+          }
+        }
         break;
       }
       case Wave::Event_type::On_mouse_wheel_scroll:
       {
-        this->editor_camera->on_event(event);
+        auto view = this->active_scene->get_all_entities_with<Editor_camera>();
+        for (const auto &entity: view) view.get<Editor_camera>(entity).on_event(event);
         break;
       }
       default: break;
     }
-    Engine::on_event(event);
   }
   
   bool Editor::on_viewport_resize(On_framebuffer_resize &resize)
   {
-    auto framebuffer_resize = dynamic_cast<On_framebuffer_resize &>(resize);
-    this->viewport_framebuffer_boundaries = Vector_4f(framebuffer_resize.get_position_x(),
-                                                      framebuffer_resize.get_position_y(),
-                                                      framebuffer_resize.get_width(),
-                                                      framebuffer_resize.get_height() + s_viewport_title_bar_height);
+    this->viewport_framebuffer_boundaries = Math::Vector_4f(resize.get_position_x(),
+                                                            resize.get_position_y(),
+                                                            resize.get_width(),
+                                                            resize.get_height() + s_viewport_title_bar_height);
     
-    this->viewport_framebuffer->resize(framebuffer_resize.get_width(),
-                                       framebuffer_resize.get_height(),
-                                       &this->viewport_framebuffer_boundaries);
+    this->viewport_ms_framebuffer->resize((int32_t) resize.get_width(),
+                                          (int32_t) resize.get_height(),
+                                          &this->viewport_framebuffer_boundaries);
+    
+    this->viewport_non_ms_framebuffer->resize((int32_t) resize.get_width(),
+                                              (int32_t) resize.get_height(),
+                                              &this->viewport_framebuffer_boundaries);
     return false;
   }
   
@@ -130,43 +204,48 @@ namespace Wave
   
   void Editor::on_game_render()
   {
-    this->viewport_framebuffer->bind();
-    Renderer::begin(this->editor_camera);
+    if (s_viewport_window)
+    {
+      ImVec2 size = s_viewport_window->SizeFull;
+      s_viewport_title_bar_height = s_viewport_window->TitleBarHeight();
+      
+      // Redraw framebuffer on resize.
+      if (size.x > 0.0f && size.y - s_viewport_title_bar_height > 0.0f &&
+          (size.x != (float) this->viewport_ms_framebuffer->get_options().width ||
+           size.y - s_viewport_title_bar_height != (float) this->viewport_ms_framebuffer->get_options().height
+           || s_viewport_window->Pos.x != this->viewport_framebuffer_boundaries.get_x() ||
+           s_viewport_window->Pos.y != this->viewport_framebuffer_boundaries.get_y()))
+      {
+        On_framebuffer_resize framebuffer_resized(s_viewport_window->Pos.x,
+                                                  s_viewport_window->Pos.y,
+                                                  size.x, size.y - s_viewport_title_bar_height);
+        Window::get_event_callback_function()(framebuffer_resized);
+      }
+    }
+    this->viewport_ms_framebuffer->bind();
+    Renderer::begin(this->active_scene->get_entity("Editor Camera").get_component<std::shared_ptr<Camera>>());
     Renderer::set_clear_color(this->background_clear_color);
     Renderer::clear_bg();
+    this->viewport_ms_framebuffer->clear_attachment(1, -1);
     Engine::on_game_render();
     Renderer::end();
-    this->viewport_framebuffer->unbind();
+    this->viewport_ms_framebuffer->unbind();
   }
   
   void Editor::on_ui_render(float time_step)
   {
-    if (!Engine::get_main_window()->is_minimized())
-    {
-      ImGui_layer::begin();
-      
-      auto viewport_undocked = ImGui::FindWindowByName("Viewport");
-      if (viewport_undocked)  // If viewport is detached from DockSpace.
-      {
-        ImVec2 size = viewport_undocked->SizeFull;
-        s_viewport_title_bar_height = viewport_undocked->TitleBarHeight();
-        
-        // Redraw framebuffer on resize.
-        if (size.x > 0.0f && size.y - s_viewport_title_bar_height > 0.0f &&
-            (size.x != this->viewport_framebuffer->get_options().width ||
-             size.y - s_viewport_title_bar_height != this->viewport_framebuffer->get_options().height
-             || viewport_undocked->Pos.x != this->viewport_framebuffer_boundaries.get_x() ||
-             viewport_undocked->Pos.y != this->viewport_framebuffer_boundaries.get_y()))
-        {
-          On_framebuffer_resize framebuffer_resized(viewport_undocked->Pos.x,
-                                                    viewport_undocked->Pos.y,
-                                                    size.x, size.y - s_viewport_title_bar_height);
-          Window::get_event_callback_function()(framebuffer_resized);
-        }
-      }
-      Engine::on_ui_render(time_step);
-      ImGui_layer::end();
-    }
+    ImGui_layer::begin();
+    s_viewport_window = ImGui::FindWindowByName("Viewport");
+    auto scene_panel = ImGui::FindWindowByName("Scene Editor");
+    scene_panel && ImGui_layer::show_scene_panel ? s_scene_hierarchy_panel_width = scene_panel->Size.x :
+      s_scene_hierarchy_panel_width = 0.0f;
+    Engine::on_ui_render(time_step);
+    
+    ImGui::Begin("System Info");
+    ImGui::Text("Selected Entity --> %s", this->selected_entity ? this->selected_entity->get_name().c_str() : "None");
+    ImGui::End();
+    
+    ImGui_layer::end();
   }
   
   Engine *create_app()

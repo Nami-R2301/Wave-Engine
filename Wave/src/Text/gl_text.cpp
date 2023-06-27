@@ -5,8 +5,6 @@
 #include <Text/gl_text.h>
 #include <Renderer/gl_renderer.h>
 
-#include <utility>
-
 static const char *s_font_file_path = nullptr;
 
 namespace Wave
@@ -14,68 +12,181 @@ namespace Wave
   
   Gl_text_box::Gl_text_box()
   {
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
     this->text = "?Example text?";
+    this->associated_shader = Shader::create("Text_box",
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/text-glyph.vert"),
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/text-glyph.frag"));
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size)
+  Gl_text_box::Gl_text_box(int32_t id_)
   {
-    this->format.text_size = pixel_size;
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
+    this->id = id_;
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
     this->text = "?Example text?";
+    this->associated_shader = Shader::create("Text_box",
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/text-glyph.vert"),
+                                             Wave::Resource_loader::load_shader_source(
+                                               "../Wave/res/Shaders/text-glyph.frag"));
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const std::string &text_)
+  Gl_text_box::Gl_text_box(const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
-    this->text = text_;
+    this->id = id_;
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
+    this->text = "?Example text?";
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_)
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::shared_ptr<Shader> &associated_shader_,
+                           int32_t id_)
   {
+    this->id = id_;
     this->format.text_size = pixel_size;
-    s_font_file_path = "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf";
-    this->text = text_;
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
+    this->text = "?Example text?";
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &text_, const char *font_file_name)
+  Gl_text_box::Gl_text_box(const std::string &text_, const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
+    this->id = id_;
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
+    this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
+    init_freetype();
+  }
+  
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &text_,
+                           const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
+  {
+    this->id = id_;
+    this->format.text_size = pixel_size;
+    s_font_file_path = "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf";
+    this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
+    init_freetype();
+  }
+  
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &text_, const char *font_file_name,
+                           const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
+  {
+    this->id = id_;
     this->format.text_size = pixel_size;
     s_font_file_path = font_file_name;
     this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const Vector_2f &pixel_size, const std::string &string_, const Text_format_s &text_format)
+  Gl_text_box::Gl_text_box(const Math::Vector_2f &pixel_size, const std::string &string_,
+                           const Text_format_s &text_format,
+                           const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
+    this->id = id_;
     this->format.text_size = pixel_size;
     this->text = string_;
     this->format = text_format;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_)
+  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_,
+                           const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
+    this->id = id_;
     s_font_file_path = font_file_name;
     this->text = text_;
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
-  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_, Text_format_s format_)
+  Gl_text_box::Gl_text_box(const char *font_file_name, const std::string &text_, Text_format_s format_,
+                           const std::shared_ptr<Shader> &associated_shader_, int32_t id_)
   {
+    this->id = id_;
     s_font_file_path = font_file_name;
     this->text = text_;
     this->format = std::move(format_);
+    this->associated_shader = associated_shader_;
+    if (!this->associated_shader)
+    {
+      this->associated_shader = Shader::create("Text_box",
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.vert"),
+                                               Wave::Resource_loader::load_shader_source(
+                                                 "../Wave/res/Shaders/text-glyph.frag"));
+    }
     init_freetype();
   }
   
   Gl_text_box::~Gl_text_box()
   {
-    Gl_text_box::free_gpu();
+    Gl_text_box::free_gpu(1);
+    delete this->texture_atlas;
   }
   
   void Gl_text_box::init_freetype()
@@ -88,7 +199,7 @@ namespace Wave
       {
         alert(WAVE_LOG_ERROR, "[Gl text] --> Error loading font file %s!", s_font_file_path);
         // If the font file is missing, use the callback (default) one.
-        FT_New_Face(this->library, "../Wave/res/Fonts/Comfortaa/Comfortaa-SemiBold.ttf", 0, &this->face);
+        FT_New_Face(this->library, "../Wave/res/Fonts/Roboto/Roboto-Regular.ttf", 0, &this->face);
       }
     }
     
@@ -106,7 +217,7 @@ namespace Wave
       // Load character glyph
       if (FT_Load_Char(this->face, character, FT_LOAD_RENDER))
       {
-        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to build Glyph %c", character);
+        alert(WAVE_LOG_ERROR, "[Gl text] --> Failed to build Glyph %c", character);
         continue;
       }
       
@@ -120,9 +231,9 @@ namespace Wave
         this->characters.contains(character) ? this->characters.at(character).color : glyph_default_color,
         this->face->glyph->bitmap.width,
         this->face->glyph->bitmap.rows,
-        Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
+        Math::Vector_2f((float) this->face->glyph->bitmap_left, (float) this->face->glyph->bitmap_top),
         // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-        Vector_2f((float) (this->face->glyph->advance.x >> 6), (float) (this->face->glyph->advance.y >> 6))
+        Math::Vector_2f((float) (this->face->glyph->advance.x >> 6), (float) (this->face->glyph->advance.y >> 6))
       };
       this->characters[character] = character_glyph;
       
@@ -136,7 +247,7 @@ namespace Wave
     this->atlas_size.set_y((float) atlas_total_height);
   }
   
-  void Gl_text_box::send_gpu()
+  void Gl_text_box::send_gpu([[maybe_unused]] uint64_t instance_count)
   {
     if (!this->is_sent())
     {
@@ -147,24 +258,24 @@ namespace Wave
     // If we are rebuilding.
     if (this->is_sent())
     {
-      if (this->texture_atlas) this->texture_atlas->free_gpu();
+      if (this->texture_atlas) this->texture_atlas->free_gpu(1);
       
       init_freetype();
-      this->texture_atlas->set_width(this->atlas_size.get_x());
-      this->texture_atlas->set_height(this->atlas_size.get_y());
+      this->texture_atlas->set_width((int32_t) this->atlas_size.get_x());
+      this->texture_atlas->set_height((int32_t) this->atlas_size.get_y());
     } else  // If we are building for the first time.
     {
       // Create texture atlas for all glyphs of the current face.
-      this->texture_atlas = new Gl_texture_2D(s_font_file_path, {Texture::Texture_type_e::Texture_2D,
-                                                                 Texture::Texture_internal_format_e::Red,
-                                                                 this->atlas_size.get_x(),
-                                                                 this->atlas_size.get_y(),
-                                                                 WAVE_VALUE_DONT_CARE,
-                                                                 0,
-                                                                 WAVE_VALUE_DONT_CARE,
-                                                                 nullptr});
+      this->texture_atlas = new Gl_texture_2D(nullptr, {Texture::Texture_type_e::Texture_2D,
+                                                        Texture::Texture_internal_format_e::Red,
+                                                        (int32_t) this->atlas_size.get_x(),
+                                                        (int32_t) this->atlas_size.get_y(),
+                                                        0,
+                                                        6,
+                                                        1,
+                                                        nullptr});
     }
-    this->texture_atlas->send_gpu();
+    this->texture_atlas->send_gpu(1);
     
     if (!this->texture_atlas) return;
     
@@ -173,7 +284,7 @@ namespace Wave
     {
       if (FT_Load_Char(this->face, i, FT_LOAD_RENDER))
       {
-        alert(WAVE_LOG_ERROR, "[TEXT] --> Failed to build Glyph_s");
+        alert(WAVE_LOG_ERROR, "[Gl text] --> Failed to build Glyph_s");
         continue;
       }
       
@@ -190,17 +301,119 @@ namespace Wave
       this->characters[i].texture_offset /= (float) this->texture_atlas->get_width();
     }
     
+    this->prepare_vertices();
+    if (this->is_sent())
+    {
+      // If we are overwriting the current text_box vbo.
+      Renderer::replace_entity(this->id, *this->associated_shader, this->glyph_vertices, {}, *this->texture_atlas);
+      return;
+    }
+    for (uint64_t i = 0; i < instance_count; ++i)
+      Renderer::send_entity(this->id, *this->associated_shader, this->glyph_vertices, {}, *this->texture_atlas);
     this->sent = true;
   }
   
-  void Gl_text_box::free_gpu()
+  void Gl_text_box::prepare_vertices()
+  {
+    if (!this->glyph_vertices.empty())
+    {
+      this->glyph_vertices.clear();
+      this->glyph_vertices.resize(0);
+    }
+    
+    float offset_x = get_text_offset().get_x(), offset_y = get_text_offset().get_y();
+    const Math::Vector_2f &scale = get_text_scale();
+    
+    for (char character: this->text)
+    {
+      Glyph_s glyph = this->characters.at(character);
+      
+      float red = this->characters.at(character).color.get_red(),
+        green = this->characters.at(character).color.get_green(),
+        blue = this->characters.at(character).color.get_blue(),
+        alpha = this->characters.at(character).color.get_alpha();
+      
+      auto texture_offset_x = (float) glyph.texture_offset;
+      
+      float x_pos = offset_x + (glyph.bearing.get_x() * scale.get_x());
+      float y_pos = -offset_y - (glyph.bearing.get_y() * scale.get_y());
+      float w = (float) glyph.size_x * scale.get_x();
+      float h = (float) glyph.size_y * scale.get_y();
+      
+      // Advance cursors for next glyph (note that advance is number of 1/64 pixels)
+      offset_x += glyph.advance.get_x() * scale.get_x();
+      offset_y += glyph.advance.get_y() * scale.get_y();
+      
+      // Update VBO for each character
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            this->id,
+                                            Math::Vector_2f(x_pos, -y_pos),
+                                            Color(red, green, blue, alpha, true),
+                                            Math::Vector_2f(texture_offset_x + 0.0001f, 0)
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            this->id,
+                                            Math::Vector_2f(x_pos + w, -y_pos),
+                                            Color(red, green, blue, alpha, true),
+                                            Math::Vector_2f(
+                                              texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0)
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            this->id,
+                                            Math::Vector_2f(x_pos, (-y_pos - h)),
+                                            Color(red, green, blue, alpha, true),
+                                            Math::Vector_2f(texture_offset_x + 0.0001f,
+                                                            (float) (glyph.size_y - 1) / atlas_size.get_y())
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            this->id,
+                                            Math::Vector_2f(x_pos + w, -y_pos),
+                                            Color(red, green, blue, alpha, true),
+                                            Math::Vector_2f(
+                                              texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(), 0)
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            this->id,
+                                            Math::Vector_2f(x_pos, (-y_pos - h)),
+                                            Color(red, green, blue, alpha, true),
+                                            Math::Vector_2f(texture_offset_x + 0.0001f,
+                                                            (float) (glyph.size_y - 1) / atlas_size.get_y())
+                                          });
+      
+      this->glyph_vertices.emplace_back(Glyph_quad_s
+                                          {
+                                            this->id,
+                                            Math::Vector_2f(x_pos + w, (-y_pos - h)),
+                                            Color(red, green, blue, alpha, true),
+                                            Math::Vector_2f(
+                                              texture_offset_x + (float) (glyph.size_x - 1) / atlas_size.get_x(),
+                                              (float) (glyph.size_y - 1) /
+                                              atlas_size.get_y())
+                                          });
+    }
+  }
+  
+  void Gl_text_box::free_gpu(uint64_t instance_count)
   {
     if (this->is_sent())
     {
       FT_Done_Face(this->face);
       FT_Done_FreeType(this->library);
-      delete this->texture_atlas;
       this->sent = false;
+      this->texture_atlas->free_gpu(instance_count);
+      if (Renderer::get_state().code != WAVE_RENDERER_SHUTDOWN)
+        Renderer::free_entity(this->associated_shader->get_id(), this->id);
+      this->glyph_vertices.clear();
+      this->glyph_vertices.resize(0);
     }
   }
   
@@ -259,19 +472,19 @@ namespace Wave
     return buffer;
   }
   
-  void Gl_text_box::translate(const Wave::Vector_3f &position)
+  void Gl_text_box::translate(const Math::Vector_3f &position)
   {
-    this->format.offset += (Vector_2f) position;
+    this->format.offset += (Math::Vector_2f) position;
   }
   
   void Gl_text_box::translate(float x, float y, [[maybe_unused]] float z)
   {
-    this->format.offset += Vector_2f(x, y);
+    this->format.offset += Math::Vector_2f(x, y);
   }
   
-  void Gl_text_box::rotate(const Wave::Vector_3f &angle)
+  void Gl_text_box::rotate(const Math::Vector_3f &angle)
   {
-    Vector_3f temp_angle = angle;
+    Math::Vector_3f temp_angle = angle;
     // Get angles and convert to radiant.
     temp_angle.set_x((float) (angle.get_x() * (M_PI / 180)));
     temp_angle.set_y((float) (angle.get_y() * (M_PI / 180)));
@@ -290,14 +503,14 @@ namespace Wave
     this->format.offset.set_y(cosf(angle_y) + sinf(angle_x));
   }
   
-  void Gl_text_box::scale(const Wave::Vector_3f &scalar)
+  void Gl_text_box::scale(const Math::Vector_3f &scalar)
   {
-    this->format.scale *= (Vector_2f) scalar;
+    this->format.scale *= (Math::Vector_2f) scalar;
   }
   
   void Gl_text_box::scale(float x, float y, [[maybe_unused]] float z)
   {
-    this->format.scale *= Vector_2f(x, y);
+    this->format.scale *= Math::Vector_2f(x, y);
   }
   
   void *Gl_text_box::copy() const

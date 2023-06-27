@@ -33,10 +33,10 @@ namespace Wave
     static void set_mouse_button_state(int mouse_button, bool state);
     
     // MOUSE MOVEMENT STATIC FUNCTIONS.
-    static Vector_2f get_mouse_cursor_position();
+    static Math::Vector_2f get_mouse_cursor_position();
     static int get_mouse_cursor_attribute();
     static void set_mouse_cursor_attribute(int value);
-    static void set_mouse_cursor_position(const Vector_2f &position);
+    static void set_mouse_cursor_position(const Math::Vector_2f &position);
     
     // MOUSE STATE FUNCTIONS.
     [[nodiscard]] static bool is_mouse_locked();

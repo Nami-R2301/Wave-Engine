@@ -39,11 +39,13 @@ namespace Wave
   
   void Gl_vertex_array_buffer::bind() const
   {
+    if (!this->is_bound())
     CHECK_GL_CALL(glBindVertexArray(this->vertex_array_id));
   }
   
   void Gl_vertex_array_buffer::unbind() const
   {
+    if (this->is_bound())
     CHECK_GL_CALL(glBindVertexArray(0));
   }
   
@@ -92,13 +94,14 @@ namespace Wave
         case Buffer_data_type::Color_4f:
         case Buffer_data_type::Vector_4f:
         {
-          glEnableVertexAttribArray(this->vertex_buffer_index);
-          glVertexAttribPointer(this->vertex_buffer_index,
-                                static_cast<GLint>(element.get_property_count()),
-                                convert_buffer_data_type_to_gl(element.type),
-                                element.normalized ? GL_TRUE : GL_FALSE,
-                                static_cast<GLint>(layout.get_stride()),
-                                (const void *) element.offset);
+          CHECK_GL_CALL(glEnableVertexAttribArray(this->vertex_buffer_index));
+          CHECK_GL_CALL(glVertexAttribPointer(this->vertex_buffer_index,
+                                              static_cast<GLint>(element.get_property_count()),
+                                              convert_buffer_data_type_to_gl(element.type),
+                                              element.normalized ? GL_TRUE : GL_FALSE,
+                                              static_cast<GLint>(layout.get_stride()),
+                                              (const void *) element.offset));
+          if (element.flat) glVertexAttribDivisor(this->vertex_buffer_index, 1);
           this->vertex_buffer_index++;
           break;
         }
@@ -108,12 +111,13 @@ namespace Wave
         case Buffer_data_type::Vector_4i:
         case Buffer_data_type::Bool:
         {
-          glEnableVertexAttribArray(this->vertex_buffer_index);
-          glVertexAttribIPointer(this->vertex_buffer_index,
-                                 static_cast<GLint>(element.get_property_count()),
-                                 convert_buffer_data_type_to_gl(element.type),
-                                 static_cast<GLint>(layout.get_stride()),
-                                 (const void *) element.offset);
+          CHECK_GL_CALL(glEnableVertexAttribArray(this->vertex_buffer_index));
+          CHECK_GL_CALL(glVertexAttribIPointer(this->vertex_buffer_index,
+                                               static_cast<GLint>(element.get_property_count()),
+                                               convert_buffer_data_type_to_gl(element.type),
+                                               static_cast<GLint>(layout.get_stride()),
+                                               (const void *) element.offset));
+          if (element.flat) glVertexAttribDivisor(this->vertex_buffer_index, 1);
           this->vertex_buffer_index++;
           break;
         }
@@ -123,14 +127,14 @@ namespace Wave
           uint64_t count = element.get_property_count();
           for (uint64_t i = 0; i < count; i++)
           {
-            glEnableVertexAttribArray(this->vertex_buffer_index);
-            glVertexAttribPointer(this->vertex_buffer_index,
-                                  static_cast<GLint>(count),
-                                  convert_buffer_data_type_to_gl(element.type),
-                                  element.normalized ? GL_TRUE : GL_FALSE,
-                                  static_cast<GLint>(layout.get_stride()),
-                                  (const void *) (element.offset + sizeof(float) * count * i));
-            glVertexAttribDivisor(this->vertex_buffer_index, 1);
+            CHECK_GL_CALL(glEnableVertexAttribArray(this->vertex_buffer_index));
+            CHECK_GL_CALL(glVertexAttribPointer(this->vertex_buffer_index,
+                                                static_cast<GLint>(count),
+                                                convert_buffer_data_type_to_gl(element.type),
+                                                element.normalized ? GL_TRUE : GL_FALSE,
+                                                static_cast<GLint>(layout.get_stride()),
+                                                (const void *) (element.offset + sizeof(float) * count * i)));
+            if (element.flat) glVertexAttribDivisor(this->vertex_buffer_index, 1);
             this->vertex_buffer_index++;
           }
           break;

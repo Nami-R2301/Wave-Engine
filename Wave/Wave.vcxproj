@@ -188,10 +188,12 @@
     <ClInclude Include="Include\Core\platform_detection.h" />
     <ClInclude Include="Include\Core\settings.h" />
     <ClInclude Include="Include\Core\text_layer.h" />
+    <ClInclude Include="include\Core\uuid.h" />
     <ClInclude Include="include\Dependencies\entt\entt.hpp" />
     <ClInclude Include="Include\Dependencies\freetype\include\freetype\freetype.h" />
     <ClInclude Include="Include\Dependencies\freetype\include\ft2build.h" />
     <ClInclude Include="include\Dependencies\GL\glew.h" />
+    <ClInclude Include="include\Dependencies\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Include\Dependencies\imGUI\imconfig.h" />
     <ClInclude Include="Include\Dependencies\imGUI\imgui.h" />
     <ClInclude Include="Include\Dependencies\imGUI\imgui_internal.h" />
@@ -206,6 +208,7 @@
     <ClInclude Include="Include\Events\key_event.h" />
     <ClInclude Include="Include\Events\mouse_event.h" />
     <ClInclude Include="Include\Events\renderer_event.h" />
+    <ClInclude Include="include\Events\scene_events.h" />
     <ClInclude Include="Include\ImGUI\imGUI_layer.h" />
     <ClInclude Include="include\ImGUI\scene_panel.h" />
     <ClInclude Include="Include\Input\input.h" />
@@ -214,6 +217,7 @@
     <ClInclude Include="include\Layer\layer.h" />
     <ClInclude Include="include\Layer\layer_stack.h" />
     <ClInclude Include="include\Layer\text_layer.h" />
+    <ClInclude Include="include\Lighting\light.h" />
     <ClInclude Include="Include\Math\matrix_4f.h" />
     <ClInclude Include="Include\Math\transform.h" />
     <ClInclude Include="Include\Math\vector.h" />
@@ -255,6 +259,7 @@
     <ClInclude Include="Include\Window\window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\Dependencies\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="Include\Dependencies\imGUI\imgui.cpp" />
     <ClCompile Include="Include\Dependencies\imGUI\imgui_demo.cpp" />
     <ClCompile Include="Include\Dependencies\imGUI\imgui_draw.cpp" />
@@ -263,10 +268,12 @@
     <ClCompile Include="include\Renderer\gl_texture.cpp" />
     <ClCompile Include="src\Core\engine.cpp" />
     <ClCompile Include="src\Core\engine_time.cpp" />
+    <ClCompile Include="src\Core\uuid.cpp" />
     <ClCompile Include="src\Events\app_event.cpp" />
     <ClCompile Include="src\Events\key_event.cpp" />
     <ClCompile Include="src\Events\mouse_event.cpp" />
     <ClCompile Include="src\Events\renderer_event.cpp" />
+    <ClCompile Include="src\Events\scene_events.cpp" />
     <ClCompile Include="src\ImGUI\imGUI_build.cpp" />
     <ClCompile Include="src\ImGUI\imGUI_layer.cpp" />
     <ClCompile Include="src\ImGUI\scene_panel.cpp" />
@@ -274,6 +281,7 @@
     <ClCompile Include="src\Layer\layer.cpp" />
     <ClCompile Include="src\Layer\layer_stack.cpp" />
     <ClCompile Include="src\Layer\text_layer.cpp" />
+    <ClCompile Include="src\Lighting\light.cpp" />
     <ClCompile Include="src\Math\matrix_4f.cpp" />
     <ClCompile Include="src\Math\transform.cpp" />
     <ClCompile Include="src\Math\vector_2f.cpp" />

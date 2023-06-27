@@ -10,10 +10,10 @@
 #include <Utilities/logger.h>
 #include <Core/interfaces.h>
 
-namespace Wave
+namespace Wave::Math
 {
   
-  class Matrix_4f : public Printable
+  class Matrix_4f : public I_printable
   {
     public:
     Matrix_4f();
@@ -29,7 +29,8 @@ namespace Wave
     void init_scale(Vector_3f vector_3f);
     void init_scale(float x, float y, float z);
     void init_perspective_projection(float fov_, float z_near_, float z_far_);
-    void init_orthographic_projection(float left, float right_, float top_, float bottom_, float z_near_, float z_far_);
+    void
+    init_orthographic_projection(float left, float right_, float top_, float bottom_, float z_near_, float z_far_);
     void init_camera(Vector_3f direction, Vector_3f up);
     
     [[nodiscard]] int length() const;
@@ -38,10 +39,12 @@ namespace Wave
     [[nodiscard]] int get_num_rows() const;
     [[nodiscard]] int get_num_cols() const;
     
-    INTERFACE_PRINTABLE
+    INTERFACE_PRINTABLE;
     
     void set_value(int row, int col, float value);
     void transpose();
+    static void decompose_matrix(const Matrix_4f &matrix_to_decompose, Math::Vector_3f &translation_address,
+                                 Math::Vector_3f &rotation_address, Math::Vector_3f &scale_address);
     
     Matrix_4f operator*(const Matrix_4f &other_matrix) const;
     Vector_4f operator*(const Vector_4f &vector_4f) const;

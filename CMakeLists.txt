@@ -23,6 +23,15 @@ target_include_directories(ImGUI PUBLIC
         ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/
         ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/GL/)
 
+add_library(ImGUIZMO STATIC ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/ImGuizmo/ImGuizmo.cpp
+        ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/ImGuizmo/ImSequencer.cpp
+        ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/ImGuizmo/ImGradient.cpp
+        ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/ImGuizmo/ImCurveEdit.cpp)
+
+target_include_directories(ImGUIZMO PUBLIC
+        ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/imGUI/
+        ${CMAKE_SOURCE_DIR}/Wave/include/Dependencies/GL/)
+
 add_library(Wave STATIC
         Wave/src/Core/engine.cpp
         Wave/src/Renderer/vertex.cpp
@@ -69,7 +78,7 @@ add_library(Wave STATIC
         Wave/src/Renderer/uniform_buffer.cpp
         Wave/src/Renderer/gl_uniform_buffer.cpp
         Wave/include/Renderer/gl_texture.cpp
-        Wave/src/ImGUI/scene_panel.cpp)
+        Wave/src/ImGUI/scene_panel.cpp Wave/src/Lighting/light.cpp Wave/src/Core/uuid.cpp Wave/src/Events/scene_events.cpp)
 
 find_package(Freetype REQUIRED CONFIG)
 message("Freetype LIB DETECTED\n")
@@ -100,12 +109,14 @@ if (UNIX)
             WAVE_STATIC
             GLFW3_STATIC
             GLEW_STATIC
+            OPENGL_VERSION_4_3_PLUS
             ${CMAKE_BUILD_TYPE})
 
     target_precompile_headers(Wave PUBLIC Wave/include/wave_pch.h)
 
     target_link_libraries(Wave PUBLIC
             ImGUI
+            ImGUIZMO
             freetype
             GLEW
             glfw)
@@ -196,6 +207,7 @@ elseif (WIN32)
 
     target_link_libraries(Wave PUBLIC
             imGUI
+            ImGUIZMO
             user32
             gdi32
             shell32
@@ -277,14 +289,14 @@ if (WIN32)
             Wave/include/Dependencies/googleTest/googlemock/include
             Example_app/include)
 
-elseif (UNIX AND (${CMAKE_BUILD_TYPE} STREQUAL DEBUG))
+elseif (UNIX)
     target_compile_options(Tests PUBLIC -O1)
 
     target_compile_definitions(Tests PUBLIC
             GLEW_STATIC
             GLFW3_STATIC
             TESTING
-            DEBUG)
+            ${CMAKE_BUILD_TYPE})
 
     target_precompile_headers(Tests PUBLIC Wave/include/wave_pch.h)
 

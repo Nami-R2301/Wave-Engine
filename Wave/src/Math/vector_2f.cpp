@@ -4,7 +4,7 @@
 
 #include <Math/vector.h>
 
-namespace Wave
+namespace Wave::Math
 {
   
   Vector_2f::Vector_2f(float uniform_scalar)
@@ -52,6 +52,13 @@ namespace Wave
   float Vector_2f::dot(const Vector_2f &vector_) const
   {
     return (this->x * vector_.get_x()) + (this->y * vector_.get_y());
+  }
+  
+  Vector_2f Vector_2f::cross(const Vector_2f &other_vector) const
+  {
+    float x_ = (this->x * other_vector.get_y()) - 0 * other_vector.get_y();
+    float z_ = this->x * other_vector.get_y() - this->y * other_vector.get_x();
+    return {x_, z_};
   }
   
   Vector_2f Vector_2f::normalize() const
