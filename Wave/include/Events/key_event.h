@@ -8,7 +8,7 @@
 #include <Events/event.h>
 #include <Input/key_codes.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   class On_any_key_event : public Event

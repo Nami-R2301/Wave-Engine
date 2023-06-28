@@ -29,7 +29,7 @@ namespace Wave
     }
   }
   
-  void Renderer::set_event_callback_function(const std::function<void(Event &)> &callback)
+  void Renderer::set_event_callback_function(const std::function<void(Event_system::Event &)> &callback)
   {
     switch (Renderer::api_in_use)
     {
@@ -164,6 +164,19 @@ namespace Wave
     }
   }
   
+  void Renderer::toggle_wireframe(bool enable_wireframe)
+  {
+    switch (Renderer::api_in_use)
+    {
+      case Renderer_api::OpenGL:
+      {
+        Gl_renderer::toggle_wireframe(enable_wireframe);
+        break;
+      }
+      default:break;
+    }
+  }
+  
   void Renderer::set_clear_color(const Color &bg_color)
   {
     switch (Renderer::api_in_use)
@@ -190,7 +203,7 @@ namespace Wave
     }
   }
   
-  void Renderer::on_event(Event &event)
+  void Renderer::on_event(Event_system::Event &event)
   {
     switch (Renderer::api_in_use)
     {
@@ -203,101 +216,101 @@ namespace Wave
     }
   }
   
-  void Renderer::send_entity(uint64_t entity_id, Shader &shader,
-                             const std::vector<Vertex_2D> &vertices, const std::vector<uint32_t> &indices,
-                             std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
+  void Renderer::add_draw_command(uint64_t entity_id, Shader &shader,
+                                  const std::vector<Vertex_2D> &vertices, const std::vector<uint32_t> &indices,
+                                  std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_entity(entity_id, shader, vertices, indices, textures, flat_shaded);
+        Gl_renderer::add_draw_command(entity_id, shader, vertices, indices, textures, flat_shaded);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::send_entity(uint64_t entity_id, Shader &shader,
-                             const std::vector<Vertex_3D> &vertices, const std::vector<uint32_t> &indices,
-                             std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
+  void Renderer::add_draw_command(uint64_t entity_id, Shader &shader,
+                                  const std::vector<Vertex_3D> &vertices, const std::vector<uint32_t> &indices,
+                                  std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_entity(entity_id, shader, vertices, indices, textures, flat_shaded);
+        Gl_renderer::add_draw_command(entity_id, shader, vertices, indices, textures, flat_shaded);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::send_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                             const std::vector<uint32_t> &indices, Texture &texture_atlas)
+  void Renderer::add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                                  const std::vector<uint32_t> &indices, Texture &texture_atlas)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::send_entity(entity_id, shader, vertices, indices, texture_atlas);
+        Gl_renderer::add_draw_command(entity_id, shader, vertices, indices, texture_atlas);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
-                                const std::vector<uint32_t> &indices,
-                                std::vector<std::shared_ptr<Texture>> &textures)
+  void Renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                                      const std::vector<uint32_t> &indices,
+                                      std::vector<std::shared_ptr<Texture>> &textures)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::replace_entity(entity_id, shader, vertices, indices, textures);
+        Gl_renderer::replace_draw_command(entity_id, shader, vertices, indices, textures);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
-                                const std::vector<uint32_t> &indices,
-                                std::vector<std::shared_ptr<Texture>> &textures)
+  void Renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                                      const std::vector<uint32_t> &indices,
+                                      std::vector<std::shared_ptr<Texture>> &textures)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::replace_entity(entity_id, shader, vertices, indices, textures);
+        Gl_renderer::replace_draw_command(entity_id, shader, vertices, indices, textures);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                                const std::vector<uint32_t> &indices, Texture &texture_atlas)
+  void Renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                                      const std::vector<uint32_t> &indices, Texture &texture_atlas)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::replace_entity(entity_id, shader, vertices, indices, texture_atlas);
+        Gl_renderer::replace_draw_command(entity_id, shader, vertices, indices, texture_atlas);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::free_entity(uint64_t shader_id, uint64_t entity_id)
+  void Renderer::remove_draw_command(uint64_t shader_id, uint64_t entity_id)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::free_entity(shader_id, entity_id);
+        Gl_renderer::remove_draw_command(shader_id, entity_id);
         break;
       }
       default:break;
@@ -324,19 +337,6 @@ namespace Wave
       case Renderer_api::OpenGL:
       {
         Gl_renderer::end();
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::batch_data()
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::batch_data();
         break;
       }
       default:break;

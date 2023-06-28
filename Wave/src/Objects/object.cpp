@@ -86,15 +86,17 @@ namespace Wave
   
   void Object_2D::send_gpu(uint64_t instance_count)
   {
-    if (this->is_sent())
+    if (this->is_sent() && Object_2D::data_has_changed)
     {
-      Renderer::replace_entity(this->id, *this->associated_shader, this->vertices, this->faces, this->textures);
+      Renderer::replace_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures);
+      Object_2D::data_has_changed = false;
       return;
     }
     for (const auto &texture: this->textures) if (!texture->is_sent()) texture->send_gpu(instance_count);
     for (uint64_t i = 0; i < instance_count; ++i)
-      Renderer::send_entity(this->id, *this->associated_shader, this->vertices, this->faces, this->textures,
-                            this->flat_shaded);
+      Renderer::add_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures,
+                                 this->flat_shaded);
+    Object_2D::data_has_changed = false;
     this->sent = true;
   }
   
@@ -102,7 +104,7 @@ namespace Wave
   {
     for (const auto &texture: this->textures) texture->free_gpu(instance_count);
     if (Renderer::get_state().code != WAVE_RENDERER_SHUTDOWN)
-      Renderer::free_entity(this->associated_shader->get_id(), this->id);
+      Renderer::remove_draw_command(this->associated_shader->get_id(), this->id);
     this->sent = false;
   }
   
@@ -477,6 +479,8 @@ namespace Wave
         this->associated_shader->set_uniform("u_point_lights[0].constant", point_light.get_constant());
         this->associated_shader->set_uniform("u_point_lights[0].linear", point_light.get_linear());
         this->associated_shader->set_uniform("u_point_lights[0].exponent", point_light.get_exponent());
+        
+        this->associated_shader->unbind();
         break;
       }
       default: break;
@@ -551,15 +555,17 @@ namespace Wave
   
   void Object_3D::send_gpu(uint64_t instance_count)
   {
-    if (this->is_sent())
+    if (this->is_sent() && Object_3D::data_has_changed)
     {
-      Renderer::replace_entity(this->id, *this->associated_shader, this->vertices, this->faces, this->textures);
-      return;
+      Renderer::replace_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures);
+    } else if (Object_3D::data_has_changed)
+    {
+      for (uint64_t i = 0; i < instance_count; ++i)
+        Renderer::add_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures,
+                                   this->flat_shaded);
     }
-    for (const auto &texture: this->textures) if (!texture->is_sent()) texture->send_gpu(instance_count);
-    for (uint64_t i = 0; i < instance_count; ++i)
-      Renderer::send_entity(this->id, *this->associated_shader, this->vertices, this->faces, this->textures,
-                            this->flat_shaded);
+    
+    Object_3D::data_has_changed = false;
     this->sent = true;
   }
   
@@ -567,7 +573,7 @@ namespace Wave
   {
     for (const auto &texture: this->textures) texture->free_gpu(instance_count);
     if (Renderer::get_state().code != WAVE_RENDERER_SHUTDOWN)
-      Renderer::free_entity(this->associated_shader->get_id(), this->id);
+      Renderer::remove_draw_command(this->associated_shader->get_id(), this->id);
     this->sent = false;
   }
   
@@ -682,6 +688,7 @@ namespace Wave
   void Object_3D::set_color(const Color &color)
   {
     for (Vertex_3D &vertex: this->vertices) if (vertex.get_color() != Color(0xFFFFFF)) vertex.set_color(color);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::set_position(const Math::Vector_3f &position_)
@@ -697,33 +704,39 @@ namespace Wave
   void Object_3D::add_vertex(const Vertex_3D &vertex_)
   {
     this->vertices.emplace_back(vertex_);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::replace_vertex(uint64_t index, const Vertex_3D &new_vertex)
   {
     if (index >= this->vertices.size()) return;
     this->vertices[index] = new_vertex;
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::set_vertices(const std::vector<Vertex_3D> &vertices_)
   {
     this->vertices = vertices_;
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::add_face(uint32_t face)
   {
     this->faces.emplace_back(face);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::replace_face(uint64_t index, uint32_t face)
   {
     if (index >= this->faces.size()) return;
     this->faces[index] = face;
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::set_faces(const std::vector<uint32_t> &faces_)
   {
     this->faces = faces_;
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::add_texture(const std::shared_ptr<Texture> &texture_)
@@ -751,69 +764,74 @@ namespace Wave
   {
     if (index >= this->vertices.size()) return;
     this->vertices[index].set_normal(normal);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::set_normals(const std::vector<Math::Vector_3f> &normals_)
   {
     for (uint64_t i = 0; i < this->vertices.size(); ++i) this->vertices[i].set_normal(normals_[i]);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::set_texture_coord(uint64_t index, const Math::Vector_2f &tex_coords_)
   {
     if (index >= this->vertices.size()) return;
     this->vertices[index].set_tex_coord(tex_coords_);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::set_texture_coords(const std::vector<Math::Vector_2f> &tex_coords_)
   {
     for (uint64_t i = 0; i < this->vertices.size(); ++i) this->vertices[i].set_tex_coord(tex_coords_[i]);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::set_model_transform(const Math::Transform &model_transform_)
   {
     this->model_transform = model_transform_;
-    this->update_model_matrix();
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::rotate(const Math::Vector_3f &angle)
   {
     this->model_transform.set_rotation(angle);
-    this->update_model_matrix();
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::rotate(float x, float y, float z)
   {
     this->model_transform.set_rotation(x, y, z);
-    this->update_model_matrix();
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::translate(const Math::Vector_3f &translation_)
   {
     this->model_transform.set_translation(translation_ + this->origin);
-    this->update_model_matrix();
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::translate(float x, float y, float z)
   {
     this->model_transform.set_translation(Math::Vector_3f(x, y, z) + this->origin);
-    this->update_model_matrix();
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::scale(const Math::Vector_3f &scalar_)
   {
     this->model_transform.set_scale(scalar_);
-    this->update_model_matrix();
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::scale(float x, float y, float z)
   {
     this->model_transform.set_scale(x, y, z);
-    this->update_model_matrix();
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::set_model_matrix(const Math::Matrix_4f &mat)
   {
     this->model_matrix = mat;
+    Object_3D::update_model_matrix();
   }
   
   void Object_3D::update_model_matrix()
@@ -822,6 +840,7 @@ namespace Wave
     this->model_matrix.transpose();
     
     for (Vertex_3D &vertex: this->vertices) vertex.set_model_matrix(this->model_matrix);
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::prepare_vertices(const Object_3D_data_s &mesh)
@@ -961,6 +980,7 @@ namespace Wave
       vec = vec.normalize();
       vertex.set_normal(vec);
     }
+    Object_3D::data_has_changed = true;
   }
   
   void Object_3D::calculate_effect_by_light(const Light &light_source)
@@ -973,18 +993,24 @@ namespace Wave
         
         this->associated_shader->bind();
         
-        this->associated_shader->set_uniform("u_point_light_count", (int) point_light.get_count());
+        if (this->associated_shader->has_uniform("u_point_light_count"))
+          this->associated_shader->set_uniform("u_point_light_count", (int) point_light.get_count());
         
-        this->associated_shader->set_uniform("u_point_lights[0].base.color", point_light.get_color());
-        this->associated_shader->set_uniform("u_point_lights[0].base.ambient_intensity",
-                                             point_light.get_ambient_intensity());
-        this->associated_shader->set_uniform("u_point_lights[0].base.diffuse_intensity",
-                                             point_light.get_diffuse_intensity());
+        if (this->associated_shader->has_uniform("u_point_lights"))
+        {
+          this->associated_shader->set_uniform("u_point_lights[0].base.color", point_light.get_color());
+          this->associated_shader->set_uniform("u_point_lights[0].base.ambient_intensity",
+                                               point_light.get_ambient_intensity());
+          this->associated_shader->set_uniform("u_point_lights[0].base.diffuse_intensity",
+                                               point_light.get_diffuse_intensity());
+          
+          this->associated_shader->set_uniform("u_point_lights[0].position", point_light.get_position());
+          this->associated_shader->set_uniform("u_point_lights[0].constant", point_light.get_constant());
+          this->associated_shader->set_uniform("u_point_lights[0].linear", point_light.get_linear());
+          this->associated_shader->set_uniform("u_point_lights[0].exponent", point_light.get_exponent());
+        }
         
-        this->associated_shader->set_uniform("u_point_lights[0].position", point_light.get_position());
-        this->associated_shader->set_uniform("u_point_lights[0].constant", point_light.get_constant());
-        this->associated_shader->set_uniform("u_point_lights[0].linear", point_light.get_linear());
-        this->associated_shader->set_uniform("u_point_lights[0].exponent", point_light.get_exponent());
+        this->associated_shader->unbind();
         break;
       }
       default: break;

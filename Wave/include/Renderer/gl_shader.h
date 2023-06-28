@@ -23,8 +23,8 @@ namespace Wave
     [[nodiscard]] int32_t get_id() const override;
     
     INTERFACE_PRINTABLE
-    INTERFACE_SENDABLE
     
+    INTERFACE_SENDABLE
     
     void source(uint32_t count, const char *source, int *length) const override;
     void compile(int32_t shader_id) const override;
@@ -34,7 +34,8 @@ namespace Wave
     void validate() const override;
     
     // Uniform handling.
-    [[nodiscard]] const std::unordered_map<const char *, int> &get_uniforms() const override;
+    [[nodiscard]] bool has_uniform(const char *uniform_name) const override;
+    [[nodiscard]] int get_uniform(const char *uniform_name) const override;
     [[nodiscard]] int get_uniform_location(const char *uniform_name) const override;
     
     void bind_texture_units() override;

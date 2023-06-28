@@ -11,7 +11,7 @@
 namespace Wave
 {
   
-  std::function<void(Event &event)> Glfw_window::event_callback_function;
+  std::function<void(Event_system::Event &event)> Glfw_window::event_callback_function;
   
   Glfw_window::Glfw_window(Window_properties_s options) : Window()
   {
@@ -110,7 +110,7 @@ namespace Wave
   {
     if (this->is_closing())
     {
-      On_window_close window_closed;
+      Event_system::On_window_close window_closed;
       Glfw_window::get_event_callback_function()(window_closed);
       return;
     }
@@ -124,8 +124,8 @@ namespace Wave
     glfwSetFramebufferSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                                    []([[maybe_unused]] GLFWwindow *window_, int32_t width, int32_t height)
                                    {
-                                     On_window_resize window_resized(static_cast<float>(width),
-                                                                     static_cast<float>(height));
+                                     Event_system::On_window_resize window_resized(static_cast<float>(width),
+                                                                                   static_cast<float>(height));
                                      Glfw_window::get_event_callback_function()(window_resized);
                                    });
     
@@ -150,27 +150,27 @@ namespace Wave
                        []([[maybe_unused]] GLFWwindow *window_, int32_t key, [[maybe_unused]] int32_t scancode,
                           int32_t action, [[maybe_unused]] int32_t mods)
                        {
-                         On_any_key_event any_key;
+                         Event_system::On_any_key_event any_key;
                          Glfw_window::get_event_callback_function()(any_key);
                          switch (action)
                          {
                            case GLFW_PRESS:
                            {
-                             On_key_press key_pressed(key);
+                             Event_system::On_key_press key_pressed(key);
                              Glfw_window::get_event_callback_function()(key_pressed);
                              break;
                            }
                            
                            case GLFW_REPEAT:
                            {
-                             On_key_hold key_held(key);
+                             Event_system::On_key_hold key_held(key);
                              Glfw_window::get_event_callback_function()(key_held);
                              break;
                            }
                            
                            case GLFW_RELEASE:
                            {
-                             On_key_release key_released(key);
+                             Event_system::On_key_release key_released(key);
                              Glfw_window::get_event_callback_function()(key_released);
                              break;
                            }
@@ -190,21 +190,21 @@ namespace Wave
                                  {
                                    case GLFW_PRESS:
                                    {
-                                     On_mouse_button_press mouse_btn_pressed(button);
+                                     Event_system::On_mouse_button_press mouse_btn_pressed(button);
                                      Glfw_window::get_event_callback_function()(mouse_btn_pressed);
                                      break;
                                    }
                                    
                                    case GLFW_REPEAT:
                                    {
-                                     On_mouse_button_hold mouse_btn_held(button);
+                                     Event_system::On_mouse_button_hold mouse_btn_held(button);
                                      Glfw_window::get_event_callback_function()(mouse_btn_held);
                                      break;
                                    }
                                    
                                    case GLFW_RELEASE:
                                    {
-                                     On_mouse_button_release mouse_btn_released(button);
+                                     Event_system::On_mouse_button_release mouse_btn_released(button);
                                      Glfw_window::get_event_callback_function()(mouse_btn_released);
                                      break;
                                    }
@@ -224,31 +224,31 @@ namespace Wave
     glfwSetWindowSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                               []([[maybe_unused]] GLFWwindow *window_, int32_t width_, int32_t height_)
                               {
-                                On_window_resize window_resized(static_cast<float>(width_),
-                                                                static_cast<float>(height_));
+                                Event_system::On_window_resize window_resized(static_cast<float>(width_),
+                                                                              static_cast<float>(height_));
                                 Glfw_window::get_event_callback_function()(window_resized);
                               });
     glfwSetScrollCallback(static_cast<GLFWwindow *>(this->get_native_window()),
                           []([[maybe_unused]] GLFWwindow *window_, double x_offset, double y_offset)
                           {
-                            On_mouse_wheel_scroll wheel_input(
+                            Event_system::On_mouse_wheel_scroll wheel_input(
                               Math::Vector_2f(static_cast<float>(x_offset),
                                               static_cast<float>(y_offset)));
                             Glfw_window::get_event_callback_function()(wheel_input);
                           });
   }
   
-  void Glfw_window::unbind_api_callback(const Event &event)
+  void Glfw_window::unbind_api_callback(const Event_system::Event &event)
   {
     // If any of the subcategories of keyboard is requested to be unbound, we are forced to unbind this single callback to undo all.
-    if (event.get_category_flags() & Event_category::EVENT_CATEGORY_KEYBOARD)
+    if (event.get_category_flags() & Event_system::Event_category::EVENT_CATEGORY_KEYBOARD)
     {
       glfwSetKeyCallback(static_cast<GLFWwindow *>(this->get_native_window()), nullptr);
       return;
     }
     
     // If any of the subcategories of mouse button is requested to be unbound, we are forced to unbind this single callback to undo all.
-    if (event.get_category_flags() & Event_category::EVENT_CATEGORY_MOUSE_BUTTON)
+    if (event.get_category_flags() & Event_system::Event_category::EVENT_CATEGORY_MOUSE_BUTTON)
     {
       glfwSetMouseButtonCallback(static_cast<GLFWwindow *>(this->get_native_window()), nullptr);
       return;
@@ -256,17 +256,17 @@ namespace Wave
     
     switch (event.get_event_type())
     {
-      case Event_type::On_mouse_movement:
+      case Event_system::Event_type::On_mouse_movement:
       {
         glfwSetCursorPosCallback(static_cast<GLFWwindow *>(this->get_native_window()), nullptr);
         break;
       }
-      case Event_type::On_window_resize:
+      case Event_system::Event_type::On_window_resize:
       {
         glfwSetWindowSizeCallback(static_cast<GLFWwindow *>(this->get_native_window()), nullptr);
         break;
       }
-      case Event_type::On_mouse_wheel_scroll:
+      case Event_system::Event_type::On_mouse_wheel_scroll:
       {
         glfwSetScrollCallback(static_cast<GLFWwindow *>(this->get_native_window()), nullptr);
         break;
@@ -447,12 +447,12 @@ namespace Wave
     return this->window_properties.sample_rate;
   }
   
-  const std::function<void(Event &event)> &Glfw_window::get_event_callback_function()
+  const std::function<void(Event_system::Event &event)> &Glfw_window::get_event_callback_function()
   {
     return Glfw_window::event_callback_function;
   }
   
-  void Glfw_window::set_event_callback_function(const std::function<void(Event &)> &callback_function)
+  void Glfw_window::set_event_callback_function(const std::function<void(Event_system::Event &)> &callback_function)
   {
     Glfw_window::event_callback_function = callback_function;
   }
@@ -611,16 +611,16 @@ namespace Wave
     {
       if (snprintf(buffer, sizeof(buffer), "%s,\n%48sCode --> %d", description, DEFAULT, error_code) < 0)
       {
-        On_context_error glfw_error({"Glfw error",
-                                     "Fatal",
-                                     description,
-                                     error_code}, Context_api_e::Glfw);
+        Event_system::On_context_error glfw_error({"Glfw error",
+                                                   "Fatal",
+                                                   description,
+                                                   error_code}, Context_api_e::Glfw);
         return get_event_callback_function()(glfw_error);
       }
-      On_context_error glfw_error({"Glfw error",
-                                   "Fatal",
-                                   buffer,
-                                   error_code}, Context_api_e::Glfw);
+      Event_system::On_context_error glfw_error({"Glfw error",
+                                                 "Fatal",
+                                                 buffer,
+                                                 error_code}, Context_api_e::Glfw);
       return get_event_callback_function()(glfw_error);
     }
   }

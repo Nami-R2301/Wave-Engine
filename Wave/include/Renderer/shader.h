@@ -36,7 +36,8 @@ namespace Wave
     
     
     [[nodiscard]] virtual int32_t get_id() const = 0;
-    [[nodiscard]] virtual const std::unordered_map<const char *, int> &get_uniforms() const = 0;
+    [[nodiscard]] virtual bool has_uniform(const char *uniform_name) const = 0;
+    [[nodiscard]] virtual int get_uniform(const char *uniform_name) const = 0;
     [[nodiscard]] virtual int get_uniform_location(const char *uniform_name) const = 0;
     
     virtual void bind_texture_units() = 0;

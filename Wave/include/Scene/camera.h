@@ -157,10 +157,10 @@ namespace Wave
     };
     
     [[nodiscard]] virtual const char *get_type() const = 0;
-    virtual void on_window_resize(On_window_resize &resize_event) = 0;
-    virtual void on_framebuffer_resize(On_framebuffer_resize &resize_event) = 0;
+    virtual void on_window_resize(Event_system::On_window_resize &resize_event) = 0;
+    virtual void on_framebuffer_resize(Event_system::On_framebuffer_resize &resize_event) = 0;
     virtual void on_update(float time_step) = 0;
-    virtual void on_event(Event &event) = 0;
+    virtual void on_event(Event_system::Event &event) = 0;
     virtual void move(const Math::Vector_3f &direction, float amount) = 0;
     virtual void move(float x, float y, float z, float amount) = 0;
     virtual void rotate_x(float angle) = 0;
@@ -187,8 +187,8 @@ namespace Wave
     Perspective_camera(float width_, float height_, float fov_, float z_near_, float z_far_);
     ~Perspective_camera() override = default;
     
-    void on_window_resize(On_window_resize &resize_event) override;
-    void on_framebuffer_resize(On_framebuffer_resize &resize_event) override;
+    void on_window_resize(Event_system::On_window_resize &resize_event) override;
+    void on_framebuffer_resize(Event_system::On_framebuffer_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;
     void look_at(const Math::Vector_3f &direction);
@@ -198,7 +198,7 @@ namespace Wave
     
     [[nodiscard]] const char *get_type() const override;
     void on_update(float time_step) override;
-    void on_event(Event &event) override;
+    void on_event(Event_system::Event &event) override;
     void move(const Math::Vector_3f &direction, float amount) override;
     void move(float x, float y, float z, float amount) override;
     void rotate_x(float angle) override;
@@ -216,9 +216,9 @@ namespace Wave
     Orthographic_camera(float width_, float height_, float z_near_, float z_far_);
     ~Orthographic_camera() override = default;
     
-    void on_event(Event &event) override;
-    void on_window_resize(On_window_resize &resize_event) override;
-    void on_framebuffer_resize(On_framebuffer_resize &resize_event) override;
+    void on_event(Event_system::Event &event) override;
+    void on_window_resize(Event_system::On_window_resize &resize_event) override;
+    void on_framebuffer_resize(Event_system::On_framebuffer_resize &resize_event) override;
     void update_view_matrix() override;
     void update_projection_matrix() override;
     

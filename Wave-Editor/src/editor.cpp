@@ -104,33 +104,30 @@ namespace Wave
     push_overlay(new ImGui_layer());
     push_layer(new Editor_layer(this->active_scene, this->entities, this->viewport_ms_framebuffer));
     push_layer(new Text_layer(this->entities, &this->viewport_resolution, true));
-    
-    // Lastly, finalize by sending and enqueuing the object for rendering at a later stage (on_render()).
-    this->active_scene->send_gpu();
   }
   
   void Editor::on_destroy()
   {
-    for (auto &shader: this->demo_shaders) shader->free_gpu(1);
-    this->viewport_ms_framebuffer->free_gpu(1);
+    for (auto &shader: this->demo_shaders) if (Renderer::is_running()) shader->free_gpu(1);
+    if (Renderer::is_running()) this->viewport_ms_framebuffer->free_gpu(1);
     delete this->selected_entity;
     
     Engine::shutdown();
     Engine::on_destroy();
   }
   
-  void Editor::on_event(Event &event)
+  void Editor::on_event(Event_system::Event &event)
   {
     Engine::on_event(event);
     switch (event.get_event_type())
     {
-      case Wave::Event_type::None:return;
-      case Wave::Event_type::On_framebuffer_resize:
+      case Wave::Event_system::Event_type::None:return;
+      case Wave::Event_system::Event_type::On_framebuffer_resize:
       {
-        on_viewport_resize(dynamic_cast<On_framebuffer_resize &>(event));
+        on_viewport_resize(dynamic_cast<Event_system::On_framebuffer_resize &>(event));
         break;
       }
-      case Wave::Event_type::On_mouse_button_press:
+      case Wave::Event_system::Event_type::On_mouse_button_press:
       {
         /********************** MOUSE PICKING **********************/
         
@@ -170,17 +167,17 @@ namespace Wave
         }
         break;
       }
-      case Wave::Event_type::On_mouse_wheel_scroll:
+      case Wave::Event_system::Event_type::On_mouse_wheel_scroll:
       {
-        auto view = this->active_scene->get_all_entities_with<Editor_camera>();
-        for (const auto &entity: view) view.get<Editor_camera>(entity).on_event(event);
+        auto view = this->active_scene->get_all_entities_with<std::shared_ptr<Camera>>();
+        for (const auto &entity: view) view.get<std::shared_ptr<Camera>>(entity)->on_event(event);
         break;
       }
       default: break;
     }
   }
   
-  bool Editor::on_viewport_resize(On_framebuffer_resize &resize)
+  bool Editor::on_viewport_resize(Event_system::On_framebuffer_resize &resize)
   {
     this->viewport_framebuffer_boundaries = Math::Vector_4f(resize.get_position_x(),
                                                             resize.get_position_y(),
@@ -200,6 +197,8 @@ namespace Wave
   void Editor::on_update(float time_step)
   {
     Engine::on_update(time_step);
+    if (this->active_scene->get_camera("Editor Camera") != nullptr)
+      this->active_scene->on_update_editor(time_step, *this->active_scene->get_camera("Editor Camera"));
   }
   
   void Editor::on_game_render()
@@ -216,17 +215,17 @@ namespace Wave
            || s_viewport_window->Pos.x != this->viewport_framebuffer_boundaries.get_x() ||
            s_viewport_window->Pos.y != this->viewport_framebuffer_boundaries.get_y()))
       {
-        On_framebuffer_resize framebuffer_resized(s_viewport_window->Pos.x,
-                                                  s_viewport_window->Pos.y,
-                                                  size.x, size.y - s_viewport_title_bar_height);
+        Event_system::On_framebuffer_resize framebuffer_resized(s_viewport_window->Pos.x,
+                                                                s_viewport_window->Pos.y,
+                                                                size.x, size.y - s_viewport_title_bar_height);
         Window::get_event_callback_function()(framebuffer_resized);
       }
     }
     this->viewport_ms_framebuffer->bind();
-    Renderer::begin(this->active_scene->get_entity("Editor Camera").get_component<std::shared_ptr<Camera>>());
     Renderer::set_clear_color(this->background_clear_color);
     Renderer::clear_bg();
     this->viewport_ms_framebuffer->clear_attachment(1, -1);
+    Renderer::begin(*this->active_scene->get_camera("Editor Camera"));
     Engine::on_game_render();
     Renderer::end();
     this->viewport_ms_framebuffer->unbind();

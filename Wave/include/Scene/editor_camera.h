@@ -15,7 +15,7 @@ namespace Wave
     Editor_camera(float width_, float height_, float fov_, float near_clip_, float far_clip_);
     
     void on_update(float ts) override;
-    void on_event(Event &e) override;
+    void on_event(Event_system::Event &e) override;
     
     void set_distance(float distance_);
     void set_focal_point(float x, float y, float z);
@@ -31,7 +31,7 @@ namespace Wave
     [[nodiscard]] float get_pitch() const;
     [[nodiscard]] float get_yaw() const;
     private:
-    bool on_mouse_scroll(On_mouse_wheel_scroll &event);
+    bool on_mouse_scroll(Event_system::On_mouse_wheel_scroll &event);
     
     void mouse_pan(const Math::Vector_2f &delta);
     void mouse_rotate(const Math::Vector_2f &delta);

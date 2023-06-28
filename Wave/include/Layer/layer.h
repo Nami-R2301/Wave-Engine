@@ -18,7 +18,7 @@ namespace Wave
     virtual void on_attach() = 0;
     virtual void on_detach() = 0;
     virtual void on_update(float time_step) = 0;
-    virtual void on_event(Event &event) = 0;
+    virtual void on_event(Event_system::Event &event) = 0;
     virtual void on_render() = 0;
     virtual void on_ui_render(float time_step) = 0;
     

@@ -9,6 +9,8 @@
 namespace Wave
 {
   
+  static bool s_wireframe_checkbox_value = false;
+  
   Scene_ui_panel::Scene_ui_panel(const std::shared_ptr<Scene> &context_, const Scene_ui_data_s &scene_ui_data_)
   {
     this->context = context_;
@@ -88,6 +90,9 @@ namespace Wave
         if (ImGui::BeginTabItem("Renderer Editor", &ImGui_layer::show_scene_panel, ImGuiTabItemFlags_Trailing))
         {
           ImGui::SetCursorPosX(ImGui::GetCursorPosX());
+          ImGui::Checkbox("Toggle wireframe mode", &s_wireframe_checkbox_value);
+          Renderer::toggle_wireframe(s_wireframe_checkbox_value);
+          
           ImGui::EndTabItem();
         }
         ImGui::DockNodeEndAmendTabBar();

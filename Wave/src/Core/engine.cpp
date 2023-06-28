@@ -264,20 +264,20 @@ namespace Wave
     if (!Engine::main_window->is_closing()) Engine::set_exit_status(WAVE_ENGINE_CONTEXT_CRASH);
   }
   
-  void Engine::on_event(Event &event)
+  void Engine::on_event(Event_system::Event &event)
   {
-    Event_dispatcher event_dispatcher(event);
+    Event_system::Event_dispatcher event_dispatcher(event);
     switch (event.get_event_type())
     {
-      case Event_type::None:return;
-      case Event_type::On_window_close:
+      case Event_system::Event_type::None:return;
+      case Event_system::Event_type::On_window_close:
       {
-        event_dispatcher.dispatch<Wave::On_window_close>(BIND_EVENT_FUNCTION(window_closed_callback));
+        event_dispatcher.dispatch<Wave::Event_system::On_window_close>(BIND_EVENT_FUNCTION(window_closed_callback));
         break;
       }
-      case Event_type::On_window_resize:
+      case Event_system::Event_type::On_window_resize:
       {
-        event_dispatcher.dispatch<Wave::On_window_resize>(BIND_EVENT_FUNCTION(window_resize_callback));
+        event_dispatcher.dispatch<Wave::Event_system::On_window_resize>(BIND_EVENT_FUNCTION(window_resize_callback));
         break;
       }
       default:break;
@@ -409,7 +409,7 @@ namespace Wave
   
   /******************* CALLBACKS ******************/
   
-  bool Engine::any_key_callback([[maybe_unused]] On_any_key_event &any_key)
+  bool Engine::any_key_callback([[maybe_unused]] Event_system::On_any_key_event &any_key)
   {
     if (Wave::Input::is_key_pair_pressed(WAVE_KEY_LEFT_ALT, WAVE_KEY_ENTER))
     {
@@ -457,27 +457,28 @@ namespace Wave
     return false;
   }
   
-  bool Engine::key_press_callback([[maybe_unused]] On_key_press &key_press)
+  bool Engine::key_press_callback([[maybe_unused]] Event_system::On_key_press &key_press)
   {
     return true;
   }
   
-  bool Engine::key_hold_callback([[maybe_unused]] On_key_hold &key_hold)
+  bool Engine::key_hold_callback([[maybe_unused]] Event_system::On_key_hold &key_hold)
   {
     return true;
   }
   
-  bool Engine::key_release_callback([[maybe_unused]] On_key_release &key_release)
+  bool Engine::key_release_callback([[maybe_unused]] Event_system::On_key_release &key_release)
   {
     return true;
   }
   
-  [[maybe_unused]] bool Engine::mouse_button_press_callback([[maybe_unused]] On_mouse_button_press &mouse_button_press)
+  [[maybe_unused]] bool
+  Engine::mouse_button_press_callback([[maybe_unused]] Event_system::On_mouse_button_press &mouse_button_press)
   {
     return true;
   }
   
-  [[maybe_unused]] bool Engine::mouse_button_hold_callback(On_mouse_button_hold &mouse_button_hold)
+  [[maybe_unused]] bool Engine::mouse_button_hold_callback(Event_system::On_mouse_button_hold &mouse_button_hold)
   {
     switch (mouse_button_hold.get_current_mouse_button())
     {
@@ -488,33 +489,36 @@ namespace Wave
     return true;
   }
   
-  bool Engine::mouse_button_release_callback([[maybe_unused]] On_mouse_button_release &mouse_button_release)
+  bool
+  Engine::mouse_button_release_callback([[maybe_unused]] Event_system::On_mouse_button_release &mouse_button_release)
   {
     return true;
   }
   
-  [[maybe_unused]] bool Engine::mouse_wheel_callback([[maybe_unused]] On_mouse_wheel_scroll &mouse_wheel_input)
+  [[maybe_unused]] bool
+  Engine::mouse_wheel_callback([[maybe_unused]] Event_system::On_mouse_wheel_scroll &mouse_wheel_input)
   {
     return true;
   }
   
-  [[maybe_unused]] bool Engine::mouse_movement_callback([[maybe_unused]] On_mouse_movement &mouse_cursor_event)
+  [[maybe_unused]] bool
+  Engine::mouse_movement_callback([[maybe_unused]] Event_system::On_mouse_movement &mouse_cursor_event)
   {
     return true;
   }
   
-  bool Engine::window_closed_callback([[maybe_unused]] On_window_close &window_closed_event)
+  bool Engine::window_closed_callback([[maybe_unused]] Event_system::On_window_close &window_closed_event)
   {
     window_closed_event.print(Print_type::Warn);
     Engine::main_window->close();
     return true;
   }
   
-  [[maybe_unused]] bool Engine::window_resize_callback(On_window_resize &resize_event)
+  [[maybe_unused]] bool Engine::window_resize_callback(Event_system::On_window_resize &resize_event)
   {
     // If we called on_window_resize with the same viewport dimensions.
-    if (resize_event.get_height() == Engine::main_window->get_height() &&
-        resize_event.get_width() == Engine::main_window->get_width())
+    if (resize_event.get_height() == (float) Engine::main_window->get_height() &&
+        resize_event.get_width() == (float) Engine::main_window->get_width())
     {
       return true;
     }

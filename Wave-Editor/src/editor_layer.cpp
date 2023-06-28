@@ -44,22 +44,11 @@ namespace Wave
     this->objects[1]->rotate(90, -90, 0);
     
     this->objects[2]->translate(10, 0, 10);
-    this->objects[2]->rotate(45, 0, 0);
+    this->objects[2]->rotate(65, 0, 0);
     
     this->objects[3]->scale(0.1f, 0.1f, 0.1f);
     
-    // Setup how object behaves with lighting.
-//    Point_light point_light = Point_light(Color(0xFFFFFFFF), 1.0f, 1.0f,
-//                                          Math::Vector_3f(0, 0, 0),
-//                                          0.3f, 0.2f, 0.1f);
-    Point_light point_light_2 = Point_light(Color(0xFFFFFFFF), 0.0f, 0.5f,
-                                            this->camera->get_position(),
-                                            0.3f, 0.2f, 0.1f);
-
-//    this->objects[2]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
-    
-    this->objects[0]->calculate_effect_by_light(point_light_2);
-    this->objects[2]->calculate_effect_by_light(point_light_2);
+    this->objects[2]->add_texture(Resource_loader::load_texture_source("../Wave/res/Textures/tiles.png"));
   }
   
   void Editor_layer::on_detach()
@@ -67,7 +56,7 @@ namespace Wave
     this->framebuffer_viewport_data.framebuffer_viewport_shader->free_gpu(1);
   }
   
-  void Editor_layer::on_event([[maybe_unused]] Event &event)
+  void Editor_layer::on_event(Event_system::Event &event)
   {
     this->camera->on_event(event);
   }
@@ -77,25 +66,27 @@ namespace Wave
     if (s_imgui_app_performance_timer == 0) s_imgui_app_performance_stat = Engine::get_time_step();
     s_imgui_app_performance_timer += time_step;  // Update imgui performance counter.
     this->camera->on_update(time_step);
-//    this->objects[1]->rotate(time_step * 10, 0, 0);
-//    this->objects[1]->send_gpu(1);
-    
-    this->objects[0]->rotate((cosf((float) glfwGetTime())), 0,
-                             (sinf((float) glfwGetTime())));
-//    this->objects[2]->rotate((cosf((float) glfwGetTime())), 0,
-//                             (sinf((float) glfwGetTime())));
-    
-    this->objects[0]->translate((cosf((float) glfwGetTime()) * 20), 0,
-                                (sinf((float) glfwGetTime()) * 20) + 10);
-    this->objects[0]->send_gpu(1);
-    Point_light point_light_2 = Point_light(Color(0xFFFFFFFF), 0.0f, 0.5f,
-                                            this->camera->get_position(),
-                                            0.3f, 0.2f, 0.1f);
-    this->objects[2]->calculate_effect_by_light(point_light_2);
   }
   
   void Editor_layer::on_render()
   {
+//    // Setup how object behaves with lighting.
+    Point_light point_light_2 = Point_light(Color(0xFFFFFFFF), 0.05f, 0.45f,
+                                            this->camera->get_position(),
+                                            0.3f, 0.2f, 0.1f);
+//
+//    this->objects[0]->translate((cosf((float) glfwGetTime()) * 20), 0,
+//                                (sinf((float) glfwGetTime()) * 20) + 10);
+//    this->objects[0]->rotate((cosf((float) glfwGetTime())), 0,
+//                             (sinf((float) glfwGetTime())));
+//
+////    this->objects[0]->send_gpu(1);
+//
+//    this->objects[2]->rotate((cosf((float) glfwGetTime())), 0,
+//                             (sinf((float) glfwGetTime())));
+    
+    this->objects[0]->calculate_effect_by_light(point_light_2);
+    this->objects[2]->calculate_effect_by_light(point_light_2);
   }
   
   void Editor_layer::on_ui_render(float time_step)

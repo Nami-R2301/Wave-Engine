@@ -5,7 +5,7 @@
 #include <Window/window.h>
 #include <Events/app_event.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   On_app_framerate_change::On_app_framerate_change(float new_framerate)

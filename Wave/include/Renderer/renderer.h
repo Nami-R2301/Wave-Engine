@@ -44,7 +44,13 @@ namespace Wave
       uint64_t text_glyph_count = 0;
     } Renderer_stats_s;
     
-    typedef struct Offset_s
+    typedef struct Shader_specific_data_s
+    {
+      Shader *associated_shader = nullptr;
+      std::shared_ptr<Vertex_array_buffer> vertex_array_buffer;
+    } Shader_specific_data_s;
+    
+    typedef struct Draw_command_data_s
     {
       uint64_t instance_count = 1;
       uint64_t vertex_count = 0, index_count = 0;
@@ -56,7 +62,7 @@ namespace Wave
     typedef struct Draw_command
     {
       uint64_t batch_total_vbo_size = 0, batch_total_ibo_size = 0;
-      std::unordered_map<uint64_t, Offset_s> batch_offset;
+      std::unordered_map<uint64_t, Draw_command_data_s> batch_offset;
       Shader *associated_shader = nullptr;
       std::shared_ptr<Vertex_array_buffer> vertex_array_buffer;
     } Draw_command;
@@ -64,13 +70,14 @@ namespace Wave
     public:
     static void create(Renderer_api api);
     static void init();
+    static void toggle_wireframe(bool enable_wireframe);
     
     [[nodiscard]] static Renderer_stats_s get_stats();
     [[nodiscard]] static Renderer_api get_api();
     [[nodiscard]] static const char *get_api_version();
     [[nodiscard]] static const char *get_api_shader_version();
     [[nodiscard]] static bool is_running();
-    static void set_event_callback_function(const std::function<void(Event &)> &callback);
+    static void set_event_callback_function(const std::function<void(Event_system::Event &)> &callback);
     
     // Error handling
     static void clear_errors();
@@ -83,35 +90,33 @@ namespace Wave
     static void set_viewport(const Math::Vector_2f &viewport);
     
     // Events
-    static void on_event(Event &event);
+    static void on_event(Event_system::Event &event);
     
     // Batch rendering.
     static void begin(std::shared_ptr<Camera> &camera);
     
     // For 3D objects.
-    static void send_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
-                            const std::vector<uint32_t> &indices,
-                            std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded);
+    static void add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                                 const std::vector<uint32_t> &indices,
+                                 std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded);
     // For 2D objects.
-    static void send_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
-                            const std::vector<uint32_t> &indices,
-                            std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded);
+    static void add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                                 const std::vector<uint32_t> &indices,
+                                 std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded);
     // For text.
-    static void send_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                            const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    static void add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                                 const std::vector<uint32_t> &indices, Texture &texture_atlas);
     
-    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
-                               const std::vector<uint32_t> &indices,
-                               std::vector<std::shared_ptr<Texture>> &textures);
-    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
-                               const std::vector<uint32_t> &indices,
-                               std::vector<std::shared_ptr<Texture>> &textures);
-    static void replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                               const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    static void replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                                     const std::vector<uint32_t> &indices,
+                                     std::vector<std::shared_ptr<Texture>> &textures);
+    static void replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                                     const std::vector<uint32_t> &indices,
+                                     std::vector<std::shared_ptr<Texture>> &textures);
+    static void replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                                     const std::vector<uint32_t> &indices, Texture &texture_atlas);
     
-    static void free_entity(uint64_t shader_id, uint64_t entity_id);
-    
-    static void batch_data();
+    static void remove_draw_command(uint64_t shader_id, uint64_t entity_id);
     static void flush();
     
     static void end();

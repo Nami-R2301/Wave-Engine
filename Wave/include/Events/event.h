@@ -7,7 +7,7 @@
 #include <wave_pch.h>
 #include <wave_pch.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   enum Event_category

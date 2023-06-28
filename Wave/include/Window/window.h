@@ -58,7 +58,7 @@ namespace Wave
     virtual void poll_api_events() = 0;
     virtual void on_render() = 0;
     virtual void bind_api_callbacks() = 0;
-    virtual void unbind_api_callback(const Event &event) = 0;
+    virtual void unbind_api_callback(const Event_system::Event &event) = 0;
     virtual void toggle_fullscreen() = 0;
     virtual void close() = 0;
     virtual void shutdown() = 0;
@@ -85,8 +85,8 @@ namespace Wave
     [[nodiscard]] virtual bool is_focused() const = 0;
     [[nodiscard]] virtual bool is_hovered() const = 0;
     
-    [[nodiscard]] static const std::function<void(Event &event)> &get_event_callback_function();
-    static void set_event_callback_function(const std::function<void(Event &)> &callback_function);
+    [[nodiscard]] static const std::function<void(Event_system::Event &event)> &get_event_callback_function();
+    static void set_event_callback_function(const std::function<void(Event_system::Event &)> &callback_function);
     
     virtual void set_native_window(void *window_) = 0;
     virtual void set_native_monitor(void *monitor_) = 0;

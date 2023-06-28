@@ -80,21 +80,22 @@ namespace Wave
     ImGui::DestroyContext();
   }
   
-  void ImGui_layer::on_event(Event &e)
+  void ImGui_layer::on_event(Event_system::Event &e)
   {
     ImGuiIO &io = ImGui::GetIO();
     
     // Attempting to zoom.
-    if (e.get_event_type() == Event_type::On_mouse_wheel_scroll && Input::is_key_held(WAVE_KEY_LEFT_CONTROL))
+    if (e.get_event_type() == Event_system::Event_type::On_mouse_wheel_scroll &&
+        Input::is_key_held(WAVE_KEY_LEFT_CONTROL))
     {
-      auto on_mouse_zoom = dynamic_cast<On_mouse_wheel_scroll &>(e);
+      auto on_mouse_zoom = dynamic_cast<Event_system::On_mouse_wheel_scroll &>(e);
       ImGui_layer::imgui_data.font_scale +=
         on_mouse_zoom.get_mouse_wheel_offset().get_y() * (1 / ImGui_layer::imgui_data.font_size);
       io.FontGlobalScale = ImGui_layer::imgui_data.font_scale;
     }
     // Avoid propagating mouse and keyboard events if the imgui window is focused on.
-    e.handled |= e.is_in_category(EVENT_CATEGORY_MOUSE) & io.WantCaptureMouse;
-    e.handled |= e.is_in_category(EVENT_CATEGORY_KEYBOARD) & io.WantCaptureKeyboard;
+    e.handled |= e.is_in_category(Event_system::EVENT_CATEGORY_MOUSE) & io.WantCaptureMouse;
+    e.handled |= e.is_in_category(Event_system::EVENT_CATEGORY_KEYBOARD) & io.WantCaptureKeyboard;
   }
   
   void ImGui_layer::on_render()

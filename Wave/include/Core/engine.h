@@ -45,7 +45,7 @@ namespace Wave
     
     
     virtual void on_init();
-    virtual void on_event(Event &event);
+    virtual void on_event(Event_system::Event &event);
     virtual void on_update(float time_step);
     virtual void on_game_render();
     virtual void on_ui_render(float time_step_);
@@ -59,19 +59,19 @@ namespace Wave
     void pop_layer(Layer *layer);
     
     // DEFAULT EVENT CALLBACKS.
-    virtual bool any_key_callback(On_any_key_event &any_key);
-    virtual bool key_press_callback(On_key_press &key_press);
-    virtual bool key_hold_callback(On_key_hold &key_hold);
-    virtual bool key_release_callback(On_key_release &key_release);
+    virtual bool any_key_callback(Event_system::On_any_key_event &any_key);
+    virtual bool key_press_callback(Event_system::On_key_press &key_press);
+    virtual bool key_hold_callback(Event_system::On_key_hold &key_hold);
+    virtual bool key_release_callback(Event_system::On_key_release &key_release);
     
-    virtual bool mouse_button_press_callback(On_mouse_button_press &mouse_button_press);
-    virtual bool mouse_button_hold_callback(On_mouse_button_hold &mouse_button_hold);
-    virtual bool mouse_button_release_callback(On_mouse_button_release &mouse_button_release);
-    virtual bool mouse_wheel_callback(On_mouse_wheel_scroll &mouse_wheel_input);
-    virtual bool mouse_movement_callback(On_mouse_movement &mouse_cursor_event);
+    virtual bool mouse_button_press_callback(Event_system::On_mouse_button_press &mouse_button_press);
+    virtual bool mouse_button_hold_callback(Event_system::On_mouse_button_hold &mouse_button_hold);
+    virtual bool mouse_button_release_callback(Event_system::On_mouse_button_release &mouse_button_release);
+    virtual bool mouse_wheel_callback(Event_system::On_mouse_wheel_scroll &mouse_wheel_input);
+    virtual bool mouse_movement_callback(Event_system::On_mouse_movement &mouse_cursor_event);
     
-    virtual bool window_closed_callback(On_window_close &window_closed_event);
-    virtual bool window_resize_callback(On_window_resize &resize_event);
+    virtual bool window_closed_callback(Event_system::On_window_close &window_closed_event);
+    virtual bool window_resize_callback(Event_system::On_window_resize &resize_event);
     
     static void shutdown();
     [[nodiscard]] static bool has_crashed();

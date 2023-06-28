@@ -107,7 +107,7 @@ namespace Wave
     this->entity_map.erase(entity.get_uuid());
     this->registry.destroy((entt::entity) entity);
     
-    On_entity_delete on_entity_destroyed(entity);
+    Event_system::On_entity_delete on_entity_destroyed(entity);
   }
   
   void Scene::on_runtime_start()
@@ -283,6 +283,7 @@ namespace Wave
   void Scene::on_update_editor(float ts, std::shared_ptr<Camera> &camera)
   {
     // Prepare gpu buffers.
+    camera->on_update(ts);
     send_gpu();
   }
   
@@ -322,6 +323,7 @@ namespace Wave
       if (tc.Tag == name)
         return Entity{entity, this};
     }
+    alert(WAVE_LOG_ERROR, "Entity with name %s not found in scene!", name);
     return {};
   }
   
@@ -330,7 +332,47 @@ namespace Wave
     if (this->entity_map.find(uuid) != this->entity_map.end())
       return {this->entity_map.at(uuid), this};
     
+    alert(WAVE_LOG_ERROR, "Entity with uuid %lld not found in scene!", uuid.get_id());
     return {};
+  }
+  
+  std::shared_ptr<Camera> *Scene::get_camera(const std::string &name)
+  {
+    auto view = get_all_entities_with<ID_component_s, Tag_component_s, std::shared_ptr<Camera>>();
+    for (auto entity: view)
+    {
+      const auto &[uuid, tag, camera] = view.get<ID_component_s, Tag_component_s, std::shared_ptr<Camera>>(entity);
+      if (tag.Tag == name)
+        return &camera;
+    }
+    alert(WAVE_LOG_ERROR, "Camera entity with name %s not found in scene!", name.c_str());
+    return nullptr;
+  }
+  
+  std::shared_ptr<Object> *Scene::get_object(const std::string &name)
+  {
+    auto view = get_all_entities_with<ID_component_s, Tag_component_s, std::shared_ptr<Object>>();
+    for (auto entity: view)
+    {
+      const auto &[uuid, tag, object] = view.get<ID_component_s, Tag_component_s, std::shared_ptr<Object>>(entity);
+      if (tag.Tag == name)
+        return &object;
+    }
+    alert(WAVE_LOG_ERROR, "Object entity with name %s not found in scene!", name.c_str());
+    return nullptr;
+  }
+  
+  std::shared_ptr<Text_box> *Scene::get_text(const std::string &name)
+  {
+    auto view = get_all_entities_with<ID_component_s, Tag_component_s, std::shared_ptr<Text_box>>();
+    for (auto entity: view)
+    {
+      const auto &[uuid, tag, text] = view.get<ID_component_s, Tag_component_s, std::shared_ptr<Text_box>>(entity);
+      if (tag.Tag == name)
+        return &text;
+    }
+    alert(WAVE_LOG_ERROR, "Text entity with name %s not found in scene!", name.c_str());
+    return nullptr;
   }
 
 //

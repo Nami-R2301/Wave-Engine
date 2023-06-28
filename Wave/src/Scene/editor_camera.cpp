@@ -55,23 +55,23 @@ namespace Wave
     Perspective_camera::update_view_matrix();
   }
   
-  void Editor_camera::on_event(Event &e)
+  void Editor_camera::on_event(Event_system::Event &e)
   {
     switch (e.get_event_type())
     {
-      case Event_type::On_window_resize:
+      case Event_system::Event_type::On_window_resize:
       {
-        Perspective_camera::on_window_resize(dynamic_cast<On_window_resize &>(e));
+        Perspective_camera::on_window_resize(dynamic_cast<Event_system::On_window_resize &>(e));
         break;
       }
-      case Wave::Event_type::On_framebuffer_resize:
+      case Event_system::Event_type::On_framebuffer_resize:
       {
-        Perspective_camera::on_framebuffer_resize(dynamic_cast<On_framebuffer_resize &>(e));
+        Perspective_camera::on_framebuffer_resize(dynamic_cast<Event_system::On_framebuffer_resize &>(e));
         break;
       }
-      case Event_type::On_mouse_wheel_scroll:
+      case Event_system::Event_type::On_mouse_wheel_scroll:
       {
-        Editor_camera::on_mouse_scroll(dynamic_cast<On_mouse_wheel_scroll &>(e));
+        Editor_camera::on_mouse_scroll(dynamic_cast<Event_system::On_mouse_wheel_scroll &>(e));
         break;
       }
       default:return;
@@ -128,7 +128,7 @@ namespace Wave
     return this->yaw;
   }
   
-  bool Editor_camera::on_mouse_scroll(On_mouse_wheel_scroll &event)
+  bool Editor_camera::on_mouse_scroll(Event_system::On_mouse_wheel_scroll &event)
   {
     float delta = event.get_mouse_wheel_offset().get_y() * 0.1f;
     this->mouse_zoom(delta);

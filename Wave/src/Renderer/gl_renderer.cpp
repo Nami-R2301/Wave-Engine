@@ -13,17 +13,16 @@ namespace Wave
                                        nullptr,
                                        WAVE_RENDERER_INIT};
   std::map<uint32_t, Renderer::Draw_command *> Gl_renderer::draw_commands;
-//  std::vector<std::shared_ptr<Vertex_array_buffer>> vaos;
   Camera *Gl_renderer::scene_camera;
   std::map<uint32_t, Texture *> Gl_renderer::textures;
   std::vector<std::shared_ptr<Uniform_buffer>> Gl_renderer::uniform_buffers;
-  std::function<void(Event &)> Gl_renderer::event_callback_function;
+  std::function<void(Event_system::Event &)> Gl_renderer::event_callback_function;
   Renderer::Renderer_stats_s Gl_renderer::stats = {0};
   
   static char *s_glsl_version = nullptr;
   static std::vector<Renderer::Draw_command *> s_object_draw_commands;
   static int32_t s_texture_unit_number_assigned = 0, s_max_texture_samplers = 32;
-  static bool s_batch_data_modified = false;
+  static bool s_batch_data_modified = false, s_wireframe_enabled = false;
   
   bool Gl_renderer::is_running()
   {
@@ -70,12 +69,13 @@ namespace Wave
     return s_glsl_version;
   }
   
-  [[maybe_unused]] const std::function<void(Event &event)> &Gl_renderer::get_event_callback_function()
+  [[maybe_unused]] const std::function<void(Event_system::Event &event)> &Gl_renderer::get_event_callback_function()
   {
     return Gl_renderer::event_callback_function;
   }
   
-  void Gl_renderer::set_event_callback_function(const std::function<void(Event &)> &event_callback_function_)
+  void
+  Gl_renderer::set_event_callback_function(const std::function<void(Event_system::Event &)> &event_callback_function_)
   {
     Gl_renderer::event_callback_function = event_callback_function_;
   }
@@ -96,6 +96,7 @@ namespace Wave
   void Gl_renderer::init()
   {
     s_glsl_version = (char *) calloc(1, LINE_MAX);
+    
     WAVE_LOG_TASK("GL renderer", CYAN, 1, "Loading openGL renderer ...",
                   {
                     WAVE_LOG_INSTRUCTION("GL renderer", DEFAULT, "Loading GLEW", CHECK_GL_CALL(glewInit()))
@@ -141,6 +142,10 @@ namespace Wave
     WAVE_LOG_TASK("GL renderer", YELLOW, 1, "Fetching renderer info on client system ...",
                   Gl_renderer::show_renderer_info(),
                   "GL renderer info fetched")
+    
+    Gl_renderer::uniform_buffers.emplace_back(
+      Uniform_buffer::create(Buffer_data_type_size(Buffer_data_type::Matrix_4f) * 2,
+                             0));
   }
   
   void Gl_renderer::init_text_draw_command([[maybe_unused]] uint32_t entity_id, Shader &shader_linked)
@@ -177,10 +182,6 @@ namespace Wave
   {
     WAVE_PROFILE_INSTRUCTIONS("Pre-rendering objects", YELLOW, 4,
                               {
-                                Gl_renderer::uniform_buffers.emplace_back(
-                                  Uniform_buffer::create(Buffer_data_type_size(Buffer_data_type::Matrix_4f) * 2,
-                                                         0));
-                                
                                 // Add draw command for batch rendering.
                                 std::vector<Buffer_element> b_elements;  // Vbo layout.
                                 
@@ -233,6 +234,21 @@ namespace Wave
     CHECK_GL_CALL(glClearColor(color.get_red(), color.get_green(), color.get_blue(), color.get_alpha()));
   }
   
+  void Gl_renderer::toggle_wireframe(bool enable_wireframe)
+  {
+    enable_wireframe ? CHECK_GL_CALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)) :
+    CHECK_GL_CALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+    s_wireframe_enabled = enable_wireframe;
+    
+    for (auto &draw_command: Gl_renderer::draw_commands)
+    {
+      draw_command.second->associated_shader->bind();
+      if (draw_command.second->associated_shader->has_uniform("u_affected_by_light"))
+        draw_command.second->associated_shader->set_uniform("u_affected_by_light", !is_wireframe_enabled());
+      draw_command.second->associated_shader->unbind();
+    }
+  }
+  
   void Gl_renderer::show_renderer_info()
   {
     // Get GLFW and OpenGL version.
@@ -247,6 +263,11 @@ namespace Wave
     Wave::alert(WAVE_LOG_INFO, "[GL renderer] --> Shading language version : %s", get_api_shader_version());
   }
   
+  bool Gl_renderer::is_wireframe_enabled()
+  {
+    return s_wireframe_enabled;
+  }
+  
   void Gl_renderer::begin(std::shared_ptr<Camera> &camera)
   {
     Gl_renderer::scene_camera = camera.get();
@@ -259,20 +280,20 @@ namespace Wave
                                               &(Gl_renderer::scene_camera->get_projection_matrix().get_matrix()[0][0]));
   }
   
-  void Gl_renderer::on_event(Event &event)
+  void Gl_renderer::on_event(Event_system::Event &event)
   {
-    Event_dispatcher renderer_dispatcher(event);
+    Event_system::Event_dispatcher renderer_dispatcher(event);
     switch (event.get_event_type())
     {
-      case Event_type::On_window_resize:
+      case Event_system::Event_type::On_window_resize:
       {
-        auto window_resize = dynamic_cast<On_window_resize &>(event);
+        auto window_resize = dynamic_cast<Event_system::On_window_resize &>(event);
         Gl_renderer::set_viewport(window_resize.get_width(), window_resize.get_height());
         return;
       }
-      case Event_type::On_renderer_error:
+      case Event_system::Event_type::On_renderer_error:
       {
-        renderer_dispatcher.dispatch<On_renderer_error>(Gl_renderer::renderer_error_callback);
+        renderer_dispatcher.dispatch<Event_system::On_renderer_error>(Gl_renderer::renderer_error_callback);
         return;
       }
       default:return;
@@ -306,9 +327,9 @@ namespace Wave
     }
   }
   
-  void Gl_renderer::send_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
-                                const std::vector<uint32_t> &indices,
-                                std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded)
+  void Gl_renderer::add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                                     const std::vector<uint32_t> &indices,
+                                     std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded)
   {
     if (!shader.is_sent()) shader.bind();
     int32_t object_shader_id = shader.get_id();
@@ -352,7 +373,8 @@ namespace Wave
     }
     
     const char *glsl_version = get_api_shader_version();
-    if (glsl_version[1] != '4' || glsl_version[2] == 0)  // If glsl < #420, uniform binding can't be done in shaders.
+    if (glsl_version[9] != '4' ||
+        glsl_version[10] < 2)  // If glsl < #version 420, uniform binding can't be done in shaders.
     {
       unsigned int u_camera_block = glGetUniformBlockIndex(
         Gl_renderer::draw_commands[object_shader_id]->associated_shader->get_id(), "u_camera");
@@ -375,9 +397,9 @@ namespace Wave
     s_batch_data_modified = true;
   }
   
-  void Gl_renderer::send_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
-                                const std::vector<uint32_t> &indices,
-                                std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded)
+  void Gl_renderer::add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                                     const std::vector<uint32_t> &indices,
+                                     std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded)
   {
     if (!shader.is_sent()) shader.bind();
     int32_t object_shader_id = shader.get_id();
@@ -421,7 +443,8 @@ namespace Wave
     }
     
     const char *glsl_version = get_api_shader_version();
-    if (glsl_version[1] != '4' || glsl_version[2] == 0)  // If glsl < #420, uniform binding can't be done in shaders.
+    if (glsl_version[9] != '4' ||
+        glsl_version[10] < 2)  // If glsl < #version 420, uniform binding can't be done in shaders.
     {
       unsigned int u_camera_block = glGetUniformBlockIndex(
         Gl_renderer::draw_commands[object_shader_id]->associated_shader->get_id(), "u_camera");
@@ -444,8 +467,8 @@ namespace Wave
     s_batch_data_modified = true;
   }
   
-  void Gl_renderer::send_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                                const std::vector<uint32_t> &indices, Texture &texture_atlas)
+  void Gl_renderer::add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                                     const std::vector<uint32_t> &indices, Texture &texture_atlas)
   {
     shader.bind();
     int32_t shader_id = shader.get_id();
@@ -492,9 +515,9 @@ namespace Wave
     s_batch_data_modified = true;
   }
   
-  void Gl_renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
-                                   const std::vector<uint32_t> &indices,
-                                   std::vector<std::shared_ptr<Texture>> &textures_)
+  void Gl_renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
+                                         const std::vector<uint32_t> &indices,
+                                         std::vector<std::shared_ptr<Texture>> &textures_)
   {
     if (!Gl_renderer::draw_commands.contains(shader.get_id()) ||
         !Gl_renderer::draw_commands[shader.get_id()]->batch_offset.contains(entity_id))
@@ -527,18 +550,18 @@ namespace Wave
       }
     }
     
-    if (!textures_.empty())
+    if (!textures.empty())
     {
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_sampler",
-                                                                                  textures_[0]->get_texture_slot());
+                                                                                  textures[0]->get_texture_slot());
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_has_texture", true);
     }
     s_batch_data_modified = true;
   }
   
-  void Gl_renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
-                                   const std::vector<uint32_t> &indices,
-                                   std::vector<std::shared_ptr<Texture>> &textures_)
+  void Gl_renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
+                                         const std::vector<uint32_t> &indices,
+                                         std::vector<std::shared_ptr<Texture>> &textures_)
   {
     if (!Gl_renderer::draw_commands.contains(shader.get_id()) ||
         !Gl_renderer::draw_commands[shader.get_id()]->batch_offset.contains(entity_id))
@@ -570,17 +593,17 @@ namespace Wave
       }
     }
     
-    if (!textures_.empty() && !Gl_renderer::textures.contains(textures_[0]->get_id()))
+    if (!textures.empty() && !Gl_renderer::textures.contains(textures[0]->get_id()))
     {
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_sampler",
-                                                                                  textures_[0]->get_texture_slot());
+                                                                                  textures[0]->get_texture_slot());
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_has_texture", true);
     }
     s_batch_data_modified = true;
   }
   
-  void Gl_renderer::replace_entity(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                                   const std::vector<uint32_t> &indices, Texture &texture_atlas)
+  void Gl_renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
+                                         const std::vector<uint32_t> &indices, Texture &texture_atlas)
   {
     if (!Gl_renderer::draw_commands.contains(shader.get_id()) ||
         !Gl_renderer::draw_commands[shader.get_id()]->batch_offset.contains(entity_id))
@@ -594,8 +617,9 @@ namespace Wave
       .vertex_count = vertices.size(),
       .index_count = indices.size(),
       .vertex_size = sizeof(vertices[0]),
-      .index_size = sizeof(indices[0]),
+      .index_size = 0,
       .vertex_data = vertices.data(),
+      .index_data = nullptr
     };
     if (!Gl_renderer::textures.contains(texture_atlas.get_id()))
     {
@@ -609,7 +633,7 @@ namespace Wave
     s_batch_data_modified = true;
   }
   
-  void Gl_renderer::free_entity(uint64_t shader_id, uint64_t entity_id)
+  void Gl_renderer::remove_draw_command(uint64_t shader_id, uint64_t entity_id)
   {
     if (!Gl_renderer::draw_commands.contains(shader_id))
     {
@@ -622,14 +646,7 @@ namespace Wave
       return;
     }
     
-    Gl_renderer::draw_commands.at(shader_id)->batch_offset[entity_id] = {
-      .vertex_count = 0,
-      .index_count = 0,
-      .vertex_size = 0,
-      .index_size = 0,
-      .vertex_data = nullptr,
-      .index_data = nullptr
-    };
+    Gl_renderer::draw_commands.at(shader_id)->batch_offset.erase(entity_id);
   }
   
   void Gl_renderer::batch_data()
@@ -653,15 +670,14 @@ namespace Wave
           // If we are starting a new frame, reset the vertex buffer or if we only have one entity data in the vbo.
           if (Gl_renderer::stats.vertices_drawn_count == 0 || draw_command.second->batch_offset.size() == 1)
             draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->set_count(0);
-          offset.second.base_vertex = draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count();
+          offset.second.base_vertex = Gl_renderer::stats.vertices_drawn_count;
           
           load_dynamic_vbo_data(offset.second.vertex_data, offset.second.vertex_count, offset.second.vertex_size,
                                 draw_command.first, offset.second.base_vertex * offset.second.vertex_size);
           
           // Update vbo count.
           draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->set_count(
-            draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->get_count() +
-            offset.second.vertex_count);
+            offset.second.base_vertex + offset.second.vertex_count);
           
           if (draw_command.second->vertex_array_buffer->get_index_buffer())
           {
@@ -669,15 +685,14 @@ namespace Wave
             // If we are starting a new frame, reset the index buffer or if we only have one entity data in the ibo.
             if (Gl_renderer::stats.indices_drawn_count == 0 || draw_command.second->batch_offset.size() == 1)
               draw_command.second->vertex_array_buffer->get_index_buffer()->set_count(0);
-            offset.second.ibo_offset = draw_command.second->vertex_array_buffer->get_index_buffer()->get_count() *
-                                       offset.second.index_size;
+            offset.second.ibo_offset = Gl_renderer::stats.indices_drawn_count * offset.second.index_size;
             
             load_dynamic_ibo_data(offset.second.index_data, offset.second.index_count, offset.second.index_size,
                                   draw_command.first, offset.second.ibo_offset);
             
             // Update ibo count.
             draw_command.second->vertex_array_buffer->get_index_buffer()->set_count(
-              draw_command.second->vertex_array_buffer->get_index_buffer()->get_count() + offset.second.index_count);
+              Gl_renderer::stats.indices_drawn_count + offset.second.index_count);
           }
         }
         
@@ -688,6 +703,18 @@ namespace Wave
     }
   }
   
+  void Gl_renderer::group_shaders()
+  {
+  }
+  
+  void Gl_renderer::batch_vbo_data()
+  {
+  }
+  
+  void Gl_renderer::batch_ibo_data()
+  {
+  }
+  
   void Gl_renderer::flush()
   {
     if (s_batch_data_modified)
@@ -695,6 +722,7 @@ namespace Wave
       batch_data();
       s_batch_data_modified = false;
     }
+//    batch_data();
     
     Gl_renderer::stats.draw_call_count = 0;
     
@@ -778,7 +806,7 @@ namespace Wave
            Gl_renderer::state.code != WAVE_RENDERER_SHUTDOWN;
   }
   
-  bool Gl_renderer::renderer_error_callback(On_renderer_error &renderer_error)
+  bool Gl_renderer::renderer_error_callback(Event_system::On_renderer_error &renderer_error)
   {
     if (renderer_error.get_renderer_state().severity[0] == 'W')  // Warning
     {
@@ -966,7 +994,7 @@ namespace Wave
       } else
       {
         temp.description = output;
-        On_renderer_error gl_error(temp, Renderer_api::OpenGL);
+        Event_system::On_renderer_error gl_error(temp, Renderer_api::OpenGL);
         Gl_renderer::renderer_error_callback(gl_error);
       }
     }
@@ -1014,7 +1042,7 @@ namespace Wave
       {
         case GL_DEBUG_SEVERITY_HIGH: temp.severity = "Fatal (High)";
           break;
-        case GL_DEBUG_SEVERITY_MEDIUM: temp.severity = "Warn (performance)";
+        case GL_DEBUG_SEVERITY_MEDIUM: temp.severity = "Fatal (Medium)";
           break;
         case GL_DEBUG_SEVERITY_LOW: temp.severity = "Warn (low)";
           break;  // Silence low warnings for now due to clutter in terminal when this is logged.
@@ -1115,7 +1143,7 @@ namespace Wave
       } else
       {
         temp.description = output;
-        On_renderer_error gl_error(temp, Renderer_api::OpenGL);
+        Event_system::On_renderer_error gl_error(temp, Renderer_api::OpenGL);
         Gl_renderer::renderer_error_callback(gl_error);
       }
     }

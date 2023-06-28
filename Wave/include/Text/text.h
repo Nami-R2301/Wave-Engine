@@ -91,71 +91,74 @@ namespace Wave
     
     virtual void prepare_vertices() = 0;
     
-    void append_text(const std::string &text_);
-    void append_text(const std::string &text_, const Color &uniform_color);
-    void set_text_box_size(const Math::Vector_2f &size);
-    void set_text_box_color(const Color &color);
-    void set_text_uniform_color(const Color &uniform_color);
+    virtual void append_text(const std::string &text_) = 0;
+    virtual void append_text(const std::string &text_, const Color &uniform_color) = 0;
+    virtual void set_text_box_size(const Math::Vector_2f &size) = 0;
+    virtual void set_text_box_color(const Color &color) = 0;
+    virtual void set_text_uniform_color(const Color &uniform_color) = 0;
     
     // Events.
-    void on_box_resize(const Math::Vector_2f &new_size);
-    void on_box_resize(float new_width, float new_height);
+    virtual void on_box_resize(const Math::Vector_2f &new_size) = 0;
+    virtual void on_box_resize(float new_width, float new_height) = 0;
     
-    void on_text_resize(const Math::Vector_2f &new_size, const std::string &section_resized);
-    void on_text_resize(float new_width, float new_height, const std::string &section_resized);
+    virtual void on_text_resize(const Math::Vector_2f &new_size, const std::string &section_resized) = 0;
+    virtual void on_text_resize(float new_width, float new_height, const std::string &section_resized) = 0;
     
-    void on_recolor(const Color &new_color, const std::string &section_recolored);
+    virtual void on_recolor(const Color &new_color, const std::string &section_recolored) = 0;
     
-    void on_move(const Math::Vector_2f &new_position);
-    void on_move(float new_x_coord, float new_y_coord);
+    virtual void on_move(const Math::Vector_2f &new_position) = 0;
+    virtual void on_move(float new_x_coord, float new_y_coord) = 0;
     
-    [[nodiscard]] const Math::Transform &get_text_transform() const;
-    [[nodiscard]] Math::Transform &get_text_transform();
-    [[nodiscard]] const Math::Vector_2f &get_pixel_size() const;
-    [[nodiscard]] Math::Vector_2f &get_pixel_size();
-    [[nodiscard]] const Color &get_uniform_text_color() const;
-    [[nodiscard]] Color &get_text_uniform_color();
-    [[nodiscard]] const Math::Vector_2f &get_text_offset() const;
-    [[nodiscard]] Math::Vector_2f &get_text_offset();
-    [[nodiscard]] const Color &get_text_color(char character) const;
-    [[nodiscard]] const Math::Vector_2f &get_text_scale() const;
-    [[nodiscard]] Math::Vector_2f &get_text_scale();
-    [[nodiscard]] const Text_format_s &get_text_format() const;
-    [[nodiscard]] const std::string &get_text_string() const;
-    [[nodiscard]] float get_text_length() const;
+    [[nodiscard]] virtual const Math::Transform &get_text_transform() const = 0;
+    [[nodiscard]] virtual Math::Transform &get_text_transform() = 0;
+    [[nodiscard]] virtual const Math::Vector_2f &get_pixel_size() const = 0;
+    [[nodiscard]] virtual Math::Vector_2f &get_pixel_size() = 0;
+    [[nodiscard]] virtual const Color &get_uniform_text_color() const = 0;
+    [[nodiscard]] virtual Color &get_text_uniform_color() = 0;
+    [[nodiscard]] virtual const Math::Vector_2f &get_text_offset() const = 0;
+    [[nodiscard]] virtual Math::Vector_2f &get_text_offset() = 0;
+    [[nodiscard]] virtual const Color &get_text_color(char character) const = 0;
+    [[nodiscard]] virtual const Math::Vector_2f &get_text_scale() const = 0;
+    [[nodiscard]] virtual Math::Vector_2f &get_text_scale() = 0;
+    [[nodiscard]] virtual const Text_format_s &get_text_format() const = 0;
+    [[nodiscard]] virtual const std::string &get_text_string() const = 0;
+    [[nodiscard]] virtual float get_text_length() const = 0;
     
-    [[nodiscard]] const void *get_vertices() const;
-    [[nodiscard]] uint64_t get_vertex_count() const;
+    [[nodiscard]] virtual const void *get_vertices() const = 0;
+    [[nodiscard]] virtual uint64_t get_vertex_count() const = 0;
     [[nodiscard]] static uint64_t get_vertex_size();
     
-    [[nodiscard]] const Glyph_s &get_character(uint8_t character_code);
-    [[nodiscard]] const std::map<uint8_t, Glyph_s> &get_characters() const;
-    [[nodiscard]] Texture *get_texture_atlas() const;
-    [[nodiscard]] const Math::Vector_2f &get_text_box_size() const;
-    [[nodiscard]] Math::Vector_2f &get_text_box_size();
-    [[nodiscard]] const Color &get_text_box_color() const;
-    [[nodiscard]] Color &get_text_box_color();
+    [[nodiscard]] virtual const Glyph_s &get_character(uint8_t character_code) = 0;
+    [[nodiscard]] virtual const std::map<uint8_t, Glyph_s> &get_characters() const = 0;
+    [[nodiscard]] virtual Texture *get_texture_atlas() const = 0;
+    [[nodiscard]] virtual const Math::Vector_2f &get_text_box_size() const = 0;
+    [[nodiscard]] virtual Math::Vector_2f &get_text_box_size() = 0;
+    [[nodiscard]] virtual const Color &get_text_box_color() const = 0;
+    [[nodiscard]] virtual Color &get_text_box_color() = 0;
     
-    [[nodiscard]] const std::shared_ptr<Shader> &get_shader() const;
+    [[nodiscard]] virtual const std::shared_ptr<Shader> &get_shader() const = 0;
     
     
-    void set_text_offset(const Math::Vector_2f &offset_coords);
-    void set_text_offset(float offset_x, float offset_y);
-    void set_text_offset_x(float offset_x);
-    void set_text_offset_y(float offset_y);
+    virtual void set_text_offset(const Math::Vector_2f &offset_coords) = 0;
+    virtual void set_text_offset(float offset_x, float offset_y) = 0;
+    virtual void set_text_offset_x(float offset_x) = 0;
+    virtual void set_text_offset_y(float offset_y) = 0;
     
-    void blend_text_color(char character, const Color &character_color);
-    void blend_text_color(const Color &uniform_color);
-    void set_text_color(char character, const Color &character_color);
-    void set_text_color(const Color &uniform_color);
-    void set_text_scale(const Math::Vector_2f &scale_);
+    virtual void blend_text_color(char character, const Color &character_color) = 0;
+    virtual void blend_text_color(const Color &uniform_color) = 0;
+    virtual void set_text_color(char character, const Color &character_color) = 0;
+    virtual void set_text_color(const Color &uniform_color) = 0;
+    virtual void set_text_scale(const Math::Vector_2f &scale_) = 0;
     
-    void set_pixel_size(const Math::Vector_2f &size);
-    void set_pixel_size(float x, float y);
+    virtual void set_pixel_size(const Math::Vector_2f &size) = 0;
+    virtual void set_pixel_size(float x, float y) = 0;
     
-    void set_text_format(const Text_format_s &format_);
-    void set_character(uint8_t character_code, const Glyph_s &character);
-    void set_text_string(const std::string &text_);
+    virtual void set_text_format(const Text_format_s &format_) = 0;
+    virtual void set_character(uint8_t character_code, const Glyph_s &character) = 0;
+    virtual void set_text_string(const std::string &text_) = 0;
+    
+    virtual void set_transform(const Math::Transform &new_transform) = 0;
+    virtual void update_transform() = 0;
     
     Glyph_s &operator[](uint8_t index);
     protected:
@@ -166,6 +169,8 @@ namespace Wave
     Texture *texture_atlas = nullptr;
     std::map<uint8_t, Glyph_s> characters;
     bool sent = false;
+    bool recompile_freetype = true;
+    bool data_has_changed = false;
     FT_Face face;
     FT_Library library;
     Math::Transform text_transform = Math::Transform(Math::Vector_3f(0.0f),

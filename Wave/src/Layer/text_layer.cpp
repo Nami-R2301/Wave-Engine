@@ -50,7 +50,7 @@ namespace Wave
     for (const auto &text_box: this->text_boxes) text_box->get_shader()->unbind();
   }
   
-  void Text_layer::on_event([[maybe_unused]] Event &event)
+  void Text_layer::on_event([[maybe_unused]] Event_system::Event &event)
   {
   }
   
@@ -79,8 +79,8 @@ namespace Wave
           {
             if (ImGui::Begin("Properties", &s_info_visible))
             {
-              s_text_box_offset = this->text_boxes.back()->get_text_offset();
-              s_pixel_size_previous_value = this->text_boxes.back()->get_pixel_size();
+              Math::Transform text_transform = this->text_boxes.back()->get_text_transform();
+              Math::Vector_2f modified_pixel_size = this->text_boxes.back()->get_pixel_size();
               
               ImGui::Text("Text : %s", this->text_boxes.back()->get_text_string().c_str());
               ImGui::Text("Uniform color");
@@ -89,7 +89,7 @@ namespace Wave
               
               ImGui::Text("Text pixel size");
               ImGui::SameLine();
-              ImGui::DragFloat("##Text pixel size", &s_pixel_size_previous_value[1], 1.0f,
+              ImGui::DragFloat("##Text pixel size", &modified_pixel_size[1], 1.0f,
                                1.0f, 500.0f, "%.0f");
               
               if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen |
@@ -97,7 +97,8 @@ namespace Wave
                                                  ImGuiTreeNodeFlags_SpanFullWidth |
                                                  ImGuiTreeNodeFlags_FramePadding))
               {
-                ImGui_layer::draw_property("Translation", s_text_box_offset, Math::Vector_2f(0.0f),
+                ImGui_layer::draw_property("Translation", (Math::Vector_2f &)
+                                             text_transform.get_translation(), Math::Vector_2f(0.0f),
                                            Math::Vector_2f(this->viewport_size->get_x() -
                                                            this->text_boxes.back()->get_text_length(),
                                                            this->viewport_size->get_y() -
@@ -105,12 +106,12 @@ namespace Wave
                                            Math::Vector_2f(5.0f),
                                            Math::Vector_2f(0.0f), 120.0f);
                 ImGui_layer::draw_property("Rotation", (Math::Vector_2f &)
-                                             this->text_boxes.back()->get_text_transform().get_rotation(),
+                                             text_transform.get_rotation(),
                                            Math::Vector_2f(0.0f),
                                            Math::Vector_2f(8000.0f),
                                            Math::Vector_2f(5.0f, 5.0f),
                                            Math::Vector_2f(0.0f), 120.0f);
-                ImGui_layer::draw_property("Scale", this->text_boxes.back()->get_text_scale(),
+                ImGui_layer::draw_property("Scale", (Math::Vector_2f &) text_transform.get_scale(),
                                            Math::Vector_2f(1.0f),
                                            Math::Vector_2f(500.0f),
                                            Math::Vector_2f(0.1f),
@@ -119,15 +120,8 @@ namespace Wave
               }
               
               this->text_boxes.back()->set_text_uniform_color(s_text_color_previous_value);
-              
-              if (s_text_box_offset != this->text_boxes.back()->get_text_offset() ||
-                  s_text_color_previous_value != this->text_boxes.back()->get_text_uniform_color() ||
-                  s_pixel_size_previous_value != this->text_boxes.back()->get_pixel_size())
-              {
-                this->text_boxes.back()->set_pixel_size(s_pixel_size_previous_value);
-                this->text_boxes.back()->set_text_offset(s_text_box_offset);
-                this->text_boxes.back()->send_gpu(1);
-              }
+              this->text_boxes.back()->set_pixel_size(modified_pixel_size);
+              this->text_boxes.back()->set_transform(text_transform);
               
               s_text_color_previous_value = this->text_boxes.back()->get_text_uniform_color();
             }

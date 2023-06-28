@@ -163,10 +163,6 @@ namespace Wave
   //TODO : Extract vertex shader and fragment shader in one source shader file.
 //  Gl_shader::Gl_shader(const char *program_file_path)
 //  {
-  const std::unordered_map<const char *, int> &Gl_shader::get_uniforms() const
-  {
-    return this->uniform_cache;
-  }
   
   int Gl_shader::get_uniform_location(const char *uniform_name) const
   {
@@ -255,6 +251,17 @@ namespace Wave
   int32_t Gl_shader::get_id() const
   {
     return this->program_id;
+  }
+  
+  bool Gl_shader::has_uniform(const char *uniform_name) const
+  {
+    return this->vertex_source.find(uniform_name) != std::string::npos ||
+           this->fragment_source.find(uniform_name) != std::string::npos;
+  }
+  
+  int Gl_shader::get_uniform(const char *uniform_name) const
+  {
+    return this->uniform_cache.at(uniform_name);
   }
   
   bool Gl_shader::operator==(const Shader &other_shader) const

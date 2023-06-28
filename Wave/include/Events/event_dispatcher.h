@@ -6,7 +6,7 @@
 
 #include <Events/event.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   class Event_dispatcher

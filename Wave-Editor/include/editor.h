@@ -16,8 +16,8 @@ namespace Wave
     ~Editor() override = default;
     
     void on_init() override;
-    void on_event(Event &event) override;
-    bool on_viewport_resize(On_framebuffer_resize &resize);
+    void on_event(Event_system::Event &event) override;
+    bool on_viewport_resize(Event_system::On_framebuffer_resize &resize);
     void on_update(float time_step) override;
     void on_game_render() override;
     void on_ui_render(float time_step) override;

@@ -50,26 +50,26 @@ namespace Wave
   {
   }
   
-  void Perspective_camera::on_event(Event &event)
+  void Perspective_camera::on_event(Event_system::Event &event)
   {
     switch (event.get_event_type())
     {
-      case Event_type::On_window_resize:
+      case Event_system::Event_type::On_window_resize:
       {
-        on_window_resize(dynamic_cast<On_window_resize &>(event));
+        on_window_resize(dynamic_cast<Event_system::On_window_resize &>(event));
       }
       default:break;
     }
   }
   
-  void Perspective_camera::on_window_resize(On_window_resize &resize_event)
+  void Perspective_camera::on_window_resize(Event_system::On_window_resize &resize_event)
   {
     auto width_ = static_cast<float>(resize_event.get_width());
     auto height = static_cast<float>(resize_event.get_height());
     set_viewport(width_, height);
   }
   
-  void Perspective_camera::on_framebuffer_resize(On_framebuffer_resize &resize_event)
+  void Perspective_camera::on_framebuffer_resize(Event_system::On_framebuffer_resize &resize_event)
   {
     auto width_ = static_cast<float>(resize_event.get_width());
     auto height = static_cast<float>(resize_event.get_height());
@@ -170,18 +170,18 @@ namespace Wave
   {
   }
   
-  void Orthographic_camera::on_event([[maybe_unused]] Event &event)
+  void Orthographic_camera::on_event([[maybe_unused]] Event_system::Event &event)
   {
   }
   
-  void Orthographic_camera::on_window_resize([[maybe_unused]] On_window_resize &resize_event)
+  void Orthographic_camera::on_window_resize([[maybe_unused]] Event_system::On_window_resize &resize_event)
   {
     auto width_ = static_cast<float>(resize_event.get_width());
     auto height = static_cast<float>(resize_event.get_height());
     set_viewport(width_, height);
   }
   
-  void Orthographic_camera::on_framebuffer_resize(On_framebuffer_resize &resize_event)
+  void Orthographic_camera::on_framebuffer_resize(Event_system::On_framebuffer_resize &resize_event)
   {
     auto width_ = static_cast<float>(resize_event.get_width());
     auto height = static_cast<float>(resize_event.get_height());

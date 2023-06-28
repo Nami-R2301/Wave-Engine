@@ -27,7 +27,7 @@ namespace Wave
     return std::make_unique<Glfw_window>(options);
   }
   
-  const std::function<void(Event &event)> &Window::get_event_callback_function()
+  const std::function<void(Event_system::Event &event)> &Window::get_event_callback_function()
   {
     if (glfwGetPlatform() != GLFW_NOT_INITIALIZED) return Glfw_window::get_event_callback_function();
     else
@@ -38,7 +38,7 @@ namespace Wave
     //TODO WIN32
   }
   
-  void Window::set_event_callback_function(const std::function<void(Event &)> &callback_function)
+  void Window::set_event_callback_function(const std::function<void(Event_system::Event &)> &callback_function)
   {
     if (glfwGetPlatform() != GLFW_NOT_INITIALIZED) Glfw_window::set_event_callback_function(callback_function);
     else

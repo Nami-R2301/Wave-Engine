@@ -6,10 +6,8 @@
 
 #include <Events/event.h>
 #include <Core/interfaces.h>
-
 namespace Wave
 {
-  
   enum class Renderer_api
   {
     None = 0,
@@ -25,6 +23,10 @@ namespace Wave
     const char *description;
     int32_t code;
   } Renderer_state;
+}
+
+namespace Wave::Event_system
+{
   
   class On_renderer_error : public Event
   {
@@ -40,6 +42,7 @@ namespace Wave
     EVENT_CLASS_CATEGORY(EVENT_CATEGORY_RENDERER);
     
     INTERFACE_PRINTABLE
+    
     private:
     Renderer_state state{};
     Renderer_api api{};

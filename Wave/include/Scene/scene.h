@@ -7,6 +7,8 @@
 #include <Core/core.h>
 #include <Core/uuid.h>
 #include <Scene/editor_camera.h>
+#include <Objects/object.h>
+#include <Text/text.h>
 
 #include <entt/entt.hpp>
 
@@ -45,6 +47,9 @@ namespace Wave
     Entity get_entity(std::string_view name);
     Entity get_entity(UUID uuid);
     Entity get_primary_camera();
+    std::shared_ptr<Camera> *get_camera(const std::string &name);
+    std::shared_ptr<Object> *get_object(const std::string &name);
+    std::shared_ptr<Text_box> *get_text(const std::string &name);
     
     bool is_running() const
     { return this->running; }

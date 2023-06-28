@@ -4,7 +4,7 @@
 
 #include <Events/key_event.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   /************************** KEY PRESS EVENT ***************************/

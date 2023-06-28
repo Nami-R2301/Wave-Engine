@@ -5,7 +5,7 @@
 
 #include <Events/renderer_event.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   On_renderer_error::On_renderer_error(Renderer_state state_, Renderer_api api_)

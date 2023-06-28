@@ -7,7 +7,7 @@
 #include <Window/window.h>
 #include <Events/event_dispatcher.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   class On_app_tick : public Event

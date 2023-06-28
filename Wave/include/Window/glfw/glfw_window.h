@@ -23,7 +23,7 @@ namespace Wave
     void poll_api_events() override;
     void on_render() override;
     void bind_api_callbacks() override;
-    void unbind_api_callback(const Event &event) override;
+    void unbind_api_callback(const Event_system::Event &event) override;
     void toggle_fullscreen() override;
     // Let the window open as long as the close flag (gathered by glfwPollEvents) is not set to true.
     bool is_closing() override;
@@ -57,8 +57,8 @@ namespace Wave
     
     static void glfw_error_callback(int error_code, const char *description);
     
-    [[nodiscard]] static const std::function<void(Event &event)> &get_event_callback_function();
-    static void set_event_callback_function(const std::function<void(Event &)> &callback_function);
+    [[nodiscard]] static const std::function<void(Event_system::Event &event)> &get_event_callback_function();
+    static void set_event_callback_function(const std::function<void(Event_system::Event &)> &callback_function);
     
     void set_glfw_init_status(bool status);
     void set_title(const char *title_) override;
@@ -98,7 +98,7 @@ namespace Wave
     bool request_closing = false;
     Api_info api_info{};
     
-    static std::function<void(Event &event)> event_callback_function;
+    static std::function<void(Event_system::Event &event)> event_callback_function;
   };
 } // Wave
 

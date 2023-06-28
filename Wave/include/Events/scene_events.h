@@ -7,7 +7,7 @@
 #include <Events/event.h>
 #include <Scene/entity.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   class On_scene_load : public Event

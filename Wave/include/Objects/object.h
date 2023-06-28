@@ -117,6 +117,7 @@ namespace Wave
     virtual void update_model_matrix() = 0;
     protected:
     int32_t id = -1;
+    bool data_has_changed = false;
   };
   
   /************************************** 2D OBJECT *************************************/
@@ -276,7 +277,6 @@ namespace Wave
     // Interfaces.
     INTERFACE_SENDABLE;
     INTERFACE_PRINTABLE
-    
     INTERFACE_COPIABLE;
     INTERFACE_MOVABLE;
     INTERFACE_ROTATABLE;

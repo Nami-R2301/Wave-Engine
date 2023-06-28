@@ -5,7 +5,7 @@
 
 #include <Events/scene_events.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   
@@ -15,6 +15,7 @@ namespace Wave
   
   std::string On_entity_add::to_string() const
   {
+    return {};
   }
   
   On_entity_delete::On_entity_delete(Entity entity_deleted)
@@ -23,13 +24,15 @@ namespace Wave
   
   std::string On_entity_delete::to_string() const
   {
+    return {};
   }
   
-  On_entity_duplicate::On_entity_duplicate(Entity entity_duplicated)
+  On_entity_duplicate::On_entity_duplicate([[maybe_unused]] Entity entity_duplicated)
   {
   }
   
   std::string On_entity_duplicate::to_string() const
   {
+    return {};
   }
 }

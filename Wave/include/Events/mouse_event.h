@@ -7,7 +7,7 @@
 #include <Events/event.h>
 #include <Input/mouse_codes.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   class On_mouse_button_press : public Event

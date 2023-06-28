@@ -4,7 +4,7 @@
 
 #include <Events/mouse_event.h>
 
-namespace Wave
+namespace Wave::Event_system
 {
   
   /*************************** MOUSE PRESS ***************************/
