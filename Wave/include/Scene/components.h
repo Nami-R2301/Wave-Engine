@@ -32,8 +32,7 @@ namespace Wave
     Tag_component_s(const Tag_component_s &) = default;
     
     
-    explicit Tag_component_s(std::string tag)
-      : Tag(std::move(tag))
+    explicit Tag_component_s(const std::string &tag) : Tag(tag)
     {}
   };
   

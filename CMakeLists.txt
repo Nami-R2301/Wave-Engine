@@ -100,7 +100,7 @@ if (UNIX)
                 -Wall
                 -Wextra
                 -Wpedantic
-                -O1)
+                -O0)
     elseif (${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
         target_compile_options(Wave PUBLIC -O2)
     endif ()
@@ -153,7 +153,7 @@ if (UNIX)
         target_compile_options(Editor PUBLIC
                 -Wall
                 -Wextra
-                -O1)
+                -O0)
     elseif (${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
         target_compile_options(Editor PUBLIC -O2)
     endif ()

@@ -26,8 +26,8 @@
 namespace Wave
 {
   
-  constexpr int64_t c_max_vbo_buffer_size = 3'000'000;
-  constexpr int64_t c_max_ibo_buffer_size = 5'000'000;
+  constexpr int64_t c_max_vbo_buffer_size = 4'000'000;
+  constexpr int64_t c_max_ibo_buffer_size = 4'000'000;
   
   class Renderer
   {
@@ -50,22 +50,22 @@ namespace Wave
       std::shared_ptr<Vertex_array_buffer> vertex_array_buffer;
     } Shader_specific_data_s;
     
-    typedef struct Draw_command_data_s
+    typedef struct Draw_sub_command_data_s
     {
       uint64_t instance_count = 1;
       uint64_t vertex_count = 0, index_count = 0;
       uint64_t vertex_size = 0, index_size = 0;
       uint64_t ibo_offset = 0, base_vertex = 0;
       const void *vertex_data = nullptr, *index_data = nullptr;
-    } Offset_s;
+    } Draw_sub_command_data_s;
     
-    typedef struct Draw_command
+    typedef struct Draw_command_s
     {
       uint64_t batch_total_vbo_size = 0, batch_total_ibo_size = 0;
-      std::unordered_map<uint64_t, Draw_command_data_s> batch_offset;
+      std::unordered_map<uint64_t, Draw_sub_command_data_s> sub_commands;
       Shader *associated_shader = nullptr;
       std::shared_ptr<Vertex_array_buffer> vertex_array_buffer;
-    } Draw_command;
+    } Draw_command_s;
     
     public:
     static void create(Renderer_api api);

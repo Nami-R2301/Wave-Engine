@@ -12,7 +12,7 @@ namespace Wave
                                        nullptr,
                                        nullptr,
                                        WAVE_RENDERER_INIT};
-  std::map<uint32_t, Renderer::Draw_command *> Gl_renderer::draw_commands;
+  std::map<uint32_t, Renderer::Draw_command_s *> Gl_renderer::draw_commands;
   Camera *Gl_renderer::scene_camera;
   std::map<uint32_t, Texture *> Gl_renderer::textures;
   std::vector<std::shared_ptr<Uniform_buffer>> Gl_renderer::uniform_buffers;
@@ -20,7 +20,7 @@ namespace Wave
   Renderer::Renderer_stats_s Gl_renderer::stats = {0};
   
   static char *s_glsl_version = nullptr;
-  static std::vector<Renderer::Draw_command *> s_object_draw_commands;
+  static std::vector<Renderer::Draw_command_s *> s_object_draw_commands;
   static int32_t s_texture_unit_number_assigned = 0, s_max_texture_samplers = 32;
   static bool s_batch_data_modified = false, s_wireframe_enabled = false;
   
@@ -153,7 +153,7 @@ namespace Wave
     WAVE_PROFILE_INSTRUCTIONS("Pre-rendering text", RED, 5,
                               {
                                 // Add draw command for batch rendering.
-                                Renderer::Draw_command initial_command;
+                                Renderer::Draw_command_s initial_command;
                                 std::vector<Buffer_element> b_elements;  // Vbo layout.
                                 
                                 initial_command.associated_shader = &shader_linked;
@@ -173,7 +173,7 @@ namespace Wave
                                 // Make sure the buffer is set to 0 in count to prevent fetching the max count with 'get_count()'.
                                 initial_command.vertex_array_buffer->get_vertex_buffers()[0]->set_count(0);
                                 
-                                Gl_renderer::draw_commands[shader_linked.get_id()] = new Renderer::Draw_command(
+                                Gl_renderer::draw_commands[shader_linked.get_id()] = new Renderer::Draw_command_s(
                                   initial_command);
                               })
   }
@@ -185,9 +185,10 @@ namespace Wave
                                 // Add draw command for batch rendering.
                                 std::vector<Buffer_element> b_elements;  // Vbo layout.
                                 
-                                s_object_draw_commands.emplace_back(new Renderer::Draw_command());
+                                s_object_draw_commands.emplace_back(new Renderer::Draw_command_s());
                                 s_object_draw_commands.back()->associated_shader = &shader_linked;
-                                s_object_draw_commands.back()->batch_offset[entity_id] = Renderer::Offset_s(0, 0, 0);
+                                s_object_draw_commands.back()->sub_commands[entity_id] = Renderer::Draw_sub_command_data_s(
+                                  0, 0, 0);
                                 
                                 // Set default shader layout for an 3D object.
                                 b_elements.emplace_back(Buffer_data_type::Int, "Entity ID", true);
@@ -349,9 +350,9 @@ namespace Wave
       batch_data();
     
     if (Gl_renderer::draw_commands.contains(object_shader_id) &&
-        Gl_renderer::draw_commands.at(object_shader_id)->batch_offset.contains(entity_id))
+        Gl_renderer::draw_commands.at(object_shader_id)->sub_commands.contains(entity_id))
     {
-      Gl_renderer::draw_commands[object_shader_id]->batch_offset[entity_id].instance_count++;
+      Gl_renderer::draw_commands[object_shader_id]->sub_commands[entity_id].instance_count++;
     }
     
     // Link object texture objects to texture units for rendering.
@@ -384,7 +385,7 @@ namespace Wave
     }
     
     // Save data into memory.
-    Gl_renderer::draw_commands[object_shader_id]->batch_offset[entity_id] = {
+    Gl_renderer::draw_commands[object_shader_id]->sub_commands[entity_id] = {
       .vertex_count = vertices.size(),
       .index_count = indices.size(),
       .vertex_size = sizeof(vertices[0]),
@@ -419,9 +420,9 @@ namespace Wave
       batch_data();
     
     if (Gl_renderer::draw_commands.contains(object_shader_id) &&
-        Gl_renderer::draw_commands.at(object_shader_id)->batch_offset.contains(entity_id))
+        Gl_renderer::draw_commands.at(object_shader_id)->sub_commands.contains(entity_id))
     {
-      Gl_renderer::draw_commands[object_shader_id]->batch_offset[entity_id].instance_count++;
+      Gl_renderer::draw_commands[object_shader_id]->sub_commands[entity_id].instance_count++;
     }
     
     // Link object texture objects to texture units for rendering.
@@ -454,7 +455,7 @@ namespace Wave
     }
     
     // Save data into memory.
-    Gl_renderer::draw_commands[object_shader_id]->batch_offset[entity_id] = {
+    Gl_renderer::draw_commands[object_shader_id]->sub_commands[entity_id] = {
       .vertex_count = vertices.size(),
       .index_count = indices.size(),
       .vertex_size = sizeof(vertices[0]),
@@ -487,13 +488,13 @@ namespace Wave
       batch_data();
     
     if (Gl_renderer::draw_commands.contains(shader_id) &&
-        Gl_renderer::draw_commands.at(shader_id)->batch_offset.contains(entity_id))
+        Gl_renderer::draw_commands.at(shader_id)->sub_commands.contains(entity_id))
     {
-      Gl_renderer::draw_commands[shader_id]->batch_offset[entity_id].instance_count++;
+      Gl_renderer::draw_commands[shader_id]->sub_commands[entity_id].instance_count++;
     }
     
     // Save data into memory.
-    Gl_renderer::draw_commands[shader_id]->batch_offset[entity_id] = {
+    Gl_renderer::draw_commands[shader_id]->sub_commands[entity_id] = {
       .vertex_count = vertices.size(),
       .index_count = indices.size(),
       .vertex_size = sizeof(vertices[0]),
@@ -520,14 +521,14 @@ namespace Wave
                                          std::vector<std::shared_ptr<Texture>> &textures_)
   {
     if (!Gl_renderer::draw_commands.contains(shader.get_id()) ||
-        !Gl_renderer::draw_commands[shader.get_id()]->batch_offset.contains(entity_id))
+        !Gl_renderer::draw_commands[shader.get_id()]->sub_commands.contains(entity_id))
     {
       alert(WAVE_LOG_WARN, "Cannot replace 2D object, since it doesn't exist in the current batch!");
       return;
     }
     
     // Save data into memory.
-    Gl_renderer::draw_commands[shader.get_id()]->batch_offset[entity_id] = {
+    Gl_renderer::draw_commands[shader.get_id()]->sub_commands[entity_id] = {
       .vertex_count = vertices.size(),
       .index_count = indices.size(),
       .vertex_size = sizeof(vertices[0]),
@@ -550,10 +551,10 @@ namespace Wave
       }
     }
     
-    if (!textures.empty())
+    if (!textures_.empty())
     {
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_sampler",
-                                                                                  textures[0]->get_texture_slot());
+                                                                                  textures_[0]->get_texture_slot());
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_has_texture", true);
     }
     s_batch_data_modified = true;
@@ -564,14 +565,14 @@ namespace Wave
                                          std::vector<std::shared_ptr<Texture>> &textures_)
   {
     if (!Gl_renderer::draw_commands.contains(shader.get_id()) ||
-        !Gl_renderer::draw_commands[shader.get_id()]->batch_offset.contains(entity_id))
+        !Gl_renderer::draw_commands[shader.get_id()]->sub_commands.contains(entity_id))
     {
       alert(WAVE_LOG_WARN, "Cannot replace 3D object, since it doesn't exist in the current batch!");
       return;
     }
     
     // Save data into memory.
-    Gl_renderer::draw_commands[shader.get_id()]->batch_offset[entity_id] = {
+    Gl_renderer::draw_commands[shader.get_id()]->sub_commands[entity_id] = {
       .vertex_count = vertices.size(),
       .index_count = indices.size(),
       .vertex_size = sizeof(vertices[0]),
@@ -593,10 +594,10 @@ namespace Wave
       }
     }
     
-    if (!textures.empty() && !Gl_renderer::textures.contains(textures[0]->get_id()))
+    if (!textures_.empty() && !Gl_renderer::textures.contains(textures_[0]->get_id()))
     {
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_sampler",
-                                                                                  textures[0]->get_texture_slot());
+                                                                                  textures_[0]->get_texture_slot());
       Gl_renderer::draw_commands[shader.get_id()]->associated_shader->set_uniform("u_has_texture", true);
     }
     s_batch_data_modified = true;
@@ -606,14 +607,14 @@ namespace Wave
                                          const std::vector<uint32_t> &indices, Texture &texture_atlas)
   {
     if (!Gl_renderer::draw_commands.contains(shader.get_id()) ||
-        !Gl_renderer::draw_commands[shader.get_id()]->batch_offset.contains(entity_id))
+        !Gl_renderer::draw_commands[shader.get_id()]->sub_commands.contains(entity_id))
     {
       alert(WAVE_LOG_WARN, "Cannot replace text, since it doesn't exist in the current batch!");
       return;
     }
     
     // Save data into memory.
-    Gl_renderer::draw_commands[shader.get_id()]->batch_offset[entity_id] = {
+    Gl_renderer::draw_commands[shader.get_id()]->sub_commands[entity_id] = {
       .vertex_count = vertices.size(),
       .index_count = indices.size(),
       .vertex_size = sizeof(vertices[0]),
@@ -640,13 +641,13 @@ namespace Wave
       alert(WAVE_LOG_WARN, "Entity not found in draw commands! Shader id does not exist in draw command map");
       return;
     }
-    if (!Gl_renderer::draw_commands.at(shader_id)->batch_offset.contains(entity_id))
+    if (!Gl_renderer::draw_commands.at(shader_id)->sub_commands.contains(entity_id))
     {
       alert(WAVE_LOG_WARN, "Entity not found in draw commands! Entity id does not exist in batch map");
       return;
     }
     
-    Gl_renderer::draw_commands.at(shader_id)->batch_offset.erase(entity_id);
+    Gl_renderer::draw_commands.at(shader_id)->sub_commands.erase(entity_id);
   }
   
   void Gl_renderer::batch_data()
@@ -662,43 +663,45 @@ namespace Wave
       // Update stats.
       Gl_renderer::stats.shaders_count++;
       Gl_renderer::stats.vao_count++;
-      for (auto &offset: draw_command.second->batch_offset)
+      for (auto &sub_command: draw_command.second->sub_commands)
       {
-        if (offset.second.vertex_data != nullptr)  // If entity has not been freed.
+        if (sub_command.second.vertex_data != nullptr)  // If entity has not been freed.
         {
           // Set base vertex offset.
           // If we are starting a new frame, reset the vertex buffer or if we only have one entity data in the vbo.
-          if (Gl_renderer::stats.vertices_drawn_count == 0 || draw_command.second->batch_offset.size() == 1)
+          if (Gl_renderer::stats.vertices_drawn_count == 0 || draw_command.second->sub_commands.size() == 1)
             draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->set_count(0);
-          offset.second.base_vertex = Gl_renderer::stats.vertices_drawn_count;
+          sub_command.second.base_vertex = Gl_renderer::stats.vertices_drawn_count;
           
-          load_dynamic_vbo_data(offset.second.vertex_data, offset.second.vertex_count, offset.second.vertex_size,
-                                draw_command.first, offset.second.base_vertex * offset.second.vertex_size);
+          load_dynamic_vbo_data(sub_command.second.vertex_data, sub_command.second.vertex_count,
+                                sub_command.second.vertex_size,
+                                draw_command.first, sub_command.second.base_vertex * sub_command.second.vertex_size);
           
           // Update vbo count.
           draw_command.second->vertex_array_buffer->get_vertex_buffers()[0]->set_count(
-            offset.second.base_vertex + offset.second.vertex_count);
+            sub_command.second.base_vertex + sub_command.second.vertex_count);
           
           if (draw_command.second->vertex_array_buffer->get_index_buffer())
           {
             // Set index offset.
             // If we are starting a new frame, reset the index buffer or if we only have one entity data in the ibo.
-            if (Gl_renderer::stats.indices_drawn_count == 0 || draw_command.second->batch_offset.size() == 1)
+            if (Gl_renderer::stats.indices_drawn_count == 0 || draw_command.second->sub_commands.size() == 1)
               draw_command.second->vertex_array_buffer->get_index_buffer()->set_count(0);
-            offset.second.ibo_offset = Gl_renderer::stats.indices_drawn_count * offset.second.index_size;
+            sub_command.second.ibo_offset = Gl_renderer::stats.indices_drawn_count * sub_command.second.index_size;
             
-            load_dynamic_ibo_data(offset.second.index_data, offset.second.index_count, offset.second.index_size,
-                                  draw_command.first, offset.second.ibo_offset);
+            load_dynamic_ibo_data(sub_command.second.index_data, sub_command.second.index_count,
+                                  sub_command.second.index_size,
+                                  draw_command.first, sub_command.second.ibo_offset);
             
             // Update ibo count.
             draw_command.second->vertex_array_buffer->get_index_buffer()->set_count(
-              Gl_renderer::stats.indices_drawn_count + offset.second.index_count);
+              Gl_renderer::stats.indices_drawn_count + sub_command.second.index_count);
           }
         }
         
         // Update stats.
-        Gl_renderer::stats.vertices_drawn_count += offset.second.vertex_count;
-        Gl_renderer::stats.indices_drawn_count += offset.second.index_count;
+        Gl_renderer::stats.vertices_drawn_count += sub_command.second.vertex_count;
+        Gl_renderer::stats.indices_drawn_count += sub_command.second.index_count;
       }
     }
   }
@@ -737,43 +740,43 @@ namespace Wave
       
       if (draw_command.second->vertex_array_buffer->get_index_buffer())
         draw_command.second->vertex_array_buffer->get_index_buffer()->bind();
-      for (const auto &offset: draw_command.second->batch_offset)
+      for (const auto &sub_command: draw_command.second->sub_commands)
       {
-        if (offset.second.instance_count == 1)
+        if (sub_command.second.instance_count == 1)
         {
-          if (offset.second.base_vertex == 0 && offset.second.index_count > 0)
+          if (sub_command.second.base_vertex == 0 && sub_command.second.index_count > 0)
           {
-            CHECK_GL_CALL(glDrawElements(GL_TRIANGLES, offset.second.index_count,
+            CHECK_GL_CALL(glDrawElements(GL_TRIANGLES, sub_command.second.index_count,
                                          GL_UNSIGNED_INT,
                                          nullptr));
-          } else if (offset.second.index_count > 0)
+          } else if (sub_command.second.index_count > 0)
           {
-            CHECK_GL_CALL(glDrawElementsBaseVertex(GL_TRIANGLES, offset.second.index_count,
+            CHECK_GL_CALL(glDrawElementsBaseVertex(GL_TRIANGLES, sub_command.second.index_count,
                                                    GL_UNSIGNED_INT,
-                                                   (const void *) offset.second.ibo_offset,
-                                                   offset.second.base_vertex));
-          } else if (offset.second.index_count == 0)
+                                                   (const void *) sub_command.second.ibo_offset,
+                                                   sub_command.second.base_vertex));
+          } else if (sub_command.second.index_count == 0)
           {
             CHECK_GL_CALL(glDisable(GL_CULL_FACE));
-            CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, offset.second.base_vertex, offset.second.vertex_count));
+            CHECK_GL_CALL(glDrawArrays(GL_TRIANGLES, sub_command.second.base_vertex, sub_command.second.vertex_count));
             CHECK_GL_CALL(glEnable(GL_CULL_FACE));
           }
-        } else if (offset.second.instance_count > 1)
+        } else if (sub_command.second.instance_count > 1)
         {
-          if (offset.second.index_count == 0)
+          if (sub_command.second.index_count == 0)
           {
             CHECK_GL_CALL(glDisable(GL_CULL_FACE));
             CHECK_GL_CALL(glDrawArraysInstanced(GL_TRIANGLES, 0,
-                                                offset.second.vertex_count,
-                                                offset.second.instance_count));
+                                                sub_command.second.vertex_count,
+                                                sub_command.second.instance_count));
             CHECK_GL_CALL(glEnable(GL_CULL_FACE));
           } else
           {
-            CHECK_GL_CALL(glDrawElementsInstancedBaseVertex(GL_TRIANGLES, offset.second.index_count,
+            CHECK_GL_CALL(glDrawElementsInstancedBaseVertex(GL_TRIANGLES, sub_command.second.index_count,
                                                             GL_UNSIGNED_INT,
                                                             nullptr,
-                                                            offset.second.instance_count,
-                                                            offset.second.base_vertex));
+                                                            sub_command.second.instance_count,
+                                                            sub_command.second.base_vertex));
           }
           draw_command.second->associated_shader->unbind();
           draw_command.second->vertex_array_buffer->unbind();
@@ -1037,7 +1040,7 @@ namespace Wave
         default: temp.type = "Unknown";
           break;
       }
-      //TODO Replace return statements for both low and notification severity levels for thorough debugging.
+      
       switch (severity)
       {
         case GL_DEBUG_SEVERITY_HIGH: temp.severity = "Fatal (High)";
@@ -1045,10 +1048,10 @@ namespace Wave
         case GL_DEBUG_SEVERITY_MEDIUM: temp.severity = "Fatal (Medium)";
           break;
         case GL_DEBUG_SEVERITY_LOW: temp.severity = "Warn (low)";
-          break;  // Silence low warnings for now due to clutter in terminal when this is logged.
+          break;
         case GL_DEBUG_SEVERITY_NOTIFICATION: temp.severity = "Warn (info)";
           return;  // Silence info for now due to clutter in terminal when this is logged.
-        default: temp.severity = "Warn (Unknown)";
+        default: temp.severity = "Fatal (Unknown)";
           break;
       }
       

@@ -131,7 +131,7 @@ namespace Wave
     static Renderer::Renderer_stats_s stats;
     static std::map<uint32_t, Texture *> textures;
     // Map the draw commands to enable querying and overwriting with the name identifier.
-    static std::map<uint32_t, Renderer::Draw_command *> draw_commands;
+    static std::map<uint32_t, Renderer::Draw_command_s *> draw_commands;
     static std::vector<std::shared_ptr<Uniform_buffer>> uniform_buffers;
     static std::function<void(Event_system::Event &event)> event_callback_function;
     private:
