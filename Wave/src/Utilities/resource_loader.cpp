@@ -56,7 +56,7 @@ namespace Wave
   Object_2D_data_s Resource_loader::load_object_2D_source(const char *file_path)
   {
     std::vector<Vertex_2D> vertices;
-    std::vector<Face_2D_s> face_indices;
+    std::vector<Index_2D_s> face_indices;
     std::vector<Math::Vector_2f> normals;
     std::vector<Math::Vector_2f> tex_coords;
     
@@ -106,13 +106,13 @@ namespace Wave
     }
     
     fclose(file_ptr);
-    return {Math::Vector_2f(0.0f), vertices, face_indices, normals, tex_coords, {}};
+    return {Math::Vector_2f(0.0f), vertices, face_indices, tex_coords, {}};
   }
   
   Object_3D_data_s Resource_loader::load_object_3D_source(const char *file_path)
   {
     std::vector<Vertex_3D> vertices;
-    std::vector<Face_3D_s> face_indices;
+    std::vector<Index_3D_s> face_indices;
     std::vector<Math::Vector_3f> normals;
     std::vector<Math::Vector_2f> tex_coords;
     
@@ -187,7 +187,7 @@ namespace Wave
     return {strtof(x, nullptr), strtof(y, nullptr), strtof(z, nullptr)};
   }
   
-  Face_2D_s Resource_loader::load_object_2D_face(FILE *file_ptr)
+  Index_2D_s Resource_loader::load_object_2D_face(FILE *file_ptr)
   {
     char face_data[3][LINE_MAX]{{0},
                                 {0},
@@ -217,17 +217,15 @@ namespace Wave
       else indices.push_back((uint32_t) strtoul(token.c_str(), nullptr, 10));
     }
     
-    Face_2D_s face_2D_indices = {indices[0] - 1,
-                                 indices[1] - 1,
-                                 indices[2] - 1,
-                                 indices[3] - 1,
-                                 indices[4] - 1,
-                                 indices[5] - 1};
+    Index_2D_s face_2D_indices = {indices[0] - 1,
+                                  indices[1] - 1,
+                                  indices[2] - 1,
+                                  indices[3] - 1};
     
     return face_2D_indices;
   }
   
-  Face_3D_s Resource_loader::load_object_3D_face(FILE *file_ptr)
+  Index_3D_s Resource_loader::load_object_3D_face(FILE *file_ptr)
   {
     char face_data[3][LINE_MAX]{{0},
                                 {0},
@@ -257,15 +255,15 @@ namespace Wave
       else indices.push_back((uint32_t) strtoul(token.c_str(), nullptr, 10));
     }
     
-    Face_3D_s face_3D_indices = {indices[0] - 1,
-                                 indices[1] > 0 ? indices[1] - 1 : indices[1],
-                                 indices[2] > 0 ? indices[2] - 1 : indices[2],
-                                 indices[3] - 1,
-                                 indices[4] > 0 ? indices[4] - 1 : indices[4],
-                                 indices[5] > 0 ? indices[5] - 1 : indices[5],
-                                 indices[6] - 1,
-                                 indices[7] > 0 ? indices[7] - 1 : indices[7],
-                                 indices[8] > 0 ? indices[8] - 1 : indices[8]};
+    Index_3D_s face_3D_indices = {indices[0] - 1,
+                                  indices[1] > 0 ? indices[1] - 1 : indices[1],
+                                  indices[2] > 0 ? indices[2] - 1 : indices[2],
+                                  indices[3] - 1,
+                                  indices[4] > 0 ? indices[4] - 1 : indices[4],
+                                  indices[5] > 0 ? indices[5] - 1 : indices[5],
+                                  indices[6] - 1,
+                                  indices[7] > 0 ? indices[7] - 1 : indices[7],
+                                  indices[8] > 0 ? indices[8] - 1 : indices[8]};
     
     return face_3D_indices;
   }

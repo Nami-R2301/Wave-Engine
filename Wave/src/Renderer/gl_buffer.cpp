@@ -28,7 +28,7 @@ namespace Wave
     
     CHECK_GL_CALL(glGenBuffers(1, &this->vbo_id)); // Create empty buffer for our vertex_source data.
     CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
-    CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, this->buffer_size, data,
+    CHECK_GL_CALL(glBufferData(GL_ARRAY_BUFFER, size * count, data,
                                buffer_type == STATIC_DRAW ? GL_STATIC_DRAW :
                                buffer_type == DYNAMIC_DRAW ? GL_DYNAMIC_DRAW : GL_STREAM_DRAW));
   }
@@ -40,6 +40,40 @@ namespace Wave
       Gl_vertex_buffer::unbind();
       glDeleteBuffers(1, &this->vbo_id);
     }
+  }
+  
+  void Gl_vertex_buffer::resize(uint64_t requested_vbo_size)
+  {
+    if (requested_vbo_size <= 0 || requested_vbo_size >= INT_MAX)
+    {
+      alert(WAVE_LOG_ERROR, "[Gl vertex buffer] --> Attempted to resize vbo to %lld", requested_vbo_size);
+      return;
+    }
+    
+    if (requested_vbo_size <= this->buffer_count * this->buffer_size)
+    {
+      this->buffer_count = requested_vbo_size / this->buffer_size;
+      return;
+    }
+    
+    
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_READ_BUFFER, this->vbo_id));
+    
+    // Copy the current buffer contents to a new one.
+    uint32_t new_buffer = 0;
+    CHECK_GL_CALL(glCreateBuffers(1, &new_buffer));
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer));
+    CHECK_GL_CALL(glBufferData(GL_COPY_WRITE_BUFFER, requested_vbo_size, nullptr, GL_STATIC_DRAW));
+    
+    CHECK_GL_CALL(glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0,
+                                      this->buffer_count * this->buffer_size));
+    
+    Gl_vertex_buffer::remove();
+    this->vbo_id = new_buffer;  // Substitute pointer.
+    this->buffer_count = requested_vbo_size / this->buffer_size;  // Update size.
+    
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_WRITE_BUFFER, 0));
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_READ_BUFFER, 0));
   }
   
   uint32_t Gl_vertex_buffer::get_count() const
@@ -76,6 +110,7 @@ namespace Wave
   void Gl_vertex_buffer::bind()
   {
     CHECK_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->vbo_id));
+    this->bound = true;
   }
   
   void Gl_vertex_buffer::unbind() const
@@ -104,19 +139,14 @@ namespace Wave
   
   /*************************** Index buffer ***************************/
   
-  Gl_index_buffer::Gl_index_buffer(const void *data, uint32_t count_) : count(count_)
+  Gl_index_buffer::Gl_index_buffer(const void *data, uint32_t count_, uint32_t size) : buffer_count(count_),
+                                                                                       buffer_size(size)
   {
     CHECK_GL_CALL(glGenBuffers(1, &this->index_buffer_id));
     Gl_index_buffer::bind();
-    if (data)
-    {
-      CHECK_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(count_ * INDEX_SIZE), data,
-                                 GL_STATIC_DRAW));
-    } else
-    {
-      CHECK_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(count_ * INDEX_SIZE), data,
-                                 GL_DYNAMIC_DRAW));
-    }
+    
+    data ? CHECK_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count_ * size, data, GL_STATIC_DRAW)) :
+    CHECK_GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count_ * size, data, GL_DYNAMIC_DRAW));
   }
   
   Gl_index_buffer::~Gl_index_buffer()
@@ -126,6 +156,39 @@ namespace Wave
       Gl_index_buffer::unbind();
       glDeleteBuffers(1, &this->index_buffer_id);
     }
+  }
+  
+  void Gl_index_buffer::resize(uint64_t requested_ibo_size)
+  {
+    if (requested_ibo_size <= 0 || requested_ibo_size >= INT_MAX)
+    {
+      alert(WAVE_LOG_ERROR, "[Gl vertex buffer] --> Attempted to resize ibo to %lld", requested_ibo_size);
+      return;
+    }
+    
+    if (requested_ibo_size <= this->buffer_count * this->buffer_size)
+    {
+      this->buffer_count = requested_ibo_size / this->buffer_size;
+      return;
+    }
+    
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_READ_BUFFER, this->index_buffer_id));
+    
+    // Copy the current buffer contents to a new one.
+    uint32_t new_buffer = 0;
+    CHECK_GL_CALL(glCreateBuffers(1, &new_buffer));
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_WRITE_BUFFER, new_buffer));
+    CHECK_GL_CALL(glBufferData(GL_COPY_WRITE_BUFFER, requested_ibo_size, nullptr, GL_STATIC_DRAW));
+    
+    CHECK_GL_CALL(glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0,
+                                      this->buffer_count * this->buffer_size));
+    
+    Gl_index_buffer::remove();
+    this->index_buffer_id = new_buffer;  // Substitute pointer.
+    this->buffer_count = requested_ibo_size / this->buffer_size;  // Update size.
+    
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_WRITE_BUFFER, 0));
+    CHECK_GL_CALL(glBindBuffer(GL_COPY_READ_BUFFER, 0));
   }
   
   uint32_t Gl_index_buffer::get_id() const
@@ -140,7 +203,7 @@ namespace Wave
   
   void Gl_index_buffer::set_count(uint32_t count_)
   {
-    this->count = count_;
+    this->buffer_count = count_;
   }
   
   void Gl_index_buffer::bind()

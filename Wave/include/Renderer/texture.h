@@ -75,7 +75,7 @@ namespace Wave
     virtual void set_texture_slot(int32_t texture_slot_) = 0;
     virtual void set_bits_per_pixel(int32_t bits_per_pixel) = 0;
     
-    virtual void bind(int32_t slot_) = 0;
+    virtual void bind() = 0;
     virtual void unbind() const = 0;
     virtual void set_data(const Texture_data_s *data_array, uint32_t *offset_array) const = 0;
     

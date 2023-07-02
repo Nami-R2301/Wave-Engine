@@ -32,8 +32,7 @@ namespace Wave
   
   Object_2D::Object_2D(const Object_2D &obj) : object_type_e(obj.object_type_e),
                                                vertices(obj.vertices),
-                                               normals(obj.normals),
-                                               faces(obj.faces),
+                                               indices(obj.indices),
                                                tex_coords(obj.tex_coords),
                                                textures(obj.textures),
                                                model_matrix(obj.model_matrix),
@@ -42,7 +41,7 @@ namespace Wave
   }
   
   Object_2D::Object_2D(const Object_2D_data_s &object_2D_data, int32_t id_) : vertices(object_2D_data.vertices),
-                                                                              normals(object_2D_data.normals),
+                                                                              
                                                                               tex_coords(object_2D_data.tex_coords),
                                                                               textures(object_2D_data.textures)
   {
@@ -60,7 +59,6 @@ namespace Wave
   Object_2D::Object_2D(const Object_2D_data_s &object_2D_data, const std::shared_ptr<Shader> &associated_shader_,
                        int32_t id_)
     : vertices(object_2D_data.vertices),
-      normals(object_2D_data.normals),
       tex_coords(object_2D_data.tex_coords),
       textures(object_2D_data.textures),
       associated_shader(associated_shader_)
@@ -88,14 +86,17 @@ namespace Wave
   {
     if (this->is_sent() && Object_2D::data_has_changed)
     {
-      Renderer::replace_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures);
+      Renderer::replace_draw_command(this->id, *this->associated_shader, this->vertices.data(), get_vertex_count(),
+                                     get_vertex_size(), this->indices.data(), get_index_count(), get_index_size(),
+                                     !this->textures.empty() ? this->textures.back().get() : nullptr);
       Object_2D::data_has_changed = false;
       return;
     }
     for (const auto &texture: this->textures) if (!texture->is_sent()) texture->send_gpu(instance_count);
     for (uint64_t i = 0; i < instance_count; ++i)
-      Renderer::add_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures,
-                                 this->flat_shaded);
+      Renderer::add_draw_command(this->id, *this->associated_shader, this->vertices.data(), get_vertex_count(),
+                                 get_vertex_size(), this->indices.data(), get_index_count(), get_index_size(),
+                                 !this->textures.empty() ? this->textures.back().get() : nullptr, this->flat_shaded);
     Object_2D::data_has_changed = false;
     this->sent = true;
   }
@@ -152,14 +153,19 @@ namespace Wave
     return this->vertex_size;
   }
   
-  const void *Object_2D::get_faces() const
+  const void *Object_2D::get_indices() const
   {
-    return this->faces.data();
+    return this->indices.data();
   }
   
-  uint64_t Object_2D::get_face_count() const
+  uint64_t Object_2D::get_index_count() const
   {
-    return this->faces.size();
+    return this->indices.size();
+  }
+  
+  uint64_t Object_2D::get_index_size() const
+  {
+    return sizeof(ushort);
   }
   
   const std::vector<Math::Vector_2f> &Object_2D::get_tex_coords() const
@@ -234,38 +240,20 @@ namespace Wave
     this->vertices = vertices_;
   }
   
-  void Object_2D::add_face(uint32_t face)
+  void Object_2D::add_index(ushort face)
   {
-    this->faces.emplace_back(face);
+    this->indices.emplace_back(face);
   }
   
-  void Object_2D::replace_face(uint64_t index, uint32_t face)
+  void Object_2D::replace_index(uint64_t index, ushort face)
   {
-    if (index >= this->faces.size()) return;
-    this->faces[index] = face;
+    if (index >= this->indices.size()) return;
+    this->indices[index] = face;
   }
   
-  void Object_2D::set_faces(const std::vector<uint32_t> &faces_)
+  void Object_2D::set_indices(const std::vector<ushort> &faces_)
   {
-    this->faces = faces_;
-  }
-  
-  const std::vector<Math::Vector_2f> &Object_2D::get_normals() const
-  {
-    return this->normals;
-  }
-  
-  void Object_2D::set_normal(uint64_t index, const Math::Vector_2f &normal_)
-  {
-    if (index <= this->normals.size()) this->normals[index] = normal_;
-  }
-  
-  void Object_2D::set_normals([[maybe_unused]] const std::vector<Math::Vector_2f> &normals_)
-  {
-    if (normals_.empty()) return;
-    this->normals.reserve(normals_.size());
-    
-    for (int64_t i = 0; i < (int64_t) normals_.size(); ++i) this->normals[i] = normals_[i];
+    this->indices = faces_;
   }
   
   void Object_2D::add_texture(const std::shared_ptr<Texture> &texture_)
@@ -350,14 +338,13 @@ namespace Wave
   
   void Object_2D::prepare_vertices(const Object_2D_data_s &sprite)
   {
-    for (const Face_2D_s &face: sprite.indices)
+    for (const Index_2D_s &face: sprite.indices)
     {
-      add_face(face.first_vertex_index);
-      add_face(face.second_vertex_index);
+      add_index(face.first_vertex_index);
+      add_index(face.second_vertex_index);
       
       replace_vertex(face.first_vertex_index,
                      Vertex_2D(this->vertices[face.first_vertex_index].get_position() + sprite.origin,
-                               this->normals[face.first_normal_index] + sprite.origin,
                                this->vertices[face.first_vertex_index].get_color(),
                                this->tex_coords[face.first_texture_index]));
       
@@ -365,7 +352,6 @@ namespace Wave
       
       replace_vertex(face.second_vertex_index,
                      Vertex_2D(this->vertices[face.second_vertex_index].get_position() + sprite.origin,
-                               this->normals[face.second_normal_index] + sprite.origin,
                                this->vertices[face.second_vertex_index].get_color(),
                                this->tex_coords[face.second_texture_index]));
       
@@ -421,7 +407,7 @@ namespace Wave
     this->object_type_e = obj.object_type_e;
     this->origin = obj.origin;
     this->vertices = obj.vertices;
-    this->faces = obj.faces;
+    this->indices = obj.indices;
     if (!this->tex_coords.empty()) this->tex_coords = obj.tex_coords;
     this->textures = obj.textures;
     this->model_transform = obj.model_transform;
@@ -431,11 +417,11 @@ namespace Wave
   
   void Object_2D::calculate_average_normals()
   {
-    for (size_t i = 0; i < this->get_face_count(); i += 3)
+    for (size_t i = 0; i < this->get_index_count(); i += 3)
     {
-      unsigned int in0 = this->faces[i];
-      unsigned int in1 = this->faces[i + 1];
-      unsigned int in2 = this->faces[i + 2];
+      unsigned int in0 = this->indices[i];
+      unsigned int in1 = this->indices[i + 1];
+      unsigned int in2 = this->indices[i + 2];
       Math::Vector_2f v1(this->vertices[in1].get_position().get_x() - this->vertices[in0].get_position().get_x(),
                          this->vertices[in1].get_position().get_y() - this->vertices[in0].get_position().get_y());
       
@@ -539,7 +525,7 @@ namespace Wave
   Object_3D::Object_3D(const Object_3D &mesh) : object_type_e(mesh.object_type_e),
                                                 vertices(mesh.vertices),
                                                 normals(mesh.normals),
-                                                faces(mesh.faces),
+                                                indices(mesh.indices),
                                                 tex_coords(mesh.tex_coords),
                                                 textures(mesh.textures),
                                                 model_matrix(mesh.model_matrix),
@@ -557,11 +543,15 @@ namespace Wave
   {
     if (this->is_sent() && Object_3D::data_has_changed)
     {
-      Renderer::replace_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures);
+      Renderer::replace_draw_command(this->id, *this->associated_shader, this->vertices.data(), get_vertex_count(),
+                                     get_vertex_size(), this->indices.data(), get_index_count(), get_index_size(),
+                                     !this->textures.empty() ? this->textures.back().get() : nullptr);
     } else if (Object_3D::data_has_changed)
     {
       for (uint64_t i = 0; i < instance_count; ++i)
-        Renderer::add_draw_command(this->id, *this->associated_shader, this->vertices, this->faces, this->textures,
+        Renderer::add_draw_command(this->id, *this->associated_shader, this->vertices.data(), get_vertex_count(),
+                                   get_vertex_size(), this->indices.data(), get_index_count(), get_index_size(),
+                                   !this->textures.empty() ? this->textures.back().get() : nullptr,
                                    this->flat_shaded);
     }
     
@@ -593,7 +583,7 @@ namespace Wave
       this->vertices[i].convert_in_2D();
       this->replace_vertex(i, this->vertices[i]);
     }
-    this->set_faces(this->faces);
+    this->set_indices(this->indices);
     this->set_texture_coords(this->tex_coords);
     this->set_textures(this->textures);
     this->set_model_transform(this->model_transform);
@@ -635,14 +625,19 @@ namespace Wave
     return this->vertex_size;
   }
   
-  const void *Object_3D::get_faces() const
+  const void *Object_3D::get_indices() const
   {
-    return this->faces.data();
+    return this->indices.data();
   }
   
-  uint64_t Object_3D::get_face_count() const
+  uint64_t Object_3D::get_index_count() const
   {
-    return this->faces.size();
+    return this->indices.size();
+  }
+  
+  uint64_t Object_3D::get_index_size() const
+  {
+    return sizeof(ushort);
   }
   
   const std::vector<Math::Vector_2f> &Object_3D::get_tex_coords() const
@@ -720,22 +715,22 @@ namespace Wave
     Object_3D::data_has_changed = true;
   }
   
-  void Object_3D::add_face(uint32_t face)
+  void Object_3D::add_face(ushort face)
   {
-    this->faces.emplace_back(face);
+    this->indices.emplace_back(face);
     Object_3D::data_has_changed = true;
   }
   
-  void Object_3D::replace_face(uint64_t index, uint32_t face)
+  void Object_3D::replace_face(uint64_t index, ushort face)
   {
-    if (index >= this->faces.size()) return;
-    this->faces[index] = face;
+    if (index >= this->indices.size()) return;
+    this->indices[index] = face;
     Object_3D::data_has_changed = true;
   }
   
-  void Object_3D::set_faces(const std::vector<uint32_t> &faces_)
+  void Object_3D::set_indices(const std::vector<ushort> &faces_)
   {
-    this->faces = faces_;
+    this->indices = faces_;
     Object_3D::data_has_changed = true;
   }
   
@@ -845,7 +840,7 @@ namespace Wave
   
   void Object_3D::prepare_vertices(const Object_3D_data_s &mesh)
   {
-    for (const Face_3D_s &face: mesh.indices)
+    for (const Index_3D_s &face: mesh.indices)
     {
       add_face(face.first_vertex_index);
       add_face(face.second_vertex_index);
@@ -925,7 +920,7 @@ namespace Wave
                          this->origin.get_y(),
                          0});
     for (const Vertex_3D &vertex: this->vertices) object.add_vertex((Vertex_2D) vertex);
-    object.set_faces(this->faces);
+    object.set_indices(this->indices);
     object.set_texture_coords(this->tex_coords);
     if (!object.get_textures().empty()) object.set_textures(this->textures);
     object.set_model_transform(this->model_transform);
@@ -937,7 +932,7 @@ namespace Wave
     if (this == &obj) return *this;
     this->origin = obj.origin;
     this->vertices = obj.vertices;
-    this->faces = obj.faces;
+    this->indices = obj.indices;
     this->normals = obj.normals;
     this->tex_coords = obj.tex_coords;
     this->textures = obj.textures;
@@ -954,11 +949,11 @@ namespace Wave
   
   void Object_3D::calculate_average_normals()
   {
-    for (size_t i = 0; i < this->get_face_count(); i += 3)
+    for (size_t i = 0; i < this->get_index_count(); i += 3)
     {
-      unsigned int in0 = this->faces[i];
-      unsigned int in1 = this->faces[i + 1];
-      unsigned int in2 = this->faces[i + 2];
+      unsigned int in0 = this->indices[i];
+      unsigned int in1 = this->indices[i + 1];
+      unsigned int in2 = this->indices[i + 2];
       Math::Vector_3f v1(this->vertices[in1].get_position().get_x() - this->vertices[in0].get_position().get_x(),
                          this->vertices[in1].get_position().get_y() - this->vertices[in0].get_position().get_y(),
                          this->vertices[in1].get_position().get_z() - this->vertices[in0].get_position().get_z());

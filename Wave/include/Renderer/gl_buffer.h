@@ -21,11 +21,13 @@ namespace Wave
     [[nodiscard]] uint32_t get_id() const override;
     [[nodiscard]] bool is_bound() const override;
     
-    void set_count(uint32_t count_) override;
-    void set_data(const void *data, uint64_t size, uint64_t offset) override;
     void bind() override;
     void unbind() const override;
     void remove() override;
+    
+    void resize(uint64_t requested_vbo_size) override;
+    void set_count(uint32_t count_) override;
+    void set_data(const void *data, uint64_t size, uint64_t offset) override;
     
     [[nodiscard]] const Buffer_layout &get_layout() const override;
     void set_layout(const Buffer_layout &layout) override;
@@ -36,13 +38,11 @@ namespace Wave
     Buffer_layout b_layout;
   };
   
-  constexpr uint32_t INDEX_SIZE = sizeof(uint32_t);
-  
   class Gl_index_buffer : public Index_buffer
   {
     public:
     Gl_index_buffer() = default;
-    Gl_index_buffer(const void *data, uint32_t count_);
+    Gl_index_buffer(const void *data, uint32_t count_, uint32_t size = sizeof(uint32_t));
     ~Gl_index_buffer() override;
     
     [[nodiscard]] uint32_t get_id() const override;
@@ -51,16 +51,17 @@ namespace Wave
     void unbind() const override;
     void remove() override;
     
+    void resize(uint64_t requested_ibo_size) override;
     void set_data(const void *data, uint64_t size, uint64_t offset) override;
-    
     void set_count(uint32_t count_) override;
     
     [[nodiscard]] inline uint32_t get_count() const override
     {
-      return this->count;
+      return this->buffer_count;
     };
     private:
     uint32_t index_buffer_id = 0;
-    uint32_t count = 0;
+    uint32_t buffer_count = 0;
+    uint32_t buffer_size = 0;
   };
 }

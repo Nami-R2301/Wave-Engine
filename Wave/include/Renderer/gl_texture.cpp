@@ -204,12 +204,11 @@ namespace Wave
     return 0;
   }
   
-  void Gl_texture_2D::bind(int32_t slot_)
+  void Gl_texture_2D::bind()
   {
     if (!this->sent) this->send_gpu(1);
     
-    CHECK_GL_CALL(glActiveTexture(slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 + this->texture_data.desired_slot :
-                                  GL_TEXTURE0 + slot_));  // Set our active texture slot.
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
     CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
   }
   
@@ -569,12 +568,11 @@ namespace Wave
     return 0;
   }
   
-  void Gl_texture_3D::bind(int32_t slot_)
+  void Gl_texture_3D::bind()
   {
     if (!this->sent) this->send_gpu(1);
     
-    CHECK_GL_CALL(glActiveTexture(slot_ == WAVE_VALUE_DONT_CARE ? GL_TEXTURE0 + this->texture_data.desired_slot :
-                                  GL_TEXTURE0 + slot_));  // Set our active texture slot.
+    CHECK_GL_CALL(glActiveTexture(GL_TEXTURE0 + this->texture_data.desired_slot));  // Set our active texture slot.
     CHECK_GL_CALL(glBindTexture(this->texture_target, this->texture_id));
   }
   

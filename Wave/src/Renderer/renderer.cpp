@@ -216,88 +216,32 @@ namespace Wave
     }
   }
   
-  void Renderer::add_draw_command(uint64_t entity_id, Shader &shader,
-                                  const std::vector<Vertex_2D> &vertices, const std::vector<uint32_t> &indices,
-                                  std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
+  void Renderer::add_draw_command(uint64_t entity_id, Shader &shader, const void *vertices, uint64_t vertex_count,
+                                  uint64_t vertex_size, const void *indices, uint64_t index_count,
+                                  uint64_t index_size, Texture *texture_, bool flat_shaded)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::add_draw_command(entity_id, shader, vertices, indices, textures, flat_shaded);
+        Gl_renderer::add_draw_command(entity_id, shader, vertices, vertex_count, vertex_size,
+                                      indices, index_count, index_size, texture_, flat_shaded);
         break;
       }
       default:break;
     }
   }
   
-  void Renderer::add_draw_command(uint64_t entity_id, Shader &shader,
-                                  const std::vector<Vertex_3D> &vertices, const std::vector<uint32_t> &indices,
-                                  std::vector<std::shared_ptr<Texture>> &textures, bool flat_shaded)
+  void Renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const void *vertices, uint64_t vertex_count,
+                                      uint64_t vertex_size, const void *indices, uint64_t index_count,
+                                      uint64_t index_size, Texture *texture_)
   {
     switch (Renderer::api_in_use)
     {
       case Renderer_api::OpenGL:
       {
-        Gl_renderer::add_draw_command(entity_id, shader, vertices, indices, textures, flat_shaded);
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                                  const std::vector<uint32_t> &indices, Texture &texture_atlas)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::add_draw_command(entity_id, shader, vertices, indices, texture_atlas);
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
-                                      const std::vector<uint32_t> &indices,
-                                      std::vector<std::shared_ptr<Texture>> &textures)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::replace_draw_command(entity_id, shader, vertices, indices, textures);
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
-                                      const std::vector<uint32_t> &indices,
-                                      std::vector<std::shared_ptr<Texture>> &textures)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::replace_draw_command(entity_id, shader, vertices, indices, textures);
-        break;
-      }
-      default:break;
-    }
-  }
-  
-  void Renderer::replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                                      const std::vector<uint32_t> &indices, Texture &texture_atlas)
-  {
-    switch (Renderer::api_in_use)
-    {
-      case Renderer_api::OpenGL:
-      {
-        Gl_renderer::replace_draw_command(entity_id, shader, vertices, indices, texture_atlas);
+        Gl_renderer::replace_draw_command(entity_id, shader, vertices, vertex_count, vertex_size,
+                                          indices, index_count, index_size, texture_);
         break;
       }
       default:break;

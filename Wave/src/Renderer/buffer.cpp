@@ -55,7 +55,7 @@ namespace Wave
     return nullptr;
   }
   
-  std::shared_ptr<Index_buffer> Index_buffer::create(const uint32_t *indices, uint32_t size)
+  std::shared_ptr<Index_buffer> Index_buffer::create(const void *indices, uint32_t count, uint32_t size)
   {
     switch (Renderer::get_api())
     {
@@ -63,7 +63,7 @@ namespace Wave
         alert(WAVE_LOG_ERROR, "[BUFFER] --> None is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);
         return nullptr;
-      case Renderer_api::OpenGL:return std::make_shared<Gl_index_buffer>(indices, size);
+      case Renderer_api::OpenGL:return std::make_shared<Gl_index_buffer>(indices, count, size);
       case Renderer_api::Vulkan:
         alert(WAVE_LOG_ERROR, "[BUFFER] --> Vulkan is currently not supported! (on line %d in file %s) !",
               __LINE__, __FILE__);

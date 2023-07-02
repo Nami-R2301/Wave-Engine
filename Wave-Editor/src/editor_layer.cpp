@@ -324,12 +324,12 @@ namespace Wave
     for (const auto &color_attachment: framebuffer_viewport_gl->get_color_attachments())
     {
       // Bind color attachments.
-      color_attachment.attachment_texture->bind(WAVE_VALUE_DONT_CARE);
+      color_attachment.attachment_texture->bind();
     }
     
+    // Bind Depth attachment.
     if (framebuffer_viewport_gl->get_depth_attachment().attachment_texture)
-      // Bind Depth attachment.
-      framebuffer_viewport_gl->get_depth_attachment().attachment_texture->bind(WAVE_VALUE_DONT_CARE);
+      framebuffer_viewport_gl->get_depth_attachment().attachment_texture->bind();
     
     framebuffer_data->framebuffer_viewport_shader->set_uniform("u_color_attachment_sampler",
                                                                framebuffer_viewport_gl->get_color_attachments()[0].attachment_texture->get_texture_slot());
@@ -343,7 +343,7 @@ namespace Wave
     framebuffer_viewport_gl->data.vao->get_index_buffer()->bind();
     
     CHECK_GL_CALL(glDrawElements(GL_TRIANGLES, framebuffer_viewport_gl->data.vao->get_index_buffer()->get_count(),
-                                 GL_UNSIGNED_INT, nullptr));
+                                 GL_UNSIGNED_SHORT, nullptr));
     
     framebuffer_viewport_gl->data.vao->unbind();
     framebuffer_viewport_gl->data.vao->get_index_buffer()->unbind();

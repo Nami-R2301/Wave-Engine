@@ -87,7 +87,7 @@ namespace Wave
     this->entities.back().add_component<std::shared_ptr<Text_box>>(text_box);
     
     this->entities.emplace_back(this->active_scene->create_entity("Text Box : Menu Title"));
-    auto text_box_2 = Text_box::create(Math::Vector_2f(0.0f, 50.0f), "Game Title", nullptr,
+    auto text_box_2 = Text_box::create(Math::Vector_2f(0.0f, 50.0f), "Game Title", text_box->get_shader(),
                                        (int32_t) (uint32_t) this->entities.back());
     text_box_2->set_text_offset_x(text_box->get_text_length() + 50.0f);
     

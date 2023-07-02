@@ -17,19 +17,17 @@
 namespace Wave
 {
   
-  typedef struct Face_2D_s
+  typedef struct Index_2D_s
   {
     uint32_t first_vertex_index;
-    uint32_t first_normal_index;
     uint32_t first_texture_index;
     
     uint32_t second_vertex_index;
     uint32_t second_texture_index;
-    uint32_t second_normal_index;
-  } Face_2D_s;
+  } Index_2D_s;
   
   
-  typedef struct Face_3D_s
+  typedef struct Index_3D_s
   {
     uint32_t first_vertex_index;
     uint32_t first_texture_index;
@@ -42,14 +40,13 @@ namespace Wave
     uint32_t third_vertex_index;
     uint32_t third_texture_index;
     uint32_t third_normal_index;
-  } Face_3D_s;
+  } Index_3D_s;
   
   typedef struct Object_2D_data_s
   {
     Math::Vector_2f origin;
     std::vector<Vertex_2D> vertices;
-    std::vector<Face_2D_s> indices;
-    std::vector<Math::Vector_2f> normals;
+    std::vector<Index_2D_s> indices;
     std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
   } Object_2D_data_s;
@@ -58,7 +55,7 @@ namespace Wave
   {
     Math::Vector_3f origin;
     std::vector<Vertex_3D> vertices;
-    std::vector<Face_3D_s> indices;
+    std::vector<Index_3D_s> indices;
     std::vector<Math::Vector_3f> normals;
     std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
@@ -89,8 +86,9 @@ namespace Wave
     [[nodiscard]] virtual const void *get_vertices() const = 0;
     [[nodiscard]] virtual uint64_t get_vertex_count() const = 0;
     [[nodiscard]] virtual uint64_t get_vertex_size() const = 0;
-    [[nodiscard]] virtual const void *get_faces() const = 0;
-    [[nodiscard]] virtual uint64_t get_face_count() const = 0;
+    [[nodiscard]] virtual const void *get_indices() const = 0;
+    [[nodiscard]] virtual uint64_t get_index_count() const = 0;
+    [[nodiscard]] virtual uint64_t get_index_size() const = 0;
     [[nodiscard]] virtual const std::vector<std::shared_ptr<Texture>> &get_textures() const = 0;
     [[nodiscard]] virtual uint64_t get_texture_count() const = 0;
     [[nodiscard]] virtual const Math::Matrix_4f &get_model_matrix() const = 0;
@@ -148,9 +146,9 @@ namespace Wave
     [[nodiscard]] const Vertex_2D &get_vertex(uint64_t index) const;
     [[nodiscard]] uint64_t get_vertex_count() const override;
     [[nodiscard]] uint64_t get_vertex_size() const override;
-    [[nodiscard]] const void *get_faces() const override;
-    [[nodiscard]] uint64_t get_face_count() const override;
-    [[nodiscard]] const std::vector<Math::Vector_2f> &get_normals() const;
+    [[nodiscard]] const void *get_indices() const override;
+    [[nodiscard]] uint64_t get_index_count() const override;
+    [[nodiscard]] uint64_t get_index_size() const override;
     [[nodiscard]] const std::vector<Math::Vector_2f> &get_tex_coords() const;
     [[nodiscard]] const std::vector<std::shared_ptr<Texture>> &get_textures() const override;
     [[nodiscard]] uint64_t get_texture_count() const override;
@@ -163,12 +161,9 @@ namespace Wave
     void set_position(const Math::Vector_3f &position) override;
     void reset_position();
     
-    void add_face(uint32_t face);
-    void replace_face(uint64_t index, uint32_t face_);
-    void set_faces(const std::vector<uint32_t> &faces_);
-    
-    void set_normal(uint64_t index, const Math::Vector_2f &normal_);
-    void set_normals(const std::vector<Math::Vector_2f> &normal_);
+    void add_index(ushort face);
+    void replace_index(uint64_t index, ushort face_);
+    void set_indices(const std::vector<ushort> &faces_);
     
     void add_vertex(const Vertex_2D &vertex_);
     void replace_vertex(uint64_t index, const Vertex_2D &new_vertex);
@@ -196,8 +191,7 @@ namespace Wave
     uint64_t vertex_size = sizeof(Vertex_2D);
     Math::Vector_2f origin{0.0f};
     std::vector<Vertex_2D> vertices;
-    std::vector<Math::Vector_2f> normals;
-    std::vector<uint32_t> faces;
+    std::vector<ushort> indices;
     std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
     Math::Matrix_4f model_matrix = Math::Matrix_4f(1.0f);
@@ -290,8 +284,9 @@ namespace Wave
     [[nodiscard]] const Vertex_3D &get_vertex(uint64_t index) const;
     [[nodiscard]] uint64_t get_vertex_count() const override;
     [[nodiscard]] uint64_t get_vertex_size() const override;
-    [[nodiscard]] const void *get_faces() const override;
-    [[nodiscard]] uint64_t get_face_count() const override;
+    [[nodiscard]] const void *get_indices() const override;
+    [[nodiscard]] uint64_t get_index_count() const override;
+    [[nodiscard]] uint64_t get_index_size() const override;
     [[nodiscard]] const std::vector<Math::Vector_3f> &get_normals() const;
     [[nodiscard]] const std::vector<Math::Vector_2f> &get_tex_coords() const;
     [[nodiscard]] const std::vector<std::shared_ptr<Texture>> &get_textures() const override;
@@ -305,9 +300,9 @@ namespace Wave
     void set_position(const Math::Vector_3f &position) override;
     void reset_position();
     
-    void add_face(uint32_t face);
-    void replace_face(uint64_t index, uint32_t face_);
-    void set_faces(const std::vector<uint32_t> &faces_);
+    void add_face(ushort face);
+    void replace_face(uint64_t index, ushort face_);
+    void set_indices(const std::vector<ushort> &faces_);
     
     void set_normal(uint64_t index, const Math::Vector_3f &normal_);
     void set_normals(const std::vector<Math::Vector_3f> &normal_);
@@ -341,7 +336,7 @@ namespace Wave
     Math::Vector_3f origin{0.0f};
     std::vector<Vertex_3D> vertices;
     std::vector<Math::Vector_3f> normals;
-    std::vector<uint32_t> faces;
+    std::vector<ushort> indices;
     std::vector<Math::Vector_2f> tex_coords;
     std::vector<std::shared_ptr<Texture>> textures;
     Math::Matrix_4f model_matrix = Math::Matrix_4f(1.0f);

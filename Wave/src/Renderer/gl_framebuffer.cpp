@@ -10,12 +10,12 @@
 namespace Wave
 {
   
-  static const uint32_t index_buffer_data[6] = {2,
-                                                1,
-                                                0,
-                                                2,
-                                                0,
-                                                3};
+  static const ushort index_buffer_data[6] = {2,
+                                              1,
+                                              0,
+                                              2,
+                                              0,
+                                              3};
   
   static int32_t convert_to_gl_attachment(Framebuffer_target_e target, uint32_t attachment_index_)
   {
@@ -140,7 +140,7 @@ namespace Wave
     CHECK_GL_CALL(glCreateFramebuffers(1, &this->renderer_id));
     CHECK_GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, this->renderer_id));
     
-    auto vbo = Vertex_buffer::create(sizeof(float), 16);
+    auto vbo = Vertex_buffer::create(nullptr, sizeof(float), 16, Buffer_type::DYNAMIC_DRAW);
     std::vector<Buffer_element> b_elements;
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Position", false);
     b_elements.emplace_back(Buffer_data_type::Vector_2f, "Texture coords", false);
@@ -149,10 +149,10 @@ namespace Wave
     
     this->data.vao = Vertex_array_buffer::create();
     this->data.vbo_data = new float[16];
-    this->data.ibo_data = new uint32_t[6];
+    this->data.ibo_data = new ushort[6];
     memcpy(this->data.ibo_data, index_buffer_data, sizeof(index_buffer_data));
-    auto ibo = Index_buffer::create(this->data.ibo_data, 6);
-    this->data.vao->add_vertex_buffer(vbo);
+    auto ibo = Index_buffer::create(this->data.ibo_data, 6, sizeof(ushort));
+    this->data.vao->set_vertex_buffer(vbo);
     this->data.vao->set_index_buffer(ibo);
     
     for (Framebuffer_attachment_s &attachment: this->color_attachments)
@@ -351,7 +351,7 @@ namespace Wave
       };
     
     memcpy(this->data.vbo_data, vertex_buffer_data, sizeof(vertex_buffer_data));
-    this->data.vao->get_vertex_buffers().back()->set_data(this->data.vbo_data, sizeof(vertex_buffer_data), 0);
+    this->data.vao->get_vertex_buffer()->set_data(this->data.vbo_data, sizeof(vertex_buffer_data), 0);
     this->data.vao->unbind();
   }
   

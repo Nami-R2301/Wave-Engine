@@ -284,7 +284,7 @@ namespace Wave
       {
         this->texture_atlas->send_gpu(1);
         
-        this->texture_atlas->bind(this->texture_atlas->get_texture_slot());
+        this->texture_atlas->bind();
         // Set texture glyph data for current face.
         for (int i = 32; i < 128; i++)
         {
@@ -313,14 +313,14 @@ namespace Wave
       if (Gl_text_box::is_sent())
       {
         // If we are overwriting the current text_box vbo.
-        Renderer::replace_draw_command(this->id, *this->associated_shader, this->glyph_vertices, {},
-                                       *this->texture_atlas);
+        Renderer::replace_draw_command(this->id, *this->associated_shader, this->glyph_vertices.data(),
+                                       get_vertex_count(), get_vertex_size(), nullptr, 0, 0, this->texture_atlas);
       } else
       {
         // If we are sending the text box for the first time.
         for (uint64_t i = 0; i < instance_count; ++i)
-          Renderer::add_draw_command(this->id, *this->associated_shader, this->glyph_vertices, {},
-                                     *this->texture_atlas);
+          Renderer::add_draw_command(this->id, *this->associated_shader, this->glyph_vertices.data(),
+                                     get_vertex_count(), get_vertex_size(), nullptr, 0, 0, this->texture_atlas, false);
       }
     }
     

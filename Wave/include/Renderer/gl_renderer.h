@@ -11,7 +11,7 @@
 #define GL_ASYNC_ERROR_CALLBACK \
   static void gl_asynchronous_error_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, \
             const void *userParam);
-            
+
 #define CHECK_GL_CALL(x) x
 #else
 
@@ -85,31 +85,18 @@ namespace Wave
     // Rendering objects.
     static void begin(std::shared_ptr<Camera> &camera);
     
-    static void add_draw_command(uint64_t entity_id, Shader &shader,
-                                 const std::vector<Vertex_2D> &vertices, const std::vector<uint32_t> &indices,
-                                 std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded);
-    static void add_draw_command(uint64_t entity_id, Shader &shader,
-                                 const std::vector<Vertex_3D> &vertices, const std::vector<uint32_t> &indices,
-                                 std::vector<std::shared_ptr<Texture>> &textures_, bool flat_shaded);
-    static void add_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                                 const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    static void add_draw_command(uint64_t entity_id, Shader &shader, const void *vertices, uint64_t vertex_count,
+                                 uint64_t vertex_size, const void *indices, uint64_t index_count,
+                                 uint64_t index_size, Texture *texture_, bool flat_shaded);
     
-    static void replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_2D> &vertices,
-                                     const std::vector<uint32_t> &indices,
-                                     std::vector<std::shared_ptr<Texture>> &textures);
-    static void replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Vertex_3D> &vertices,
-                                     const std::vector<uint32_t> &indices,
-                                     std::vector<std::shared_ptr<Texture>> &textures);
-    static void replace_draw_command(uint64_t entity_id, Shader &shader, const std::vector<Glyph_quad_s> &vertices,
-                                     const std::vector<uint32_t> &indices, Texture &texture_atlas);
+    static void replace_draw_command(uint64_t entity_id, Shader &shader, const void *vertices, uint64_t vertex_count,
+                                     uint64_t vertex_size, const void *indices, uint64_t index_count,
+                                     uint64_t index_size, Texture *texture_);
     
     static void remove_draw_command(uint64_t shader_id, uint64_t entity_id);
     
     // Batching process.
     static void batch_data();
-    static void group_shaders();
-    static void batch_vbo_data();
-    static void batch_ibo_data();
     static void flush();
     
     static void end();
@@ -131,7 +118,7 @@ namespace Wave
     static Renderer::Renderer_stats_s stats;
     static std::map<uint32_t, Texture *> textures;
     // Map the draw commands to enable querying and overwriting with the name identifier.
-    static std::map<uint32_t, Renderer::Draw_command_s *> draw_commands;
+    static std::map<uint32_t, Renderer::Shader_draw_command_s *> shader_commands;
     static std::vector<std::shared_ptr<Uniform_buffer>> uniform_buffers;
     static std::function<void(Event_system::Event &event)> event_callback_function;
     private:
@@ -140,8 +127,8 @@ namespace Wave
                                       uint64_t vbo_offset);
     static void load_dynamic_ibo_data(const void *faces, uint64_t count, uint64_t size, uint64_t command_index,
                                       uint64_t ibo_offset);
-    static void init_object_draw_command(uint32_t entity_id, Shader &shader_linked, bool flat_shaded);
-    static void init_text_draw_command(uint32_t entity_id, Shader &shader_linked);
+    static void init_object_shader_command(uint32_t entity_id, Shader &shader_linked, bool flat_shaded);
+    static void init_text_shader_command(uint32_t entity_id, Shader &shader_linked);
   };
 }
 

@@ -157,6 +157,7 @@ namespace Wave
     virtual void unbind() const = 0;
     virtual void remove() = 0;
     
+    virtual void resize(uint64_t requested_vbo_count) = 0;
     virtual void set_data(const void *data, uint64_t size, uint64_t offset) = 0;
     virtual void set_count(uint32_t count_) = 0;
     
@@ -184,12 +185,13 @@ namespace Wave
     virtual void unbind() const = 0;
     virtual void remove() = 0;
     
+    virtual void resize(uint64_t requested_ibo_count) = 0;
     virtual void set_data(const void *data, uint64_t size, uint64_t offset) = 0;
     virtual void set_count(uint32_t count_) = 0;
     
     [[nodiscard]] virtual uint32_t get_count() const = 0;
     
-    static std::shared_ptr<Index_buffer> create(const uint32_t *indices, uint32_t size);
+    static std::shared_ptr<Index_buffer> create(const void *indices, uint32_t count, uint32_t size = sizeof(uint32_t));
     protected:
     bool bound = false;
   };
